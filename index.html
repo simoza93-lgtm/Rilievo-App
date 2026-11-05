@@ -133,6 +133,8 @@ ol.help li{margin-bottom:4px}
   <input type="file" id="fImp" accept=".json,application/json" hidden>
   <input type="file" id="fCam" accept="image/*" capture="environment" hidden>
   <input type="file" id="fGal" accept="image/*" multiple hidden>
+  <input type="file" id="fBgGal" accept="image/jpeg,image/png,image/*" hidden>
+  <input type="file" id="fBgCam" accept="image/*" capture="environment" hidden>
 </header>
 <nav id="tabs"></nav>
 <main id="main"></main>
@@ -691,6 +693,7 @@ function solve(pl, extKeys) {
     (pl.rooms || []).forEach(r => { r.px -= mx; r.py -= my; });
     (pl.notes || []).forEach(n => { n.x = r4(n.x - mx); n.y = r4(n.y - my); });
     if (pl.nord) { pl.nord.x = r4(pl.nord.x - mx); pl.nord.y = r4(pl.nord.y - my); }
+    if (pl.bg) { pl.bg.ox = r4(pl.bg.ox - mx); pl.bg.oy = r4(pl.bg.oy - my); }   // la planimetria di sfondo segue lo spostamento del punto base
     if (pl === piano()) { ui.view.x -= mx; ui.view.y -= my; }
   }
 }
@@ -1171,11 +1174,12 @@ function stairsCalc(pl) {
 let FDB = null;
 function fdb() {
   if (FDB) return Promise.resolve(FDB);
-  return new Promise((res, rej) => { const q = indexedDB.open('rilievo-foto', 1);
-    q.onupgradeneeded = () => { const s = q.result.createObjectStore('foto', {keyPath:'id'}); s.createIndex('ril', 'ril'); };
+  return new Promise((res, rej) => { const q = indexedDB.open('rilievo-foto', 2);
+    q.onupgradeneeded = () => { const db = q.result; if (!db.objectStoreNames.contains('foto')) { const s = db.createObjectStore('foto', {keyPath:'id'}); s.createIndex('ril', 'ril'); }
+      if (!db.objectStoreNames.contains('sfondi')) db.createObjectStore('sfondi', {keyPath:'id'}); };
     q.onsuccess = () => { FDB = q.result; res(FDB); }; q.onerror = () => rej(q.error); });
 }
-async function ftx(mode, fn) { const db = await fdb(); return new Promise((res, rej) => { const t = db.transaction('foto', mode), r = fn(t.objectStore('foto')); t.oncomplete = () => res(r ? r.result : undefined); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); }); }
+async function ftx(mode, fn, store = 'foto') { const db = await fdb(); return new Promise((res, rej) => { const t = db.transaction(store, mode), r = fn(t.objectStore(store)); t.oncomplete = () => res(r ? r.result : undefined); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); }); }
 const fPut = rec => ftx('readwrite', st => st.put(rec));
 const fDel = id => ftx('readwrite', st => st.delete(id));
 const fList = ril => ftx('readonly', st => st.index('ril').getAll(ril));
@@ -1586,7 +1590,7 @@ function render() {
         <div class="grp" id="grpType"><button data-nt="P">Perimetrali</button><button data-nt="T">Tramezzi</button></div>
         <div class="grp" id="grpAp"><button data-ap="finestra" title="Finestra">▭ Finestra</button><button data-ap="uscita" title="Porta-finestra">⊟ Porta-finestra</button><button data-ap="porta" title="Porta">⌐ Porta</button><button data-ap="ingresso" title="Ingresso">▲ Ingresso</button><button data-sc="1" title="Scala">☰ Scala</button></div>
         <div class="grp"><button data-dim="1" title="Quota libera: tocca due spigoli e scrivi la misura (per esempio il totale di una parete)">↔ Quota</button></div>
-        <div class="grp"><button data-foto="1" title="Foto: tocca dove ti trovi e scatta">📷 Foto</button><button data-nord="1" title="Simbolo del nord">⬆ Nord</button></div>
+        <div class="grp"><button data-bg="1" title="Planimetria di sfondo da ricalcare (JPEG)">🗺 Planimetria</button><button data-foto="1" title="Foto: tocca dove ti trovi e scatta">📷 Foto</button><button data-nord="1" title="Simbolo del nord">⬆ Nord</button></div>
         <div class="grp"><label class="chk" style="margin:0 4px"><input type="checkbox" id="cLab" ${ui.labels ? 'checked' : ''}> Nomi e m²</label></div>
         <div class="grp"><button id="bFull">${ui.full ? 'Riduci' : 'Ingrandisci'}</button></div>
         <div class="grp"><button id="bUndo">Annulla</button><button id="bFit">Adatta</button><button id="bZo">−</button><button id="bZi">+</button></div>
@@ -1611,6 +1615,7 @@ function updTools() {
   document.querySelectorAll('[data-nord]').forEach(b => b.classList.toggle('on', !!ui.placeNord));
   document.querySelectorAll('[data-dim]').forEach(b => b.classList.toggle('on', !!ui.placeDim));
   document.querySelectorAll('[data-win]').forEach(b => b.classList.toggle('on', !!ui.winArm));
+  document.querySelectorAll('[data-bg]').forEach(b => b.classList.toggle('on', !!(ui.sel && ui.sel.k === 'bg')));
   if (ui.winArm) document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('on'));
   const g = $('#grpType'); if (g) g.style.opacity = ui.mode === 'draw' ? 1 : .45;
 }
@@ -1636,6 +1641,8 @@ function draw() {
   if (v.s >= 12) { const x0 = Math.floor(WX(0)), x1 = Math.ceil(WX(ui.W)), y0 = Math.floor(WY(ui.H)), y1 = Math.ceil(WY(0));
     for (let x = x0; x <= x1; x++) s += `<line x1="${X(x)}" y1="0" x2="${X(x)}" y2="${ui.H}" stroke="var(--grid)" stroke-opacity=".64"/>`;
     for (let y = y0; y <= y1; y++) s += `<line x1="0" y1="${Y(y)}" x2="${ui.W}" y2="${Y(y)}" stroke="var(--grid)" stroke-opacity=".64"/>`; }
+  s += bgSvg(pl);
+  if (ui.bgCal && ui.bgCal.a) s += `<circle cx="${X(ui.bgCal.a[0])}" cy="${Y(ui.bgCal.a[1])}" r="6" fill="none" stroke="var(--bad)" stroke-width="2.5"/>`;
   const selRoom = ui.sel && ui.sel.k === 'r' ? (pl.rooms || []).find(r => r.id === ui.sel.id) : null;
   if (selRoom && G.comps[selRoom._c]) { /* evidenzia l'ambiente */ const cc = G.comps[selRoom._c]; s += `<g fill="var(--accbg)">` + roomRects(cc) + '</g>'; }
   const selPieno = selRoom && G.comps[selRoom._c] && !G.comps[selRoom._c].room;
@@ -1766,7 +1773,7 @@ function roomRects(cc) {
 
 /* ---- interazione con la tavola ---- */
 function bindCanvas() {
-  const svg = $('#svg'), ptrs = new Map(); let win = null, stroke = null, pan = null, pinch = null, drag = null, apDrag = null, boxTap = null, scDrag = null, fotoTap = null, nordTap = null, ndDrag = null, dimTap = null, dmDrag = null;
+  const svg = $('#svg'), ptrs = new Map(); let bgTap = null, bgDrag = null, win = null, stroke = null, pan = null, pinch = null, drag = null, apDrag = null, boxTap = null, scDrag = null, fotoTap = null, nordTap = null, ndDrag = null, dimTap = null, dmDrag = null;
   const pos = e => { const r = svg.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
   svg.addEventListener('pointerdown', e => {
     svg.setPointerCapture(e.pointerId); const p = pos(e); ptrs.set(e.pointerId, p);
@@ -1774,6 +1781,8 @@ function bindCanvas() {
     if (ptrs.size > 2) return;
     if (ui.placeFoto && ptrs.size === 1) { fotoTap = p; return; }
     if (ui.placeNord && ptrs.size === 1) { nordTap = p; return; }
+    if (ui.bgCal && ptrs.size === 1) { bgTap = p; return; }
+    if (ui.bgMove && ui.sel && ui.sel.k === 'bg' && piano().bg && !piano().bg.lock && ptrs.size === 1) { const bg = piano().bg; bgDrag = {p0:p, ox:bg.ox, oy:bg.oy, moved:false}; return; }
     if (ui.winArm && ptrs.size === 1) { win = {p0:p, moved:false, pt:e.pointerType, arm:true}; return; }
     if (ui.placeDim && ptrs.size === 1) { dimTap = p; ui.dimHover = dimSnap(p); draw(); return; }
     if (ui.mode !== 'draw' && ptrs.size === 1 && nordAt(p)) { const n = piano().nord; ndDrag = {p0:p, x0:n.x, y0:n.y, moved:false}; return; }
@@ -1809,12 +1818,17 @@ function bindCanvas() {
     if (apDrag) { if (!apDrag.moved && Math.hypot(p[0] - apDrag.p0[0], p[1] - apDrag.p0[1]) < 6) return; apDrag.moved = true; ui.ghost = ghostAt(p, apDrag.tipo, apDrag.l, apDrag.ap || null); draw(); return; }
     if (drag) { const dx = p[0] - drag.p[0], dy = p[1] - drag.p[1]; if (!drag.moved && Math.hypot(dx, dy) > 5) { pushUndo(); drag.moved = true; drag.n = piano().notes.find(n => n.id === drag.n.id); } if (drag.moved) { drag.n.x = r4(drag.x0 + dx / ui.view.s); drag.n.y = r4(drag.y0 - dy / ui.view.s); draw(); } return; }
     if (stroke) { const q = track(p, stroke), l = stroke[stroke.length - 1]; if (Math.hypot(q[0] - l[0], q[1] - l[1]) > 2) { stroke.push(q); const st = $('#stroke'); if (st) st.setAttribute('points', stroke.map(z => z.join(',')).join(' ')); } trkShow(q); return; }
+    if (bgDrag) { const dx = p[0] - bgDrag.p0[0], dy = p[1] - bgDrag.p0[1]; if (!bgDrag.moved && Math.hypot(dx, dy) > 4) { pushUndo(); bgDrag.moved = true; }
+      if (bgDrag.moved) { const bg = piano().bg; bg.ox = r4(bgDrag.ox + dx / ui.view.s); bg.oy = r4(bgDrag.oy - dy / ui.view.s); draw(); } return; }
+    if (bgTap) return;
     if (win) { if (!win.moved && Math.hypot(p[0] - win.p0[0], p[1] - win.p0[1]) > 8) { win.moved = true; ui.winA = null; closeInline(true); } if (win.moved) winShow(win.p0, p); return; }
     if (pan) { const dx = p[0] - pan.p[0], dy = p[1] - pan.p[1]; if (Math.hypot(dx, dy) > 5) { if (!pan.moved) closeInline(true); pan.moved = true; } if (pan.moved) { ui.view.x = pan.vx - dx / ui.view.s; ui.view.y = pan.vy + dy / ui.view.s; draw(); } }
   });
   const end = e => {
     if (!ptrs.has(e.pointerId)) return; const p = pos(e); ptrs.delete(e.pointerId);
     if (pinch) { if (ptrs.size === 0) pinch = null; return; }
+    if (bgTap) { const q = bgTap; bgTap = null; if (Math.hypot(p[0] - q[0], p[1] - q[1]) <= 12) bgCalTap(q); return; }
+    if (bgDrag) { const d = bgDrag; bgDrag = null; if (d.moved) { undemo(); save(); } return; }
     if (dimTap) { dimTap = null; placeDimAt(p); return; }
     if (dmDrag) { const d = dmDrag; dmDrag = null; if (!d.moved) { ui.sel = {k:'q', id:d.d.id}; draw(); renderSide(); } else { undemo(); save(); } return; }
     if (nordTap) { const q = nordTap; nordTap = null; if (Math.hypot(p[0] - q[0], p[1] - q[1]) > 12) return;
@@ -1850,7 +1864,7 @@ function bindCanvas() {
       return; }
     if (pan) { const wasMoved = pan.moved; pan = null; if (!wasMoved && ui.mode === 'select') hit(p); else if (!wasMoved && ui.mode === 'text') newNote(p); }
   };
-  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); win = null; winShow(null); dimTap = null; dmDrag = null; stroke = null; ui.trk = null; scDrag = null; fotoTap = null; nordTap = null; ndDrag = null; ui.scGhost = null; pan = null; pinch = null; drag = null; apDrag = null; boxTap = null; ui.ghost = null; draw(); });
+  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); bgTap = null; bgDrag = null; win = null; winShow(null); dimTap = null; dmDrag = null; stroke = null; ui.trk = null; scDrag = null; fotoTap = null; nordTap = null; ndDrag = null; ui.scGhost = null; pan = null; pinch = null; drag = null; apDrag = null; boxTap = null; ui.ghost = null; draw(); });
   svg.addEventListener('click', e => { const el = $('#inl'); if (el && document.activeElement !== el) { e.preventDefault(); el.focus(); } });
   svg.addEventListener('pointerleave', e => { if (ui.place && !ptrs.size && ui.ghost) { ui.ghost = null; draw(); } if (ui.dimHover && !ptrs.size) { ui.dimHover = null; draw(); } });
   svg.addEventListener('wheel', e => { e.preventDefault(); const p = pos(e); zoomAt(e.deltaY < 0 ? 1.15 : 1 / 1.15, p[0], p[1]); }, {passive:false});
@@ -2083,6 +2097,53 @@ function dropGhost(gh) {
   toast(TIPI_AP[ap.tipo] + (gh.ap ? ' spostata.' : ' posata.') + ' Tocca le caselle accanto per scrivere parziali e larghezza misurate.');
   return true;
 }
+/* ---- planimetria di sfondo (JPEG): carta da lucido sotto il disegno, una per piano ----
+   pl.bg = {id, pw, ph (pixel), ox, oy (angolo in alto a sinistra, in metri), m (metri per pixel), rot (gradi, orario), op, hide, lock} */
+const bgGet = id => ftx('readonly', st => st.get(id), 'sfondi'), bgPut = rec => ftx('readwrite', st => st.put(rec), 'sfondi'), bgDel = id => ftx('readwrite', st => st.delete(id), 'sfondi');
+function bgUrl(pl) {
+  const bg = pl.bg; if (!bg) return null;
+  if (ui.bgImg && ui.bgImg.id === bg.id) return ui.bgImg.url;
+  if (!ui.bgLoading || ui.bgLoading !== bg.id) { ui.bgLoading = bg.id;
+    bgGet(bg.id).then(rec => { if (ui.bgImg && ui.bgImg.url) URL.revokeObjectURL(ui.bgImg.url); ui.bgImg = {id:bg.id, url:rec ? URL.createObjectURL(rec.blob) : null}; ui.bgLoading = null; if (tab === 'pianta') draw(); }).catch(() => { ui.bgLoading = null; }); }
+  return null;
+}
+// coordinate «come sullo schermo» (y verso il basso): la rotazione oraria è quella normale
+const bgC = bg => { const t = bg.rot * Math.PI / 180, u = bg.pw * bg.m / 2, v = bg.ph * bg.m / 2; return [bg.ox + u * Math.cos(t) - v * Math.sin(t), -(-bg.oy + u * Math.sin(t) + v * Math.cos(t))]; };
+function bgRotate(bg, d) { const c = bgC(bg), t = d * Math.PI / 180, x = bg.ox - c[0], y = -(bg.oy - c[1]);
+  bg.ox = r4(c[0] + x * Math.cos(t) - y * Math.sin(t)); bg.oy = r4(c[1] - (x * Math.sin(t) + y * Math.cos(t))); bg.rot = Math.round(((bg.rot + d) % 360 + 360) % 360 * 100) / 100; }
+function bgSvg(pl) {
+  const bg = pl.bg; if (!bg || bg.hide) return ''; const url = bgUrl(pl); if (!url) return '';
+  const k = bg.m * ui.view.s, sel = ui.sel && ui.sel.k === 'bg';
+  return `<g transform="translate(${SX(bg.ox)} ${SY(bg.oy)}) rotate(${bg.rot}) scale(${k})" opacity="${bg.op}" style="pointer-events:none"><image href="${url}" x="0" y="0" width="${bg.pw}" height="${bg.ph}"/>${sel ? `<rect x="0" y="0" width="${bg.pw}" height="${bg.ph}" fill="none" stroke="var(--acc)" stroke-width="${2 / k}" stroke-dasharray="${8 / k} ${5 / k}"/>` : ''}</g>`;
+}
+async function bgLoad(file) {
+  if (!file) return; const pl = piano();
+  try {
+    const img = await createImageBitmap(file), MAX = 3200, f = Math.min(1, MAX / Math.max(img.width, img.height));
+    const cv = document.createElement('canvas'); cv.width = Math.round(img.width * f); cv.height = Math.round(img.height * f);
+    const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(img, 0, 0, cv.width, cv.height);
+    const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.88)), id = uid();
+    await bgPut({id, ril:R.id, blob});
+    pushUndo(); undemo(); if (pl.bg) bgDel(pl.bg.id).catch(() => {});
+    // prima posa: larga quanto l'80% della vista, al centro (poi si porta in scala con due punti)
+    const vw = ui.W / ui.view.s * 0.8, m = vw / cv.width, ox = WX(ui.W * 0.1), oy = WY(ui.H / 2) + cv.height * m / 2;
+    pl.bg = {id, pw:cv.width, ph:cv.height, ox:r4(ox), oy:r4(oy), m, rot:0, op:0.5, hide:false, lock:false};
+    ui.sel = {k:'bg'}; ui.bgMove = false; save(); draw(); renderSide();
+    toast('Planimetria caricata. Portala in scala con «Scala con due punti», poi bloccala e ricalca i muri.');
+  } catch (e) { toast('Immagine non leggibile: usa un JPEG o un PNG.'); }
+}
+// taratura: due tocchi sull'immagine e la distanza vera tra i due punti
+function bgCalTap(p) {
+  const pl = piano(), bg = pl.bg; if (!bg) { ui.bgCal = null; return; }
+  const q = [WX(p[0]), WY(p[1])];
+  if (!ui.bgCal.a) { ui.bgCal.a = q; draw(); toast('Ora tocca il secondo punto.'); return; }
+  const a = ui.bgCal.a, d0 = Math.hypot(q[0] - a[0], q[1] - a[1]); ui.bgCal = null; draw();
+  if (d0 < 0.02) { toast('I due punti sono troppo vicini.'); return; }
+  const v = prompt('Distanza vera tra i due punti (m):', ''); const d = num(v); if (!(d > 0)) { toast('Taratura annullata.'); return; }
+  pushUndo(); undemo(); const k = d / d0;
+  bg.m *= k; bg.ox = r4(a[0] + (bg.ox - a[0]) * k); bg.oy = r4(a[1] + (bg.oy - a[1]) * k);
+  save(); draw(); renderSide(); toast('Planimetria in scala: tra i due punti ora ci sono ' + f2(d) + ' m.');
+}
 /* ---- selezione a finestra (come AutoCAD): da sinistra a destra solo ciò che sta tutto dentro, da destra a sinistra anche ciò che tocca ---- */
 const inM = (k, id) => !!(ui.sel && ui.sel.k === 'm' && ui.sel[k].includes(id));
 function winShow(a, b) {
@@ -2241,6 +2302,21 @@ function renderSide() {
       <p class="hint">0° = nord verso l'alto del foglio; l'angolo cresce in senso orario. L'angolo vale per tutti i piani; la posizione del simbolo è di ogni piano. Per la bussola tieni il tablet piatto, con il disegno girato come l'edificio (l'alto del foglio verso lo stesso lato della casa), e premi il pulsante. È il nord magnetico (in Abruzzo differisce di pochi gradi da quello geografico) e i ferri del cemento armato possono falsarlo: se hai la planimetria catastale o una mappa, controlla.</p>`;
     renderMsgs(); return;
   }
+  if (ui.sel && ui.sel.k === 'bg') { const bg = pl.bg;
+    el.innerHTML = `<div class="cardh">Planimetria di sfondo <span class="sp"></span>${bg ? '<button class="sm bad" id="bBgDel">Elimina</button>' : ''}</div>` + (!bg ? `
+      <p class="hint">Carica una planimetria in JPEG (anche una foto della planimetria di carta): resta sotto il disegno come carta da lucido. La porti in scala toccando due punti di cui conosci la distanza, poi ricalchi i muri e inserisci le misure come sempre.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button id="bBgGal">🖼 Dalla galleria</button><button id="bBgCam">📷 Fotografa</button></div>` : `
+      <div class="grid"><div class="c2"><label class="l">Trasparenza</label><input type="range" id="iBgOp" min="0.1" max="1" step="0.05" value="${bg.op}"></div></div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin:6px 0"><label class="chk"><input type="checkbox" id="cBgHide" ${bg.hide ? 'checked' : ''}> Nascondi</label><label class="chk"><input type="checkbox" id="cBgLock" ${bg.lock ? 'checked' : ''}> Blocca</label></div>
+      <h3>Scala</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button id="bBgCal" ${bg.lock ? 'disabled' : ''}>${ui.bgCal ? 'Tocca i due punti…' : '📏 Scala con due punti'}</button><span class="mut" style="font-size:13px">1 px = ${(bg.m * 100).toFixed(2).replace('.', ',')} cm</span></div>
+      <h3>Posizione e rotazione</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><button id="bBgMove" class="${ui.bgMove ? 'on' : ''}" ${bg.lock ? 'disabled' : ''}>✋ ${ui.bgMove ? 'Sposta: attivo' : 'Sposta'}</button>
+        <button id="bBgL90" ${bg.lock ? 'disabled' : ''}>↺ 90°</button><button id="bBgR90" ${bg.lock ? 'disabled' : ''}>↻ 90°</button><button id="bBgL" ${bg.lock ? 'disabled' : ''}>↺ 0,5°</button><button id="bBgR" ${bg.lock ? 'disabled' : ''}>↻ 0,5°</button>
+        <span class="mut" style="font-size:13px">${String(bg.rot).replace('.', ',')}°</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button id="bBgGal">🖼 Sostituisci dalla galleria</button><button id="bBgCam">📷 Sostituisci con una foto</button></div>
+      <p class="hint">Con «Sposta» attivo trascini l'immagine con un dito; due dita spostano sempre la vista. Per ricalcare passa a «Disegna muri»: l'immagine resta sotto. Quando le misure spostano i muri l'immagine resta ferma: è solo una traccia e non va nello script. La planimetria resta su questo dispositivo (non entra nel file .json esportato).</p>`);
+    updTools(); renderMsgs(); return; }
   if (ui.sel && ui.sel.k === 'm') { const m = ui.sel, ws = m.w.map(id => pl.walls.find(x => x.id === id)).filter(Boolean), nAp = ws.reduce((t, w) => t + (w.ap || []).length, 0);
     const parts = [[m.w.length, 'muro', 'muri'], [m.s.length, 'scala', 'scale'], [m.n.length, 'nota', 'note'], [m.q.length, 'quota libera', 'quote libere']].filter(x => x[0]).map(x => x[0] + ' ' + (x[0] === 1 ? x[1] : x[2]));
     el.innerHTML = `<div class="cardh">Selezione <span class="sp"></span><button class="sm bad" id="bDelM">Elimina</button></div>
@@ -2419,12 +2495,20 @@ document.addEventListener('pointerdown', () => { ui.downAt = Date.now(); }, true
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && ui.winA) { ui.winA = null; winShow(null); return; } if (e.key === 'Escape' && ui.sel && document.body.classList.contains('full') && !/INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || '')) { ui.sel = null; draw(); renderSide(); } });
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-tab]'); if (t) { tab = t.dataset.tab; render(); return; }
+  const bgb = e.target.closest('[data-bg]'); if (bgb) { ui.bgCal = null; ui.bgMove = false; ui.sel = ui.sel && ui.sel.k === 'bg' ? null : {k:'bg'}; updTools(); draw(); renderSide(); return; }
+  if (ui.sel && ui.sel.k === 'bg') { const idb = e.target.id, bg = piano().bg;
+    if (idb === 'bBgGal') { $('#fBgGal').click(); return; }
+    if (idb === 'bBgCam') { $('#fBgCam').click(); return; }
+    if (bg && idb === 'bBgDel') { if (!confirm('Eliminare la planimetria di sfondo di questo piano?')) return; pushUndo(); bgDel(bg.id).catch(() => {}); delete piano().bg; ui.bgCal = null; ui.bgMove = false; save(); draw(); renderSide(); return; }
+    if (bg && idb === 'bBgCal') { ui.bgCal = ui.bgCal ? null : {a:null}; ui.bgMove = false; renderSide(); draw(); if (ui.bgCal) toast('Tocca il primo punto di cui conosci la distanza (per esempio l\'estremo di una parete quotata).'); return; }
+    if (bg && idb === 'bBgMove') { ui.bgMove = !ui.bgMove; ui.bgCal = null; renderSide(); return; }
+    const rr = {bBgL90:-90, bBgR90:90, bBgL:-0.5, bBgR:0.5}[idb]; if (bg && rr) { pushUndo(); undemo(); bgRotate(bg, rr); save(); draw(); renderSide(); return; } }
   const wb = e.target.closest('[data-win]'); if (wb) { ui.winArm = !ui.winArm; ui.winA = null; winShow(null); ui.mode = 'select'; ui.placeDim = false; ui.place = null; ui.placeSc = false; ui.placeFoto = false; ui.placeNord = false; ui.ghost = null; updTools(); draw();
     if (ui.winArm) toast('Rettangolo: tocca il primo angolo e poi quello opposto, anche dentro gli ambienti. Verso destra: solo ciò che sta tutto dentro; verso sinistra: anche ciò che tocca.'); return; }
   const dq = e.target.closest('[data-dim]'); if (dq) { ui.placeDim = !ui.placeDim; ui.dimA = null; ui.dimHover = null; ui.place = null; ui.placeSc = false; ui.placeFoto = false; ui.placeNord = false; ui.ghost = null; updTools(); draw();
     if (ui.placeDim) toast('Quota: tocca il filo di partenza e quello di arrivo (facce o spigoli dei muri, spallette dei vani); tenendo premuto vedi dove si aggancia. Poi scrivi la misura.'); return; }
   if (e.target.closest('[data-ap],[data-sc],[data-foto],[data-nord],[data-nt]') && ui.placeDim) { ui.placeDim = false; ui.dimA = null; ui.dimHover = null; }
-  const md = e.target.closest('[data-mode]'); if (md) { ui.winA = null; ui.winArm = false; ui.placeDim = false; ui.dimA = null; ui.dimHover = null; ui.place = null; ui.placeSc = false; ui.placeNord = false; ui.morePt = null; showMore(); ui.ghost = null; ui.mode = md.dataset.mode; updTools(); draw(); return; }
+  const md = e.target.closest('[data-mode]'); if (md) { ui.bgCal = null; ui.bgMove = false; ui.winA = null; ui.winArm = false; ui.placeDim = false; ui.dimA = null; ui.dimHover = null; ui.place = null; ui.placeSc = false; ui.placeNord = false; ui.morePt = null; showMore(); ui.ghost = null; ui.mode = md.dataset.mode; updTools(); draw(); return; }
   const fb = e.target.closest('[data-foto]'); if (fb) { ui.morePt = null; showMore(); ui.placeFoto = !ui.placeFoto; ui.place = null; ui.placeSc = false; ui.ghost = null; updTools(); draw();
     if (ui.placeFoto) toast('Foto: tocca sulla pianta il punto in cui ti trovi; si apre la fotocamera.'); return; }
   const nb = e.target.closest('[data-nord]'); if (nb) { ui.morePt = null; showMore(); ui.placeNord = !ui.placeNord; ui.placeFoto = false; ui.place = null; ui.placeSc = false; updTools(); draw();
@@ -2524,6 +2608,8 @@ document.addEventListener('input', e => {
   else if (t.dataset.n) { const n = (pl.notes || []).find(x => ui.sel && x.id === ui.sel.id); if (!n) return; n.t = t.value; draw(); save(); }
   else if (t.dataset.s) { undemo(); R[t.dataset.s] = t.value; recompute(); save(); updExpBadge(); }
   else if (t.id === 'cVano') { ui.copyVano = t.checked; }
+  else if (t.id === 'iBgOp' && pl.bg) { pl.bg.op = +t.value; draw(); save(); }
+  else if ((t.id === 'cBgHide' || t.id === 'cBgLock') && pl.bg) { pushUndo(); pl.bg[t.id === 'cBgHide' ? 'hide' : 'lock'] = t.checked; if (pl.bg.lock) { ui.bgMove = false; ui.bgCal = null; } save(); draw(); renderSide(); }
   else if (t.id === 'cLab') { ui.labels = t.checked; try { localStorage.setItem('rilievo-etichette', t.checked ? '1' : '0'); } catch (e) {} draw(); }
   else if (t.dataset.o) { R.opt[t.dataset.o] = t.checked; save(); }
 });
@@ -2538,6 +2624,7 @@ const onFoto = async e => { const fs = [...e.target.files]; e.target.value = '';
   const n = await addFotos(fs, pt);
   if (tab === 'pianta') { draw(); if (n && pt) { ui.morePt = pt; showMore(); } else if (n) toast(n === 1 ? 'Foto salvata.' : n + ' foto salvate.'); } else if (tab === 'foto') renderFotoTab(); };
 $('#fCam').onchange = onFoto; $('#fGal').onchange = onFoto;
+$('#fBgGal').onchange = $('#fBgCam').onchange = e => { const f = e.target.files[0]; e.target.value = ''; bgLoad(f); };
 $('#bImp').onclick = () => $('#fImp').click();
 $('#fImp').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
