@@ -1928,6 +1928,11 @@ function finishStroke(sp) {
   const flush = (i, c) => {
     const j = i === 0 ? 1 : chain.length - 2, a = chain[i], b = chain[j], H = Math.abs(b.x - a.x) >= Math.abs(b.y - a.y);
     const dir = H ? [Math.sign(b.x - a.x), 0] : [0, Math.sign(b.y - a.y)], pp = H ? [0, 1] : [1, 0];
+    // spigolo di un incrocio dove c'è già un muro uguale nella stessa direzione: il nuovo muro lo prosegue in linea (dal nodo), non a filo
+    const T0 = G.T || topo(pl), near = pl.nodes.find(n => { const ws = T0.at && T0.at.get(n.id) || []; const tm = Math.max(0, ...ws.map(w => thick(w)));
+      return ws.length && Math.abs(c[0] - n.x) <= tm / 2 + 0.02 && Math.abs(c[1] - n.y) <= tm / 2 + 0.02; });
+    if (near && (T0.at.get(near.id) || []).some(w => { const I = T0.info.get(w.id); return I && I.H === H && Math.abs(I.t - tN) < 1e-6 && !(I.o); })) {
+      a.x = near.x; a.y = near.y; if (H) b.y = near.y; else b.x = near.x; return; }
     let sg = 1;
     for (const s2 of [1, -1]) { const A = [c[0] + pp[0] * s2 * tN / 2, c[1] + pp[1] * s2 * tN / 2]; if (G.compAt(A[0] - dir[0] * 0.03, A[1] - dir[1] * 0.03) === -2) { sg = s2; break; } }
     const A = {x:c[0] + pp[0] * sg * tN / 2, y:c[1] + pp[1] * sg * tN / 2};
