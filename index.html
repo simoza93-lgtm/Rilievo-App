@@ -266,14 +266,18 @@ function runOps(pl, T, r) {
 function apAnchors(pl, T, runs) {
   const byKey = new Map(runs.map(r => [r.key, r])), all = new Map(), out = new Map(), busy = new Set();
   pl.walls.forEach(w => (w.ap || []).forEach(ap => all.set(ap.id, {ap, w})));
+  const fromEnd = new Map();
+  Object.keys(pl.fl || {}).forEach(k => { const r = byKey.get(k), L = num(pl.fl[k]); if (!r || !(L >= 0)) return; const ops = runOps(pl, T, r).ops; if (ops.length) fromEnd.set(ops[ops.length - 1].ap.id, {r, L}); });
   const get = id => {
     if (out.has(id)) return out.get(id); const x = all.get(id); if (!x || busy.has(id)) return null; busy.add(id);
     const {ap, w} = x, I = T.info.get(w.id); let A = null;
     const p = ap.pos;
     if (I && p && byKey.has(p.k) && num(p.v) >= 0) { const r = byKey.get(p.k);
-      if (!p.prev) A = {n:r.p, off:r.eA + num(p.v), ok:true};
-      else { const B = get(p.prev), pa = all.get(p.prev); if (B && pa && num(pa.ap.l) > 0) A = {n:B.n, off:B.off + num(pa.ap.l) + num(p.v), ok:B.ok && !pa.ap.lp}; } }
-    if (!A && I && isFinite(num(ap.d))) A = {n:w.a, off:I.da + num(ap.d), ok:!ap.dp};
+      if (!p.prev) A = {n:r.p, off:r.eA + num(p.v), ok:true, src:'pos'};
+      else { const B = get(p.prev), pa = all.get(p.prev); if (B && pa && num(pa.ap.l) > 0) A = {n:B.n, off:B.off + num(pa.ap.l) + num(p.v), ok:B.ok && !pa.ap.lp, src:'pos'}; } }
+    // posizione ancora proposta ma ultima parziale misurata: il vano si misura dallo spigolo in fondo al lato (da destra o dall'alto)
+    if (!A && I && ap.dp && fromEnd.has(ap.id)) { const {r, L} = fromEnd.get(ap.id); A = {n:r.q, off:-(r.eB + L + num(ap.l)), ok:!ap.lp, src:'end'}; }
+    if (!A && I && isFinite(num(ap.d))) A = {n:w.a, off:I.da + num(ap.d), ok:!ap.dp, src:'d'};
     busy.delete(id); out.set(id, A); return A; };
   all.forEach((_, id) => get(id));
   return out;
@@ -286,7 +290,7 @@ function placeAps(pl) {
   pl.walls.forEach(w => (w.ap || []).forEach(ap => { if (ap.pos && (!keys.has(ap.pos.k) || (ap.pos.prev && !ids.has(ap.pos.prev)))) { delete ap.pos; lost++; } }));
   const A = apAnchors(pl, T, runs);
   pl.walls.forEach(w => { const I = T.info.get(w.id); if (!I) return;
-    (w.ap || []).forEach(ap => { if (!ap.pos) return; const a = A.get(ap.id), n = a && T.N.get(a.n); if (!n) return;
+    (w.ap || []).forEach(ap => { const a = A.get(ap.id); if (!a || a.src === 'd') return; const n = T.N.get(a.n); if (!n) return;
       ap.d = fN(r4(axC(n, I.H) + a.off - axC(I.a, I.H) - I.da)); }); });
   Object.keys(pl.fl || {}).forEach(k => { if (!keys.has(k)) { delete pl.fl[k]; pl.mord = (pl.mord || []).filter(x => x !== 'l:' + k); lost++; } });
   if (lost) toast('Un lato è cambiato (muro aggiunto o tolto): ricontrolla le parziali dei vani su quel lato.');
