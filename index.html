@@ -36,9 +36,27 @@ main{padding:12px 16px 40px;max-width:1600px;margin:0 auto}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
 .cardh{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-weight:600;flex-wrap:wrap}
 .cardh small{font-weight:400;color:var(--mut)}
-.tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
-.tools .grp{display:flex;gap:4px;padding-right:8px;border-right:1px solid var(--line)}
-.tools .grp:last-child{border-right:0}
+.tbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.tbar .tcl{display:flex;gap:2px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:3px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.tbar .tmain{order:0}
+.tbar .tsep{width:1px;align-self:stretch;margin:6px 3px;background:var(--line)}
+.tb{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:60px;min-height:56px;padding:5px 6px 4px;border:0;border-radius:10px;background:none;font-size:11.5px;line-height:1.1;color:var(--ink);font-weight:500;white-space:nowrap}
+.tb>*{pointer-events:none}
+.tb svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tb:hover{background:var(--accbg)}
+.tb.on{background:var(--accbg);color:var(--acc);border:0;font-weight:700}
+.tb.sm{min-width:48px}
+.tb .car{position:absolute;right:4px;bottom:4px;width:0;height:0;border-left:5px solid transparent;border-bottom:5px solid currentColor;opacity:.55}
+.tg{position:relative;display:flex}
+.tfly{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);display:none;gap:2px;padding:4px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.22);z-index:40}
+.tfly::before{content:'';position:absolute;top:-7px;left:50%;margin-left:-7px;border:7px solid transparent;border-top:0;border-bottom-color:var(--line)}
+.tg.open .tfly{display:flex}
+.tg.open>.tb{background:var(--accbg)}
+label.tb input{display:none}
+label.tb:has(input:checked){color:var(--acc);background:var(--accbg)}
+.cvcard{container-type:inline-size}
+@container (max-width:1060px){.tbar .tmain{order:-1;margin:0 auto;flex-wrap:wrap;justify-content:center}.tbar .tcl:not(.tmain){flex:0 0 auto}.tbar::after{content:'';order:-1;flex-basis:100%;height:0}}
+@container (max-width:560px){.tb{min-width:50px;font-size:10.5px;padding:4px 3px}.tb.sm{min-width:44px}.tbar .tmain{border:0;box-shadow:none;background:none;padding:0}}
 #cv{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--cv)}
 #svg{display:block;touch-action:none;user-select:none;-webkit-user-select:none}
 #empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mut);pointer-events:none;padding:30px}
@@ -1529,7 +1547,7 @@ function load() {
   return (id && arcGet(id)) || (arcIndex()[0] && arcGet(arcIndex()[0].id)) || null;
 }
 function updExpBadge() { const b = $('#bExp'); if (b) { b.classList.toggle('dirty', !!R.unexp && !R.demo); b.title = R.unexp && !R.demo ? 'Ci sono modifiche non ancora esportate' : ''; } const c = $('#curName'); if (c) c.textContent = R.demo ? '· esempio' : '· ' + (R.nome || 'senza nome'); }
-function openRilievo(r) { clearTimeout(tSave); if (!R.demo) arcPut(R); R = r; ui.sel = null; ui.undo = []; ui.fitted = false; tab = 'pianta'; render(); updExpBadge(); try { localStorage.setItem('rilievo-corrente', r.id); } catch (e) {} }
+function openRilievo(r) { clearTimeout(tSave); if (!R.demo) arcPut(R); R = r; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; tab = 'pianta'; render(); updExpBadge(); try { localStorage.setItem('rilievo-corrente', r.id); } catch (e) {} }
 function exportR(r) { download((ascii(r.nome) || 'rilievo').replace(/[^A-Za-z0-9_-]+/g, '_') + '_' + r.data + '.json', JSON.stringify(Object.assign({}, r, {unexp:false}), null, 1), 'application/json'); }
 const quando = iso => { if (!iso) return ''; const d = new Date(iso); return d.toLocaleDateString('it-IT') + ' ' + d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'}); };
 function showArchive() {
@@ -1555,14 +1573,15 @@ $('#dArch').addEventListener('click', e => {
   if (t.dataset.adel) {
     if (!confirm('Eliminare definitivamente il rilievo «' + (r.nome || 'senza nome') + '»?' + (r.unexp ? '\n\nATTENZIONE: ha modifiche non esportate, andrebbero perse.' : ''))) return;
     arcDel(id);
-    if (id === R.id) { const nx = arcIndex()[0]; R = nx ? arcGet(nx.id) : blank(); if (!nx) arcPut(R); ui.sel = null; ui.undo = []; ui.fitted = false; render(); updExpBadge(); }
+    if (id === R.id) { const nx = arcIndex()[0]; R = nx ? arcGet(nx.id) : blank(); if (!nx) arcPut(R); ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); updExpBadge(); }
     showArchive();
   }
 });
 window.addEventListener('beforeunload', e => { clearTimeout(tSave); if (!R.demo) arcPut(R); if (R.unexp && !R.demo) { e.preventDefault(); e.returnValue = ''; } });
 function undemo() { if (R.demo) { R.demo = false; R.id = uid(); R.nome = R.nome === 'Esempio' ? 'Esempio (modificato)' : R.nome; } }
-function pushUndo() { const s = JSON.stringify(piano()); if (ui.undo[ui.undo.length - 1] !== s) ui.undo.push(s); if (ui.undo.length > 60) ui.undo.shift(); undemo(); }
-function undo() { const cur = JSON.stringify(piano()); let s = ui.undo.pop(); while (s === cur && ui.undo.length) s = ui.undo.pop(); if (!s || s === cur) { toast('Niente da annullare.'); return; } R.piani[R.cur] = JSON.parse(s); ui.sel = null; update(true); }
+function pushUndo() { const s = JSON.stringify(piano()); ui.redo = []; if (ui.undo[ui.undo.length - 1] !== s) ui.undo.push(s); if (ui.undo.length > 60) ui.undo.shift(); undemo(); }
+function undo() { const cur = JSON.stringify(piano()); let s = ui.undo.pop(); while (s === cur && ui.undo.length) s = ui.undo.pop(); if (!s || s === cur) { toast('Niente da annullare.'); return; } (ui.redo = ui.redo || []).push(cur); R.piani[R.cur] = JSON.parse(s); ui.sel = null; update(true); }
+function redo() { const cur = JSON.stringify(piano()); let s = (ui.redo || []).pop(); while (s === cur && ui.redo.length) s = ui.redo.pop(); if (!s || s === cur) { toast('Niente da ripetere.'); return; } if (ui.undo[ui.undo.length - 1] !== cur) ui.undo.push(cur); R.piani[R.cur] = JSON.parse(s); ui.sel = null; update(true); }
 function download(name, text, type) {
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type}));
   a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
@@ -1601,19 +1620,14 @@ function render() {
   $('#tabs').innerHTML = TABS.map(([k, l]) => `<button data-tab="${k}" class="${tab === k ? 'on' : ''}">${l}</button>`).join('');
   const banner = R.demo ? `<div class="banner"><b>Rilievo di esempio</b> con misure inventate (una non torna apposta, per vedere il controllo). Premi «Nuovo rilievo» per cominciare il tuo.</div>` : '';
   if (tab === 'pianta') {
-    $('#main').innerHTML = banner + `<div class="cols"><div class="card">
-      <div class="tools">
-        <div class="grp"><button data-mode="draw">Disegna muri</button><button data-mode="select">Seleziona</button><button data-win="1" title="Selezione a rettangolo: tocca un angolo e poi quello opposto (anche dentro gli ambienti)">⬚ Rettangolo</button><button data-mode="text">Testo</button><button data-mode="pan">Sposta vista</button></div>
-        <div class="grp" id="grpType"><button data-nt="P">Perimetrali</button><button data-nt="T">Tramezzi</button></div>
-        <div class="grp" id="grpAp"><button data-ap="finestra" title="Finestra">▭ Finestra</button><button data-ap="uscita" title="Porta-finestra">⊟ Porta-finestra</button><button data-ap="porta" title="Porta">⌐ Porta</button><button data-ap="ingresso" title="Ingresso">▲ Ingresso</button><button data-sc="1" title="Scala">☰ Scala</button></div>
-        <div class="grp"><button data-dim="1" title="Quota libera: tocca due spigoli e scrivi la misura (per esempio il totale di una parete)">↔ Quota</button></div>
-        <div class="grp"><button data-bg="1" title="Planimetria di sfondo da ricalcare (JPEG)">🗺 Planimetria</button><button data-foto="1" title="Foto: tocca dove ti trovi e scatta">📷 Foto</button><button data-nord="1" title="Simbolo del nord">⬆ Nord</button></div>
-        <div class="grp"><label class="chk" style="margin:0 4px"><input type="checkbox" id="cLab" ${ui.labels ? 'checked' : ''}> Nomi e m²</label></div>
-        <div class="grp"><button id="bFull">${ui.full ? 'Riduci' : 'Ingrandisci'}</button></div>
-        <div class="grp"><button id="bUndo">Annulla</button><button id="bFit">Adatta</button><button id="bZo">−</button><button id="bZi">+</button></div>
+    $('#main').innerHTML = banner + `<div class="cols"><div class="card cvcard">
+      <div class="tbar">
+        <div class="tcl"><button class="tb sm" id="bUndo"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg><span>Annulla</span></button><button class="tb sm" id="bRedo"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg><span>Ripeti</span></button></div>
+        <div class="tcl tmain"><div class="tg" data-g="sel"><button class="tb" data-fly="sel" data-auto="1"><svg viewBox="0 0 24 24"><path d="M6 3l12 9-6 1 3.5 7-2.5 1-3.5-7L5 18z"/></svg><span>Seleziona</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="select"><svg viewBox="0 0 24 24"><path d="M6 3l12 9-6 1 3.5 7-2.5 1-3.5-7L5 18z"/></svg><span>Seleziona</span></button><button class="tb" data-win="1" title="Tocca un angolo e poi quello opposto (anche dentro gli ambienti)"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1" stroke-dasharray="3 2.5"/><path d="M14 13l6 6M14 13h4M14 13v4"/></svg><span>Rettangolo</span></button><button class="tb" data-mode="pan"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg><span>Sposta vista</span></button></div></div><div class="tg" data-g="muri"><button class="tb" data-fly="muri" data-auto="1"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" stroke-width="2.2"/><path d="M6 8l-3 4M11 8l-6 8M16 8l-6 8M21 8l-6 8M21 13l-2 3" stroke-width="1.2"/></svg><span>Muri</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="draw" data-tw="P"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" stroke-width="2.2"/><path d="M6 8l-3 4M11 8l-6 8M16 8l-6 8M21 8l-6 8M21 13l-2 3" stroke-width="1.2"/></svg><span>Perimetrali</span></button><button class="tb" data-mode="draw" data-tw="T"><svg viewBox="0 0 24 24"><path d="M3 10h18M3 14h18" stroke-width="1.9"/></svg><span>Tramezzi</span></button></div></div><div class="tg" data-g="ap"><button class="tb" data-fly="ap"><svg viewBox="0 0 24 24"><path d="M2 18h4M18 18h4" stroke-width="2.2"/><path d="M6 18V6M6 6a12 12 0 0 1 12 12"/></svg><span>Aperture</span><i class="car"></i></button><div class="tfly"><button class="tb" data-ap="finestra"><svg viewBox="0 0 24 24"><path d="M3 8h4M17 8h4M3 16h4M17 16h4" stroke-width="2.2"/><path d="M7 8v8M17 8v8M7 11h10M7 13h10"/></svg><span>Finestra</span></button><button class="tb" data-ap="uscita"><svg viewBox="0 0 24 24"><path d="M3 8h4M17 8h4M3 16h4M17 16h4" stroke-width="2.2"/><path d="M7 8v8M17 8v8M7 12h10"/><path d="M7 12a5 5 0 0 1 5-4" stroke-dasharray="2 2"/></svg><span>Porta-finestra</span></button><button class="tb" data-ap="porta"><svg viewBox="0 0 24 24"><path d="M2 18h4M18 18h4" stroke-width="2.2"/><path d="M6 18V6M6 6a12 12 0 0 1 12 12"/></svg><span>Porta</span></button><button class="tb" data-ap="ingresso"><svg viewBox="0 0 24 24"><path d="M2 18h3M19 18h3" stroke-width="2.2"/><path d="M5 18V5M5 5a13 13 0 0 1 14 13"/><path d="M12 22v-6M10 18l2-2 2 2"/></svg><span>Ingresso</span></button></div></div><button class="tb" data-sc="1"><svg viewBox="0 0 24 24"><path d="M4 20h4v-4h4v-4h4V8h4V4"/><path d="M4 20V16M8 16v-4M12 12V8M16 8V4" stroke-width="1"/></svg><span>Scala</span></button><button class="tb" data-dim="1" title="Quota libera: tocca due fili e scrivi la misura"><svg viewBox="0 0 24 24"><path d="M4 7v10M20 7v10M4 12h16M4 12l3-2.5M4 12l3 2.5M20 12l-3-2.5M20 12l-3 2.5"/></svg><span>Quota</span></button><button class="tb" data-mode="text"><svg viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg><span>Testo</span></button><button class="tb" data-foto="1" title="Tocca dove ti trovi e scatta"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Foto</span></button><button class="tb" data-nord="1"><svg viewBox="0 0 24 24"><path d="M12 2l5 18-5-4-5 4z"/><path d="M12 2v14"/></svg><span>Nord</span></button><button class="tb" data-bg="1" title="Planimetria di sfondo da ricalcare (JPEG)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.6"/></svg><span>Sfondo</span></button></div>
+        <div class="tcl"><button class="tb sm" id="bZo"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M7.5 10.5h6"/></svg><span>Zoom −</span></button><button class="tb sm" id="bZi"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M7.5 10.5h6M10.5 7.5v6"/></svg><span>Zoom +</span></button><button class="tb sm" id="bFit"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg><span>Adatta</span></button><span class="tsep"></span><label class="tb sm" title="Nomi e superfici degli ambienti"><input type="checkbox" id="cLab" ${ui.labels ? 'checked' : ''}><svg viewBox="0 0 24 24"><path d="M3 5h12l6 7-6 7H3z"/><path d="M7 10.5v4M7 11.5a1.5 1.5 0 0 1 3 0v3M10 11.5a1.5 1.5 0 0 1 3 0v3" stroke-width="1.3"/></svg><span>Nomi e m²</span></label><button class="tb sm" id="bFull">${ui.full ? '<svg viewBox="0 0 24 24"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg><span>Esci</span>' : '<svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span>Schermo</span>'}</button></div>
       </div>
       <div id="cv"><svg id="svg"></svg><div id="empty"></div><div id="toast"></div></div>
-      <div class="legend"><span><i style="border-color:var(--wP)"></i>perimetrali</span><span><i style="border-color:var(--wI)"></i>tramezzi</span><span><i style="border-color:var(--wR)"></i>infissi</span><span><i style="border-color:var(--mut);border-top-style:dashed"></i>vano porta (solo qui)</span><span>▭ casella vuota: lato da misurare (toccala per scrivere)</span><span>numero grigio: ricavato dalle tue misure</span><span>sui lati con vani: parziali tra spigoli e vani; il totale lo metti tu con ↔ Quota</span><span><em style="color:var(--mut)">corsivo grigio</em>: larghezza proposta, da misurare</span><span style="color:var(--bad)">in rosso: misura che non torna</span></div>
+      <div class="legend"><span><i style="border-color:var(--wP)"></i>perimetrali</span><span><i style="border-color:var(--wI)"></i>tramezzi</span><span><i style="border-color:var(--wR)"></i>infissi</span><span><i style="border-color:var(--mut);border-top-style:dashed"></i>vano porta (solo qui)</span><span>▭ casella vuota: lato da misurare (toccala per scrivere)</span><span>numero grigio: ricavato dalle tue misure</span><span>sui lati con vani: parziali tra spigoli e vani; il totale lo metti tu con «Quota»</span><span><em style="color:var(--mut)">corsivo grigio</em>: larghezza proposta, da misurare</span><span style="color:var(--bad)">in rosso: misura che non torna</span></div>
       <div id="fstrip"></div>
     </div><div id="sidecol"><button id="bCloseSide" class="sm" style="margin-bottom:6px;background:var(--card)">Chiudi pannello ✕</button><div class="card" id="side"></div><div class="card" id="msgs"></div></div></div>`;
     sizeCanvas(); bindCanvas(); if (!ui.fitted) { fit(); ui.fitted = true; }
@@ -1634,8 +1648,20 @@ function updTools() {
   document.querySelectorAll('[data-win]').forEach(b => b.classList.toggle('on', !!ui.winArm));
   document.querySelectorAll('[data-bg]').forEach(b => b.classList.toggle('on', !!(ui.sel && ui.sel.k === 'bg')));
   if (ui.winArm) document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('on'));
-  const g = $('#grpType'); if (g) g.style.opacity = ui.mode === 'draw' ? 1 : .45;
+  const busy = ui.place || ui.placeSc || ui.placeDim || ui.placeFoto || ui.placeNord || ui.winArm || (ui.sel && ui.sel.k === 'bg');
+  document.querySelectorAll('[data-tw]').forEach(b => b.classList.toggle('on', ui.mode === 'draw' && !busy && b.dataset.tw === ui.newType));
+  if (busy) document.querySelectorAll('[data-mode="select"],[data-mode="pan"],[data-mode="text"]').forEach(b => b.classList.remove('on'));
+  // pulsante del gruppo: mostra il comando scelto (o l'ultimo usato) ed è acceso se un suo comando è attivo
+  document.querySelectorAll('.tg').forEach(g => { const m = g.querySelector('[data-fly]'), on = g.querySelector('.tfly .on');
+    ui.flyLast = ui.flyLast || {}; if (on) ui.flyLast[g.dataset.g] = on;
+    const show = on || ui.flyLast[g.dataset.g];
+    if (!m.dataset.orig) m.dataset.orig = m.innerHTML;
+    if (show && (g.dataset.g !== 'ap' || on)) { m.querySelector('svg').outerHTML = show.querySelector('svg').outerHTML; m.querySelector('span').textContent = show.querySelector('span').textContent; }
+    else m.innerHTML = m.dataset.orig;
+    m.classList.toggle('on', !!on); });
 }
+function closeFly(except) { document.querySelectorAll('.tg.open').forEach(g => { if (g !== except) g.classList.remove('open'); }); }
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.tg')) closeFly(); }, true);
 function sizeCanvas() { const cv = $('#cv'); if (!cv) return;
  ui.W = cv.clientWidth; ui.H = ui.full ? Math.max(300, Math.round(window.innerHeight - cv.getBoundingClientRect().top - 14)) : Math.max(380, Math.min(820, Math.round(window.innerHeight * 0.66))); const s = $('#svg'); s.setAttribute('width', ui.W); s.setAttribute('height', ui.H); s.setAttribute('viewBox', `0 0 ${ui.W} ${ui.H}`); }
 window.addEventListener('resize', () => { if (tab === 'pianta') { sizeCanvas(); draw(); } });
@@ -2319,7 +2345,7 @@ function inp(f, v, lab, cls = '', dec = true, attr = 'data-w') { return `<div cl
 function setFull(on) {
   const cx = WX(ui.W / 2), cy = WY(ui.H / 2);
   ui.full = on; document.body.classList.toggle('full', on);
-  const b = $('#bFull'); if (b) b.textContent = on ? 'Riduci' : 'Ingrandisci';
+  const b = $('#bFull'); if (b) b.innerHTML = on ? '<svg viewBox="0 0 24 24"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg><span>Esci</span>' : '<svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span>Schermo</span>';
   try { if (on && document.documentElement.requestFullscreen && !document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
         else if (!on && document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch (e) {}
   setTimeout(() => { sizeCanvas(); ui.view.x = cx - ui.W / 2 / ui.view.s; ui.view.y = cy - ui.H / 2 / ui.view.s; draw(); }, 60);
@@ -2355,7 +2381,7 @@ function renderSide() {
         <button id="bBgL90" ${bg.lock ? 'disabled' : ''}>↺ 90°</button><button id="bBgR90" ${bg.lock ? 'disabled' : ''}>↻ 90°</button><button id="bBgL" ${bg.lock ? 'disabled' : ''}>↺ 0,5°</button><button id="bBgR" ${bg.lock ? 'disabled' : ''}>↻ 0,5°</button>
         <span class="mut" style="font-size:13px">${String(bg.rot).replace('.', ',')}°</span></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button id="bBgGal">🖼 Sostituisci dalla galleria</button><button id="bBgCam">📷 Sostituisci con una foto</button></div>
-      <p class="hint">Con «Sposta» attivo trascini l'immagine con un dito; due dita spostano sempre la vista. Per ricalcare passa a «Disegna muri»: l'immagine resta sotto. Quando le misure spostano i muri l'immagine resta ferma: è solo una traccia e non va nello script. La planimetria resta su questo dispositivo (non entra nel file .json esportato).</p>`);
+      <p class="hint">Con «Sposta» attivo trascini l'immagine con un dito; due dita spostano sempre la vista. Per ricalcare passa a «Muri»: l'immagine resta sotto. Quando le misure spostano i muri l'immagine resta ferma: è solo una traccia e non va nello script. La planimetria resta su questo dispositivo (non entra nel file .json esportato).</p>`);
     updTools(); renderMsgs(); return; }
   if (ui.sel && ui.sel.k === 'm') { const m = ui.sel, ws = m.w.map(id => pl.walls.find(x => x.id === id)).filter(Boolean), nAp = ws.reduce((t, w) => t + (w.ap || []).length, 0);
     const parts = [[m.w.length, 'muro', 'muri'], [m.s.length, 'scala', 'scale'], [m.n.length, 'nota', 'note'], [m.q.length, 'quota libera', 'quote libere']].filter(x => x[0]).map(x => x[0] + ' ' + (x[0] === 1 ? x[1] : x[2]));
@@ -2515,13 +2541,21 @@ function renderSet() {
   <div class="card"><div class="cardh">Limiti dei controlli</div><div class="grid">${i('rai', 'RAI minimo 1/…')}${i('hA', 'Altezza min. abitabili (m)')}${i('hC', 'Altezza min. accessori (m)')}</div>
   <p class="hint">Valori di partenza del D.M. 5 luglio 1975. Il regolamento edilizio del comune può prevedere valori diversi.</p></div>
   <div class="card"><div class="cardh">Script AutoCAD</div>${c('qInt', 'Quote parziali interne, lato per lato (tratti di muro tra spigoli e vani)')}${c('vani', 'Larghezza dei vani (porte, finestre, ingressi, uscite)')}${c('qExt', 'Quote esterne d\'ingombro')}${c('testi', 'Nome e superficie degli ambienti')}${c('porte', 'Blocchi PORTA_80 e PORTA_70 accanto al disegno')}${c('note', 'Note scritte con «Testo» (nel punto in cui le hai messe)')}
-  <p class="hint">Layer PLAN_MURI_PERIM, PLAN_MURI_INT e PLAN_INFISSI_TESTI, stile di quota STUDIO, delle porte solo il vano, osnap dello studio riattivati alla fine. Le quote libere messe con «↔ Quota» vanno sempre nello script. I totali interni non si scrivono da soli: mettili tu con «↔ Quota».</p></div>`;
+  <p class="hint">Layer PLAN_MURI_PERIM, PLAN_MURI_INT e PLAN_INFISSI_TESTI, stile di quota STUDIO, delle porte solo il vano, osnap dello studio riattivati alla fine. Le quote libere messe con «Quota» vanno sempre nello script. I totali interni non si scrivono da soli: mettili tu con «Quota».</p></div>`;
 }
 
 /* ================= eventi ================= */
 document.addEventListener('pointerdown', () => { ui.downAt = Date.now(); }, true);
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && ui.winA) { ui.winA = null; winShow(null); return; } if (e.key === 'Escape' && ui.sel && document.body.classList.contains('full') && !/INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || '')) { ui.sel = null; draw(); renderSide(); } });
+document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && tab === 'pianta' && !ui.inl && !/INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || '')) { const k = e.key.toLowerCase(); if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; } if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); redo(); return; } }
+  if (e.key === 'Escape' && document.querySelector('.tg.open')) { closeFly(); return; } if (e.key === 'Escape' && ui.winA) { ui.winA = null; winShow(null); return; } if (e.key === 'Escape' && ui.sel && document.body.classList.contains('full') && !/INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || '')) { ui.sel = null; draw(); renderSide(); } });
 document.addEventListener('click', e => {
+  const fm = e.target.closest('[data-fly]'); if (fm) { const g = fm.closest('.tg');
+    if (g.classList.contains('open')) { g.classList.remove('open'); return; }
+    closeFly(g);
+    if (fm.dataset.auto && !fm.classList.contains('on')) { const last = (ui.flyLast && ui.flyLast[g.dataset.g]) || g.querySelector('.tfly button'); last.click(); }
+    g.classList.add('open'); return; }
+  const fs = e.target.closest('.tfly button'); if (fs) { closeFly(); if (fs.classList.contains('on')) return; }
+  else if (!e.target.closest('.tg')) closeFly();
   const t = e.target.closest('[data-tab]'); if (t) { tab = t.dataset.tab; render(); return; }
   const bgb = e.target.closest('[data-bg]'); if (bgb) { ui.bgCal = null; ui.bgMove = false; ui.sel = ui.sel && ui.sel.k === 'bg' ? null : {k:'bg'}; updTools(); draw(); renderSide(); return; }
   if (ui.sel && ui.sel.k === 'bg') { const idb = e.target.id, bg = piano().bg;
@@ -2536,7 +2570,7 @@ document.addEventListener('click', e => {
   const dq = e.target.closest('[data-dim]'); if (dq) { ui.placeDim = !ui.placeDim; ui.dimA = null; ui.dimHover = null; ui.place = null; ui.placeSc = false; ui.placeFoto = false; ui.placeNord = false; ui.ghost = null; updTools(); draw();
     if (ui.placeDim) toast('Quota: tocca il filo di partenza e quello di arrivo (facce o spigoli dei muri, spallette dei vani); tenendo premuto vedi dove si aggancia. Poi scrivi la misura.'); return; }
   if (e.target.closest('[data-ap],[data-sc],[data-foto],[data-nord],[data-nt]') && ui.placeDim) { ui.placeDim = false; ui.dimA = null; ui.dimHover = null; }
-  const md = e.target.closest('[data-mode]'); if (md) { ui.bgCal = null; ui.bgMove = false; ui.winA = null; ui.winArm = false; ui.placeDim = false; ui.dimA = null; ui.dimHover = null; ui.place = null; ui.placeSc = false; ui.placeNord = false; ui.morePt = null; showMore(); ui.ghost = null; ui.mode = md.dataset.mode; updTools(); draw(); return; }
+  const md = e.target.closest('[data-mode]'); if (md) { ui.bgCal = null; ui.bgMove = false; ui.winA = null; ui.winArm = false; ui.placeDim = false; ui.dimA = null; ui.dimHover = null; ui.place = null; ui.placeSc = false; ui.placeNord = false; ui.morePt = null; showMore(); ui.ghost = null; ui.mode = md.dataset.mode; if (md.dataset.tw) ui.newType = md.dataset.tw; if (ui.sel && ui.sel.k === 'bg') ui.sel = null; updTools(); draw(); renderSide(); return; }
   const fb = e.target.closest('[data-foto]'); if (fb) { ui.morePt = null; showMore(); ui.placeFoto = !ui.placeFoto; ui.place = null; ui.placeSc = false; ui.ghost = null; updTools(); draw();
     if (ui.placeFoto) toast('Foto: tocca sulla pianta il punto in cui ti trovi; si apre la fotocamera.'); return; }
   const nb = e.target.closest('[data-nord]'); if (nb) { ui.morePt = null; showMore(); ui.placeNord = !ui.placeNord; ui.placeFoto = false; ui.place = null; ui.placeSc = false; updTools(); draw();
@@ -2570,6 +2604,7 @@ document.addEventListener('click', e => {
   const sw = e.target.closest('[data-selw]'); if (sw) { ui.sel = {k:'w', id:sw.dataset.selw}; ui.mode = 'select'; updTools(); draw(); renderSide(); return; }
   const id = e.target.id, pl = piano();
   if (id === 'bUndo') return undo();
+  if (id === 'bRedo') return redo();
   if (id === 'bDelN') { pushUndo(); pl.notes = (pl.notes || []).filter(n => !(ui.sel && n.id === ui.sel.id)); ui.sel = null; draw(); renderSide(); save(); return; }
   if (id === 'bFit') { fit(); draw(); return; }
   if (id === 'bDelM') return delMulti();
@@ -2641,10 +2676,10 @@ document.addEventListener('input', e => {
   else if (t.id === 'cLab') { ui.labels = t.checked; try { localStorage.setItem('rilievo-etichette', t.checked ? '1' : '0'); } catch (e) {} draw(); }
   else if (t.dataset.o) { R.opt[t.dataset.o] = t.checked; save(); }
 });
-$('#selPiano').onchange = e => { R.cur = +e.target.value; ui.sel = null; ui.undo = []; ui.fitted = false; render(); save(); };
-$('#bAddPiano').onclick = () => { const n = prompt('Nome del nuovo piano:', 'Piano primo'); if (!n) return; R.piani.push({id:uid(), nome:n, ver:0, nodes:[], walls:[], rooms:[]}); R.cur = R.piani.length - 1; ui.sel = null; ui.undo = []; ui.fitted = false; render(); save(); };
+$('#selPiano').onchange = e => { R.cur = +e.target.value; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); save(); };
+$('#bAddPiano').onclick = () => { const n = prompt('Nome del nuovo piano:', 'Piano primo'); if (!n) return; R.piani.push({id:uid(), nome:n, ver:0, nodes:[], walls:[], rooms:[]}); R.cur = R.piani.length - 1; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); save(); };
 $('#bRenPiano').onclick = () => { const n = prompt('Nuovo nome del piano:', piano().nome); if (!n) return; piano().nome = n; render(); save(); };
-$('#bDelPiano').onclick = () => { if (R.piani.length < 2) { alert('Deve restare almeno un piano.'); return; } if (!confirm('Eliminare il piano «' + piano().nome + '» con tutti i suoi muri e le sue foto?')) return; { const pid = piano().id; (ui.fotos || []).filter(f => f.piano === pid).forEach(f => fDel(f.id).catch(() => {})); ui.fotos = (ui.fotos || []).filter(f => f.piano !== pid); } R.piani.splice(R.cur, 1); R.cur = 0; ui.sel = null; ui.undo = []; ui.fitted = false; render(); save(); };
+$('#bDelPiano').onclick = () => { if (R.piani.length < 2) { alert('Deve restare almeno un piano.'); return; } if (!confirm('Eliminare il piano «' + piano().nome + '» con tutti i suoi muri e le sue foto?')) return; { const pid = piano().id; (ui.fotos || []).filter(f => f.piano === pid).forEach(f => fDel(f.id).catch(() => {})); ui.fotos = (ui.fotos || []).filter(f => f.piano !== pid); } R.piani.splice(R.cur, 1); R.cur = 0; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); save(); };
 $('#bNew').onclick = () => { const n = blank(); n.id = uid(); n.unexp = true; n.mod = new Date().toISOString(); arcPut(n); ui.mode = 'draw'; ui.newType = 'P'; openRilievo(n); toast('Nuovo rilievo: il precedente resta nell\'Archivio.'); };
 $('#bExp').onclick = () => { if (R.demo) { exportR(R); return; } exportR(R); R.unexp = false; arcPut(R); updExpBadge(); };
 $('#bArch').onclick = showArchive;
