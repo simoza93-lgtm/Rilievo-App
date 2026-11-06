@@ -187,7 +187,7 @@ function topo(pl) {
     const H = isH(a, b), t = thick(w); let o = 0;
     if (w.filo === '+' || w.filo === '-') {
       let ref = 0; [w.a, w.b].forEach(id => (at.get(id) || []).forEach(x => { if (x === w) return; const xa = N.get(x.a), xb = N.get(x.b); if (xa && xb && isH(xa, xb) === H) ref = Math.max(ref, thick(x) || 0); }));
-      if (!(ref > t)) ref = Math.max(t, P_());
+      if (!(ref > t)) ref = t;   // nessun muro più spesso in linea (per esempio cambiato in tramezzo o cancellato): il muro torna centrato
       o = (w.filo === '+' ? 1 : -1) * (ref - t) / 2;
     }
     offs.set(w.id, o);
