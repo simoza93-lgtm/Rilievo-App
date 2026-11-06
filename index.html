@@ -80,6 +80,23 @@ body.full #sidecol{height:calc(100vh - 12px);overflow:auto}
 body.full #sidecol .card{margin-bottom:8px}
 @media(max-width:700px){body.full .cols{display:block}body.full #sidecol{height:auto;overflow:visible;margin-top:8px}}
 #bCloseSide{display:none}
+.mpop{position:fixed;inset:0;z-index:60;background:rgba(15,20,30,.35);display:flex;align-items:center;justify-content:center;padding:16px}
+.mpop .mbox{width:min(380px,100%);background:var(--card);border-radius:18px;box-shadow:0 16px 48px rgba(0,0,0,.3);overflow:hidden}
+.mpop .mhd{display:flex;align-items:flex-start;justify-content:space-between;padding:16px 18px 10px;gap:10px}
+.mpop .mt{font-size:21px;font-weight:700}
+.mpop .ms{font-size:14px;color:var(--mut);margin-top:2px}
+.mpop .mx{width:40px;height:40px;min-height:40px;border-radius:50%;padding:0;font-size:18px;flex:0 0 auto}
+.mpop .mval{text-align:center;font-size:44px;font-weight:500;padding:14px 0 2px;background:var(--bg);border-top:1px solid var(--line)}
+.mpop .mval .mu{font-size:24px;color:var(--mut);margin-left:6px}
+.mpop .mval .mph{color:var(--mut)}
+.mpop .mhint{text-align:center;font-size:13px;color:var(--mut);background:var(--bg);padding:0 0 10px}
+.mpop .mkeys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 16px;background:var(--bg)}
+.mpop .mkeys button{height:58px;min-height:58px;font-size:24px;border-radius:12px;background:var(--card)}
+.mpop .mkeys .mk2{background:transparent;border-color:transparent}
+.mpop .mfoot{display:flex;gap:10px;padding:12px 16px 16px;background:var(--bg)}
+.mpop .mok{flex:1;height:52px;min-height:52px;font-size:19px;font-weight:600;background:#222;color:#fff;border-color:#222;border-radius:12px}
+.mpop .mdel{height:52px;min-height:52px;color:var(--bad)}
+@media(max-width:700px){.mpop{align-items:flex-end;padding:0}.mpop .mbox{border-radius:18px 18px 0 0}}
 #fstrip{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
 #fstrip .fsh{display:flex;align-items:center;gap:8px;font-weight:600;margin-bottom:6px}
 #fstrip .fsh .sp{flex:1}
@@ -2027,16 +2044,28 @@ function openInline(hb) {
   else if (kind === 'p') { if (hb.last) old = (pl.fl || {})[hb.rk] || ''; else { const ap = apOf(hb.nx), p = ap && ap.pos; if (p && p.k === hb.rk && (hb.pv ? p.prev === hb.pv : !p.prev)) old = p.v; } }
   else if (kind === 'w') { const ap = apOf(hb.ap); if (ap) { old = ap.lp ? '' : ap.l || ''; ph = ap.lp ? 'prop. ' + ap.l : 'm'; } }
   else if (kind === 'q') { const d = (pl.dims || []).find(x => x.id === hb.id); old = d ? d.v || '' : ''; }
-  inp.id = 'inl'; inp.type = 'text'; inp.setAttribute('inputmode', 'decimal'); inp.setAttribute('enterkeyhint', 'done'); inp.autocomplete = 'off'; inp.value = old; inp.placeholder = ph;
-  Object.assign(inp.style, {position:'absolute', left:Math.round(b[0] + b[2] / 2 - 48) + 'px', top:Math.round(b[1] + b[3] / 2 - 20) + 'px', width:'96px', height:'40px', minHeight:'40px', fontSize:'17px', textAlign:'center', border:'2px solid var(--acc)', borderRadius:'8px', zIndex:6, padding:'4px', boxShadow:'0 4px 14px rgba(0,0,0,.25)'});
-  ui.inl = {key:hbKey(hb)}; cv.appendChild(inp); inp.focus(); inp.select(); draw();
-  let done = false;
-  const commit = () => {
-    if (done) return; done = true;
-    const v = inp.value.trim();
-    inp.remove(); ui.inl = null;
+  // finestra «Modifica misura»: numero grande in metri e tastierino (niente tastiera del tablet)
+  const sub = kind === 'w' ? 'Larghezza del vano' : kind === 'q' ? 'Quota libera' : kind === 'p' ? (hb.last ? 'Parziale · ultimo tratto del lato' : 'Parziale · tratto di muro') : hb.fac ? 'Totale esterno della facciata' :
+    (() => { const r = (G.runs || []).find(x => x.key === hb.key); if (!r) return 'Lato del muro'; const c = r.comp >= 0 && G.comps[r.comp] && G.comps[r.comp].rec ? ' · ' + G.comps[r.comp].rec.nome : ''; return tipoNome(r.walls[0]) + ', ' + latoNome(r) + c; })();
+  const pop = document.createElement('div'); pop.id = 'inl'; pop.className = 'mpop';
+  pop.innerHTML = `<div class="mbox" role="dialog" aria-label="Modifica misura"><div class="mhd"><div><div class="mt">Modifica misura</div><div class="ms">${esc(sub)}</div></div><button class="mx" data-k="x" aria-label="Chiudi">✕</button></div>
+    <div class="mval"><span id="mvTxt"></span><span class="mu">m</span></div><div class="mhint">${ph !== 'm' ? 'Valore proposto: ' + esc(ph.replace('prop. ', '')) + ' m' : 'Scrivi la misura presa'}</div>
+    <div class="mkeys">${['1','2','3','4','5','6','7','8','9',',','0','⌫'].map(k => `<button data-k="${k}" class="${k === ',' || k === '⌫' ? 'mk2' : ''}">${k}</button>`).join('')}</div>
+    <div class="mfoot">${old ? '<button class="mdel" data-k="del">Togli misura</button>' : ''}<button class="mok" data-k="ok">Applica</button></div></div>`;
+  document.body.appendChild(pop); ui.inl = {key:hbKey(hb)}; draw();
+  let val = old, fresh = !!old, done = false;
+  const show = () => { const t = pop.querySelector('#mvTxt'); t.textContent = val || (ph !== 'm' ? ph.replace('prop. ', '') : '0,00'); t.classList.toggle('mph', !val); };
+  const key = k => {
+    if (k === '⌫') { val = fresh ? '' : val.slice(0, -1); fresh = false; }
+    else if (k === ',') { if (fresh) { val = '0'; fresh = false; } if (!val.includes(',')) val = (val || '0') + ','; }
+    else if (/^\d$/.test(k)) { if (fresh) { val = ''; fresh = false; } const dec = val.split(',')[1]; if (dec && dec.length >= 3) return; if (val === '0') val = ''; if (val.replace(',', '').length < 6) val += k; }
+    show(); };
+  const close = () => { done = true; pop.remove(); document.removeEventListener('keydown', kd, true); ui.inl = null; draw(); };
+  const commit = (vv) => {
+    if (done) return; done = true; pop.remove(); document.removeEventListener('keydown', kd, true); ui.inl = null;
+    const v = (vv === undefined ? val : vv).replace(/,$/, '').trim();
     const ok = kind === 'p' ? num(v) >= 0 : num(v) > 0;
-    if (v && !ok) { toast('Misura non valida: scrivi solo il numero, per esempio 3,45.'); draw(); return; }
+    if (v && !ok) { toast('Misura non valida.'); draw(); return; }
     if (v === old) { draw(); return; }
     pushUndo(); undemo();
     if (kind === 'r') setMeasure(pl, 'r', hb.key, v);
@@ -2050,10 +2079,15 @@ function openInline(hb) {
     }
     update(true);
   };
-  inp.addEventListener('commit', commit);
-  const t0 = Date.now();
-  inp.addEventListener('blur', () => { if (Date.now() - t0 < 600 && !(ui.downAt > t0) && inp.isConnected) { setTimeout(() => { if (inp.isConnected && !done) inp.focus(); }, 0); return; } commit(); });
-  inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); commit(); } else if (e.key === 'Escape') { done = true; inp.remove(); ui.inl = null; draw(); } });
+  const kd = e => { if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if (/^\d$/.test(e.key)) key(e.key); else if (e.key === ',' || e.key === '.') key(','); else if (e.key === 'Backspace') key('⌫');
+    else if (e.key === 'Enter') commit(); else if (e.key === 'Escape') close(); else return; e.preventDefault(); e.stopPropagation(); };
+  document.addEventListener('keydown', kd, true);
+  pop.addEventListener('commit', () => commit());
+  pop.addEventListener('pointerdown', e => { if (e.target === pop) { e.preventDefault(); close(); } });
+  pop.addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (!b) return; const k = b.dataset.k;
+    if (k === 'x') close(); else if (k === 'ok') commit(); else if (k === 'del') commit(''); else key(k); });
+  show();
 }
 
 /* ---- aperture: posa con i tasti rapidi e trascinamento ---- */
@@ -2292,6 +2326,7 @@ function setFull(on) {
 }
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && ui.full) setFull(false); else if (tab === 'pianta') setTimeout(() => { sizeCanvas(); draw(); }, 60); });
 function renderSide() {
+  { const sd = $('#side'); if (sd) sd.style.display = ''; }
   document.body.classList.toggle('hassel', !!ui.sel);
   { const sc = $('#sidecol'), cv = $('#cv');   // a schermo intero il pannello sta sopra la tavola, sotto i pulsanti
     if (sc) { if (ui.full && ui.sel && cv && window.innerWidth > 700) { const t = Math.max(10, Math.round(cv.getBoundingClientRect().top + 8)); sc.style.top = t + 'px'; sc.style.maxHeight = `calc(100vh - ${t + 10}px)`; } else { sc.style.top = ''; sc.style.maxHeight = ''; } } }
@@ -2418,19 +2453,7 @@ function renderSide() {
       ${inp('H', r.H, 'Altezza (m)', '', true, 'data-r')}</div>
       <p class="hint">Gli ambienti si riconoscono da soli quando i muri li chiudono.</p>`;
   } else {
-    el.innerHTML = `<div class="cardh">Come si usa</div><ol class="help">
-      <li>Scegli <b>Perimetrali</b> e disegna il contorno con «Disegna muri», anche in un solo tratto.</li>
-      <li>Scegli <b>Tramezzi</b> e disegna i muri interni partendo da un muro esistente.</li>
-      <li>Tocca una casella vuota accanto a un muro e scrivi la misura del laser; Invio per confermare. Con <b>Seleziona</b> e un tocco sul muro apri tutto il suo pannello.</li>
-      <li>Tocca dentro un ambiente per dargli nome, destinazione e altezza.</li>
-      <li>Con <b>☰ Scala</b> tocchi dentro il vano e trascini; poi con «Seleziona» la tocchi per tipo (dritta, a L, a U, a chiocciola), verso e misure.</li>
-      <li>Con <b>📷 Foto</b> tocchi il punto in cui ti trovi e si apre la fotocamera; le foto restano nella scheda <b>Foto</b>, da dove le esporti in uno zip.</li>
-      <li>Con <b>⬆ Nord</b> metti il simbolo del nord; con «Seleziona» lo tocchi per orientarlo, anche con la bussola del tablet.</li>
-      <li>Sui lati con porte e finestre le caselle sono le <b>parziali</b>: dallo spigolo al vano, tra un vano e l'altro, dal vano allo spigolo. La larghezza del vano si scrive nella casella sulla linea che esce dal vano; altezza e davanzale nel pannello del muro.</li>
-      <li>Con <b>↔ Quota</b> tocchi due spigoli e scrivi la misura: è la quota libera, per esempio il totale interno di una parete. Si trascina per spostarla.</li>
-      <li>Con <b>Testo</b> tocchi la tavola dove vuoi e scrivi una nota; trascinala per spostarla.</li>
-      <li>La pianta si ricalcola sulle misure interne, che comandano sempre; le misure esterne servono da verifica. Lo schizzo dà solo la forma: i numeri compaiono quando vengono dalle tue misure. Le misure già inserite restano bloccate; una nuova che non torna di oltre 3 cm diventa rossa, sotto i 3 cm è fuori squadra e vale la prima.</li></ol>
-      <p class="hint">Due dita per spostare e ingrandire. «Annulla» toglie l'ultima modifica.</p>`;
+    el.innerHTML = ''; el.style.display = 'none';   // nessun elemento selezionato: niente pannello (le istruzioni sono state tolte)
   }
   renderMsgs();
 }
