@@ -1670,7 +1670,7 @@ function zoomAt(f, px, py) { closeInline(true); const wx = WX(px), wy = WY(py); 
 /* ---- porte: arco e pulsanti per girarle ---- */
 function arcPts(D, n = 16) { const a0 = Math.atan2(D.p0[1] - D.c[1], D.p0[0] - D.c[0]), a1 = Math.atan2(D.p1[1] - D.c[1], D.p1[0] - D.c[0]); let da = a1 - a0; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
   return Array.from({length:n + 1}, (_, i) => { const a = a0 + da * i / n; return [D.c[0] + D.r * Math.cos(a), D.c[1] + D.r * Math.sin(a)]; }); }
-function selDoor() { const id = ui.selAp || (ui.sel && ui.sel.k === 'w' && ui.sel.ap); if (!id || !G.ops) return null; return G.ops.find(o => o.door && o.ap.id === id) || null; }
+function selDoor() { const id = ui.selAp || (ui.sel && ui.sel.k === 'a' && ui.sel.ap); if (!id || !G.ops) return null; return G.ops.find(o => o.door && o.ap.id === id) || null; }
 // tocco su una porta: il vano o lo spicchio dove gira l'anta
 function doorAt(p) { const o = opAt(p); if (o && o.door) return o; const wx = WX(p[0]), wy = WY(p[1]);
   return (G.ops || []).find(o => { if (!o.door) return false; const D = o.door, v = [wx - D.c[0], wy - D.c[1]], a = v[0] * D.tv[0] + v[1] * D.tv[1], b = (v[0] * D.n[0] + v[1] * D.n[1]) * D.q, w = (D.p1[0] - D.c[0]) * D.tv[0] + (D.p1[1] - D.c[1]) * D.tv[1];
@@ -1708,6 +1708,8 @@ function draw() {
   const selPieno = selRoom && G.comps[selRoom._c] && !G.comps[selRoom._c].room;
   s += '<g fill="var(--wall)">' + G.fills.map(b => `<rect x="${X(b[0])}" y="${Y(b[3])}" width="${(b[2] - b[0]) * v.s + 0.3}" height="${(b[3] - b[1]) * v.s + 0.3}"/>`).join('') + '</g>';
   if (selPieno) s += `<g fill="var(--acc)" fill-opacity=".35">` + roomRects(G.comps[selRoom._c]) + '</g>';
+  if (ui.sel && ui.sel.k === 'a') { const o = G.ops.find(o => o.ap.id === ui.sel.ap && o.at); if (o) { const d = o.I.t, q = [o.at(o.s0, -0.04), o.at(o.s1, -0.04), o.at(o.s1, d + 0.04), o.at(o.s0, d + 0.04)];
+    s += `<path d="M${q.map(v => X(v[0]).toFixed(1) + ' ' + Y(v[1]).toFixed(1)).join(' L')} Z" fill="var(--accbg)" stroke="var(--acc)" stroke-width="2" opacity=".85"/>`; } }
   G.ops.filter(o => o.door).forEach(o => { const D = o.door, sd = selDoor(), selD = !!sd && sd.ap.id === o.ap.id, c = selD ? 'var(--acc)' : 'var(--wR)';
     s += `<path d="M${D.rect.map(q => X(q[0]).toFixed(1) + ' ' + Y(q[1]).toFixed(1)).join(' L')} Z" fill="var(--cv)" stroke="${c}" stroke-width="${selD ? 2 : 1.2}"/>`;
     s += `<polyline points="${arcPts(D).map(q => X(q[0]).toFixed(1) + ',' + Y(q[1]).toFixed(1)).join(' ')}" fill="none" stroke="${c}" stroke-width="${selD ? 1.6 : 1}"/>`; });
@@ -1845,7 +1847,7 @@ function bindCanvas() {
     if (ptrs.size > 2) return;
     if (ptrs.size === 1) { const fb = flipAt(p); if (fb) { e.preventDefault(); ptrs.delete(e.pointerId); flipDoor(fb.k); return; } }
     doorTap = null; if (ptrs.size === 1 && !ui.place && !ui.placeSc && !ui.placeDim && !ui.winArm) { const dd = doorAt(p); if (dd) doorTap = {o:dd, p}; }
-    if (ui.selAp && !doorTap) { ui.selAp = null; draw(); }
+    if (!doorTap && (ui.selAp || (ui.mode === 'draw' && ui.sel && ui.sel.k === 'a'))) { ui.selAp = null; if (ui.mode === 'draw' && ui.sel && ui.sel.k === 'a') { ui.sel = null; renderSide(); } draw(); }
     if (doorTap && ui.mode !== 'draw' && !opAt(p)) { apDrag = {tipo:doorTap.o.ap.tipo, l:num(doorTap.o.ap.l), ap:doorTap.o.ap, w:doorTap.o.w, p0:p, moved:false}; return; }
     if (ui.placeFoto && ptrs.size === 1) { fotoTap = p; return; }
     if (ui.placeNord && ptrs.size === 1) { nordTap = p; return; }
@@ -1863,13 +1865,12 @@ function bindCanvas() {
     const nh = ui.mode !== 'draw' ? noteAt(p) : null;
     if (nh) { drag = {n:nh, p, x0:nh.x, y0:nh.y, moved:false}; return; }
     if (ui.mode === 'draw' && e.button !== 1 && e.button !== 2) { stroke = [p]; ui.trk = trkInit(); }
-    else if (ui.mode === 'select' && e.pointerType !== 'mouse' || (ui.mode === 'select' && e.button === 0)) win = {p0:p, moved:false, pt:e.pointerType};
     else pan = {p, vx:ui.view.x, vy:ui.view.y, moved:false};
   });
   svg.addEventListener('pointermove', e => {
     if (!ptrs.has(e.pointerId)) { if (ui.winA && ui.mode === 'select') { winShow(ui.winA, pos(e)); return; } if (ui.placeDim && e.pointerType !== 'touch') { ui.dimHover = dimSnap(pos(e)); draw(); return; } if (ui.place && e.pointerType !== 'touch') { ui.ghost = ghostAt(pos(e), ui.place, num(DEF_AP[ui.place].l), null); draw(); } return; } const p = pos(e); ptrs.set(e.pointerId, p);
     if (pinch && ptrs.size >= 2) { const [a, b] = [...ptrs.values()]; const d = Math.hypot(a[0] - b[0], a[1] - b[1]), mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2; ui.view.s = Math.max(6, Math.min(400, pinch.s * d / pinch.d)); ui.view.x = pinch.wx - mx / ui.view.s; ui.view.y = pinch.wy - (ui.H - my) / ui.view.s; draw(); return; }
-    if (boxTap) { if (Math.hypot(p[0] - boxTap.p[0], p[1] - boxTap.p[1]) > 8) { if (boxTap.hb.kind === 'q' && ui.mode !== 'draw') { const d = (piano().dims || []).find(x => x.id === boxTap.hb.id); if (d) dmDrag = {d, p0:boxTap.p, o0:d.o, moved:false}; } else if (ui.mode === 'select') { win = {p0:boxTap.p, moved:true}; ui.winA = null; } boxTap = null; } else return; }
+    if (boxTap) { if (Math.hypot(p[0] - boxTap.p[0], p[1] - boxTap.p[1]) > 8) { if (boxTap.hb.kind === 'q' && ui.mode !== 'draw') { const d = (piano().dims || []).find(x => x.id === boxTap.hb.id); if (d) dmDrag = {d, p0:boxTap.p, o0:d.o, moved:false}; } else if (ui.mode === 'select') { pan = {p:boxTap.p, vx:ui.view.x, vy:ui.view.y, moved:true}; } boxTap = null; } else return; }
     if (dmDrag) { const dx = p[0] - dmDrag.p0[0], dy = p[1] - dmDrag.p0[1];
       if (!dmDrag.moved && Math.hypot(dx, dy) > 5) { pushUndo(); dmDrag.moved = true; }
       if (dmDrag.moved) { dmDrag.d.o = r4(dmDrag.o0 + (dmDrag.d.H ? -dy : dx) / ui.view.s); draw(); } return; }
@@ -1912,11 +1913,11 @@ function bindCanvas() {
       pl.walls.forEach(w => (w.ap || []).forEach(ap => { if (ap.sc === d.st.id && ap.pos) { delete ap.pos; ap.dp = true; } }));
       snapStair(d.st); anchorStair(pl, d.st); undemo(); update(true); return; }
     if (apDrag) { const a = apDrag; apDrag = null; const gh = ui.ghost; ui.ghost = null;
-      if (!a.moved) { ui.sel = {k:'w', id:a.w.id, ap:a.ap.id}; ui.selAp = a.ap.tipo === 'porta' ? a.ap.id : null; ui.focusAp = a.ap.id; draw(); renderSide(); return; }
+      if (!a.moved) { ui.sel = {k:'a', id:a.w.id, ap:a.ap.id}; ui.selAp = a.ap.tipo === 'porta' ? a.ap.id : null; draw(); renderSide(); return; }
       if (dropGhost(gh)) { if (a.tipo && !a.ap) { ui.place = null; updTools(); } } else draw();
       return; }
     if (drag) { const d = drag; drag = null; if (!d.moved) { purgeNotes(d.n.id); ui.sel = {k:'n', id:d.n.id}; draw(); renderSide(); } else save(); return; }
-    if (stroke && doorTap && Math.hypot(p[0] - doorTap.p[0], p[1] - doorTap.p[1]) < 8) { const o = doorTap.o; doorTap = null; stroke = null; ui.trk = null; trkShow(null); ui.selAp = o.ap.id; draw(); toast('Porta: ⇄ sposta la cerniera, ⇅ la fa aprire dall\'altro lato.'); return; }
+    if (stroke && doorTap && Math.hypot(p[0] - doorTap.p[0], p[1] - doorTap.p[1]) < 8) { const o = doorTap.o; doorTap = null; stroke = null; ui.trk = null; trkShow(null); ui.selAp = o.ap.id; ui.sel = {k:'a', id:o.w.id, ap:o.ap.id}; draw(); renderSide(); toast('Porta: ⇄ sposta la cerniera, ⇅ la fa aprire dall\'altro lato.'); return; }
     if (stroke) { const s = stroke; stroke = null; ui.trk = null; trkShow(null); finishStroke(s); return; }
     if (win) { const w0 = win; win = null;
       if (w0.moved) { ui.winArm = false; updTools(); winSelect(w0.p0, p); return; }
@@ -2378,6 +2379,12 @@ function setFull(on) {
   setTimeout(() => { sizeCanvas(); ui.view.x = cx - ui.W / 2 / ui.view.s; ui.view.y = cy - ui.H / 2 / ui.view.s; draw(); }, 60);
 }
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && ui.full) setFull(false); else if (tab === 'pianta') setTimeout(() => { sizeCanvas(); draw(); }, 60); });
+function apFields(x) { return `        <div><label class="l">Tipo</label><select data-w="ap.${x.id}.tipo" data-re>${opt(TIPI_AP, x.tipo)}</select></div>
+        ${inp('ap.' + x.id + '.d', x.d, 'Distanza (m)')}${inp('ap.' + x.id + '.l', x.l, 'Larghezza (m)')}
+        ${x.tipo === 'finestra' || x.tipo === 'uscita' ? inp('ap.' + x.id + '.h', x.h, 'Altezza (m)') : ''}
+        ${x.tipo === 'finestra' ? inp('ap.' + x.id + '.dav', x.dav, 'Davanzale (m)') : ''}
+        ${x.tipo === 'porta' ? `<div style="grid-column:1/-1;display:flex;gap:6px"><button class="sm" data-flipap="${x.id}:cx">⇄ Cerniera dall'altra parte</button><button class="sm" data-flipap="${x.id}:vx">⇅ Apre dall'altro lato</button></div>` : ''}
+        ${x.tipo === 'uscita' || x.tipo === 'ingresso' ? `<label class="chk" style="grid-column:1/-1"><input type="checkbox" data-w="ap.${x.id}.inv" ${x.inv ? 'checked' : ''}> Esterno dal lato opposto</label>` : ''}`; }
 function renderSide() {
   { const sd = $('#side'); if (sd) sd.style.display = ''; }
   document.body.classList.toggle('hassel', !!ui.sel);
@@ -2387,6 +2394,12 @@ function renderSide() {
   const w = ui.sel && ui.sel.k === 'w' && pl.walls.find(x => x.id === ui.sel.id);
   const r = ui.sel && ui.sel.k === 'r' && (pl.rooms || []).find(x => x.id === ui.sel.id);
   const nt = ui.sel && ui.sel.k === 'n' && (pl.notes || []).find(x => x.id === ui.sel.id);
+  if (ui.sel && ui.sel.k === 'a') { const wa = pl.walls.find(x => x.id === ui.sel.id), x = wa && (wa.ap || []).find(q => q.id === ui.sel.ap);
+    if (!x) { ui.sel = null; el.innerHTML = ''; el.style.display = 'none'; renderMsgs(); return; }
+    el.innerHTML = `<div class="cardh">${esc(TIPI_AP[x.tipo] || 'Vano')} <span class="sp"></span><button class="sm bad" data-rmsel="1">Elimina</button></div>
+      <div class="ap" data-aprow="${x.id}" style="border:0;padding:0;box-shadow:none">${apFields(x)}</div>
+      <p class="hint">Sta in un muro ${tipoNome(wa)}: <button class="sm" data-gowall="1">Seleziona il muro</button>. Le parziali e la larghezza misurate si scrivono anche toccando le caselle in pianta.</p>`;
+    renderMsgs(); return; }
   if (ui.sel && ui.sel.k === 'nord' && pl.nord) {
     el.innerHTML = `<div class="cardh">Nord <span class="sp"></span><button class="sm bad" id="bNordDel">Elimina</button></div>
       <div class="grid"><div><label class="l">Angolo (°)</label><input id="iNord" value="${esc(R.nordAng || '0')}" inputmode="decimal"></div>
@@ -2486,12 +2499,7 @@ function renderSide() {
       <h3>Porte e finestre</h3>
       <p class="hint" style="margin:-4px 0 8px">Più veloce in pianta: le caselle accanto al muro sono le parziali (spigolo → vano → vano → spigolo) e quella sulla linea che esce dal vano è la larghezza. Qui: distanza ${from}, dalla faccia del muro all'inizio del vano; sulla tavola una larghezza in corsivo grigio è ancora proposta e una casella vuota tratteggiata è da misurare. Porta = anta e arco (toccala e girala con i due pulsanti tondi); Varco = passaggio senza infisso (solo il vano), per esempio dove una scala sbarca su un balcone; Ingresso = portoncino con triangolo. Con i tasti rapidi in alto si posano trascinandole sul muro.</p>
       ${(w.ap || []).map(x => `<div class="ap${x.id === ui.focusAp ? ' hl' : ''}" data-aprow="${x.id}">
-        <div><label class="l">Tipo</label><select data-w="ap.${x.id}.tipo" data-re>${opt(TIPI_AP, x.tipo)}</select></div>
-        ${inp('ap.' + x.id + '.d', x.d, 'Distanza (m)')}${inp('ap.' + x.id + '.l', x.l, 'Larghezza (m)')}
-        ${x.tipo === 'finestra' || x.tipo === 'uscita' ? inp('ap.' + x.id + '.h', x.h, 'Altezza (m)') : ''}
-        ${x.tipo === 'finestra' ? inp('ap.' + x.id + '.dav', x.dav, 'Davanzale (m)') : ''}
-        ${x.tipo === 'porta' ? `<div style="grid-column:1/-1;display:flex;gap:6px"><button class="sm" data-flipap="${x.id}:cx">⇄ Cerniera dall'altra parte</button><button class="sm" data-flipap="${x.id}:vx">⇅ Apre dall'altro lato</button></div>` : ''}
-        ${x.tipo === 'uscita' || x.tipo === 'ingresso' ? `<label class="chk" style="grid-column:1/-1"><input type="checkbox" data-w="ap.${x.id}.inv" ${x.inv ? 'checked' : ''}> Esterno dal lato opposto</label>` : ''}
+${apFields(x)}
         <button class="sm rm" data-rmap="${x.id}" title="Rimuovi">✕</button></div>`).join('')}
       <button id="bAddAp">+ Porta o finestra</button>`;
     updInfo();
@@ -2630,6 +2638,8 @@ document.addEventListener('click', e => {
     if (ui.place) toast(TIPI_AP[ui.place] + ': appoggia la penna sul muro e trascina; solleva per posarla.'); return; }
   const nt = e.target.closest('[data-nt]'); if (nt) { ui.newType = nt.dataset.nt; if (ui.mode !== 'draw') ui.mode = 'draw'; updTools(); draw(); return; }
   const fa = e.target.closest('[data-flipap]'); if (fa) { const [id, k] = fa.dataset.flipap.split(':'); ui.selAp = id; flipDoor(k); return; }
+  const ra = e.target.closest('[data-rmsel]'); if (ra && ui.sel && ui.sel.k === 'a') { const w = piano().walls.find(x => x.id === ui.sel.id); if (w) { pushUndo(); w.ap = (w.ap || []).filter(x => x.id !== ui.sel.ap); ui.sel = null; ui.selAp = null; update(true); toast('Vano eliminato.'); } return; }
+  const gw = e.target.closest('[data-gowall]'); if (gw && ui.sel && ui.sel.k === 'a') { ui.focusAp = ui.sel.ap; ui.sel = {k:'w', id:ui.sel.id}; ui.selAp = null; draw(); renderSide(); return; }
   const sw = e.target.closest('[data-selw]'); if (sw) { ui.sel = {k:'w', id:sw.dataset.selw}; ui.mode = 'select'; updTools(); draw(); renderSide(); return; }
   const id = e.target.id, pl = piano();
   if (id === 'bUndo') return undo();
