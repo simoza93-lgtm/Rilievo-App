@@ -1670,11 +1670,23 @@ function zoomAt(f, px, py) { closeInline(true); const wx = WX(px), wy = WY(py); 
 /* ---- porte: arco e pulsanti per girarle ---- */
 function arcPts(D, n = 16) { const a0 = Math.atan2(D.p0[1] - D.c[1], D.p0[0] - D.c[0]), a1 = Math.atan2(D.p1[1] - D.c[1], D.p1[0] - D.c[0]); let da = a1 - a0; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
   return Array.from({length:n + 1}, (_, i) => { const a = a0 + da * i / n; return [D.c[0] + D.r * Math.cos(a), D.c[1] + D.r * Math.sin(a)]; }); }
-function selDoor() { if (!ui.sel || ui.sel.k !== 'w' || !ui.sel.ap || !G.ops) return null; return G.ops.find(o => o.door && o.ap.id === ui.sel.ap) || null; }
-function flipBtns() { const o = selDoor(); if (!o) return []; const D = o.door, mid = (o.s0 + o.s1) / 2, side = D.f === 0 ? o.I.t : 0, dirO = D.q > 0 ? -1 : 1;
-  const base = o.at(mid, side), t = [o.door.tv[0], o.door.tv[1]], nn = [o.door.n[0] * dirO, o.door.n[1] * dirO];   // dalla parte opposta all'apertura
-  const P = (along, off) => [SX(base[0]) + (t[0] * along) + nn[0] * off, SY(base[1]) - (t[1] * along) - nn[1] * off];
-  return [{k:'cx', p:P(-24, 34), t:t, lab:'Cerniera'}, {k:'vx', p:P(24, 34), t:[nn[0], nn[1]], lab:'Verso'}]; }
+function selDoor() { const id = ui.selAp || (ui.sel && ui.sel.k === 'w' && ui.sel.ap); if (!id || !G.ops) return null; return G.ops.find(o => o.door && o.ap.id === id) || null; }
+// tocco su una porta: il vano o lo spicchio dove gira l'anta
+function doorAt(p) { const o = opAt(p); if (o && o.door) return o; const wx = WX(p[0]), wy = WY(p[1]);
+  return (G.ops || []).find(o => { if (!o.door) return false; const D = o.door, v = [wx - D.c[0], wy - D.c[1]], a = v[0] * D.tv[0] + v[1] * D.tv[1], b = (v[0] * D.n[0] + v[1] * D.n[1]) * D.q, w = (D.p1[0] - D.c[0]) * D.tv[0] + (D.p1[1] - D.c[1]) * D.tv[1];
+    return b >= -0.02 && Math.hypot(v[0], v[1]) <= D.r + 0.05 && a * Math.sign(w) >= -0.05; }) || null; }
+function flipBtns() { const o = selDoor(); if (!o) return []; const D = o.door, mid = (o.s0 + o.s1) / 2, rp = D.r * ui.view.s, t = [D.tv[0], D.tv[1]];
+  const hA = ((D.c[0] - o.at(mid, D.f)[0]) * t[0] + (D.c[1] - o.at(mid, D.f)[1]) * t[1]) * ui.view.s;   // cerniera rispetto al centro del vano (px, lungo il muro)
+  const mk = (face, sg, a1, o1, a2, o2) => { const base = o.at(mid, face), nn = [D.n[0] * sg, D.n[1] * sg], P = (along, of) => [SX(base[0]) + t[0] * along + nn[0] * of, SY(base[1]) - t[1] * along - nn[1] * of];
+    return [{k:'cx', p:P(a1, o1), t:t}, {k:'vx', p:P(a2, o2), t:[D.n[0] * D.q, D.n[1] * D.q]}]; };
+  const oth = D.f === 0 ? o.I.t : 0, inn = Math.max(34, rp * 0.55);
+  // posti possibili, nell'ordine: dentro lo spicchio dell'anta, accanto all'anta (fuori dal vano), dall'altra parte del muro, oltre lo stipite libero
+  const cands = [mk(D.f, D.q, -21, inn, 21, inn), mk(D.f, D.q, hA - Math.sign(-hA || 1) * 24, Math.max(30, rp * 0.3), hA - Math.sign(-hA || 1) * 24, Math.max(30, rp * 0.3) + 38),
+    mk(oth, -D.q, -21, 34, 21, 34), mk(D.f, D.q, -hA + Math.sign(-hA || 1) * 24, 30, -hA + Math.sign(-hA || 1) * 24, 68)];
+  const boxes = (ui.pbb || []).map(x => x.box).concat([...(ui.rbb || new Map()).values()], [...(ui.fbb || new Map()).values()]);
+  const clash = b => boxes.some(r => { const cx = Math.max(r[0], Math.min(b.p[0], r[0] + r[2])), cy = Math.max(r[1], Math.min(b.p[1], r[1] + r[3])); return Math.hypot(b.p[0] - cx, b.p[1] - cy) < 18; })
+    || b.p[0] < 18 || b.p[1] < 18 || b.p[0] > ui.W - 18 || b.p[1] > ui.H - 18;
+  return cands.find(c => !c.some(clash)) || cands[0]; }
 function flipSvg() { return flipBtns().map(b => { const [x, y] = b.p, u = [b.t[0], -b.t[1]], v = [-u[1], u[0]], P = (a, c) => (x + u[0] * a + v[0] * c).toFixed(1) + ' ' + (y + u[1] * a + v[1] * c).toFixed(1);
   return `<g data-flip="${b.k}"><circle cx="${x}" cy="${y}" r="16" fill="var(--card)" stroke="var(--acc)" stroke-width="2"/><path d="M${P(-9, 0)} L${P(9, 0)} M${P(-9, 0)} L${P(-4, -4.5)} M${P(-9, 0)} L${P(-4, 4.5)} M${P(9, 0)} L${P(4, -4.5)} M${P(9, 0)} L${P(4, 4.5)}" stroke="var(--acc)" stroke-width="2.2" fill="none" stroke-linecap="round"/><title>${b.k === 'cx' ? 'Cerniera dall\'altra parte' : 'Apre dall\'altro lato'}</title></g>`; }).join(''); }
 function flipAt(p) { return flipBtns().find(b => Math.hypot(b.p[0] - p[0], b.p[1] - p[1]) < 20) || null; }
@@ -1696,7 +1708,7 @@ function draw() {
   const selPieno = selRoom && G.comps[selRoom._c] && !G.comps[selRoom._c].room;
   s += '<g fill="var(--wall)">' + G.fills.map(b => `<rect x="${X(b[0])}" y="${Y(b[3])}" width="${(b[2] - b[0]) * v.s + 0.3}" height="${(b[3] - b[1]) * v.s + 0.3}"/>`).join('') + '</g>';
   if (selPieno) s += `<g fill="var(--acc)" fill-opacity=".35">` + roomRects(G.comps[selRoom._c]) + '</g>';
-  G.ops.filter(o => o.door).forEach(o => { const D = o.door, selD = ui.sel && ui.sel.k === 'w' && ui.sel.ap === o.ap.id, c = selD ? 'var(--acc)' : 'var(--wR)';
+  G.ops.filter(o => o.door).forEach(o => { const D = o.door, sd = selDoor(), selD = !!sd && sd.ap.id === o.ap.id, c = selD ? 'var(--acc)' : 'var(--wR)';
     s += `<path d="M${D.rect.map(q => X(q[0]).toFixed(1) + ' ' + Y(q[1]).toFixed(1)).join(' L')} Z" fill="var(--cv)" stroke="${c}" stroke-width="${selD ? 2 : 1.2}"/>`;
     s += `<polyline points="${arcPts(D).map(q => X(q[0]).toFixed(1) + ',' + Y(q[1]).toFixed(1)).join(' ')}" fill="none" stroke="${c}" stroke-width="${selD ? 1.6 : 1}"/>`; });
   G.ops.filter(o => o.ap.tipo === 'varco' && o.at).forEach(o => [0, o.I.t].forEach(off => { const a = o.at(o.s0, off), b = o.at(o.s1, off); s += `<line x1="${X(a[0])}" y1="${Y(a[1])}" x2="${X(b[0])}" y2="${Y(b[1])}" stroke="var(--mut)" stroke-width="1" stroke-dasharray="4 3"/>`; }));
@@ -1825,13 +1837,16 @@ function roomRects(cc) {
 
 /* ---- interazione con la tavola ---- */
 function bindCanvas() {
-  const svg = $('#svg'), ptrs = new Map(); let bgTap = null, bgDrag = null, win = null, stroke = null, pan = null, pinch = null, drag = null, apDrag = null, boxTap = null, scDrag = null, fotoTap = null, nordTap = null, ndDrag = null, dimTap = null, dmDrag = null;
+  const svg = $('#svg'), ptrs = new Map(); let bgTap = null, bgDrag = null, win = null, stroke = null, pan = null, pinch = null, drag = null, apDrag = null, boxTap = null, scDrag = null, fotoTap = null, nordTap = null, ndDrag = null, dimTap = null, dmDrag = null, doorTap = null;
   const pos = e => { const r = svg.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
   svg.addEventListener('pointerdown', e => {
     svg.setPointerCapture(e.pointerId); const p = pos(e); ptrs.set(e.pointerId, p);
     if (ptrs.size === 2) { win = null; winShow(null); stroke = null; pan = null; drag = null; boxTap = null; dimTap = null; dmDrag = null; closeInline(true); if (apDrag) { apDrag = null; ui.ghost = null; draw(); } const [a, b] = [...ptrs.values()]; pinch = {d:Math.hypot(a[0] - b[0], a[1] - b[1]), s:ui.view.s, mx:(a[0] + b[0]) / 2, my:(a[1] + b[1]) / 2, wx:WX((a[0] + b[0]) / 2), wy:WY((a[1] + b[1]) / 2)}; const st = $('#stroke'); if (st) st.setAttribute('points', ''); return; }
     if (ptrs.size > 2) return;
     if (ptrs.size === 1) { const fb = flipAt(p); if (fb) { e.preventDefault(); ptrs.delete(e.pointerId); flipDoor(fb.k); return; } }
+    doorTap = null; if (ptrs.size === 1 && !ui.place && !ui.placeSc && !ui.placeDim && !ui.winArm) { const dd = doorAt(p); if (dd) doorTap = {o:dd, p}; }
+    if (ui.selAp && !doorTap) { ui.selAp = null; draw(); }
+    if (doorTap && ui.mode !== 'draw' && !opAt(p)) { apDrag = {tipo:doorTap.o.ap.tipo, l:num(doorTap.o.ap.l), ap:doorTap.o.ap, w:doorTap.o.w, p0:p, moved:false}; return; }
     if (ui.placeFoto && ptrs.size === 1) { fotoTap = p; return; }
     if (ui.placeNord && ptrs.size === 1) { nordTap = p; return; }
     if (ui.bgCal && ptrs.size === 1) { bgTap = p; return; }
@@ -1897,10 +1912,11 @@ function bindCanvas() {
       pl.walls.forEach(w => (w.ap || []).forEach(ap => { if (ap.sc === d.st.id && ap.pos) { delete ap.pos; ap.dp = true; } }));
       snapStair(d.st); anchorStair(pl, d.st); undemo(); update(true); return; }
     if (apDrag) { const a = apDrag; apDrag = null; const gh = ui.ghost; ui.ghost = null;
-      if (!a.moved) { ui.sel = {k:'w', id:a.w.id, ap:a.ap.id}; ui.focusAp = a.ap.id; draw(); renderSide(); return; }
+      if (!a.moved) { ui.sel = {k:'w', id:a.w.id, ap:a.ap.id}; ui.selAp = a.ap.tipo === 'porta' ? a.ap.id : null; ui.focusAp = a.ap.id; draw(); renderSide(); return; }
       if (dropGhost(gh)) { if (a.tipo && !a.ap) { ui.place = null; updTools(); } } else draw();
       return; }
     if (drag) { const d = drag; drag = null; if (!d.moved) { purgeNotes(d.n.id); ui.sel = {k:'n', id:d.n.id}; draw(); renderSide(); } else save(); return; }
+    if (stroke && doorTap && Math.hypot(p[0] - doorTap.p[0], p[1] - doorTap.p[1]) < 8) { const o = doorTap.o; doorTap = null; stroke = null; ui.trk = null; trkShow(null); ui.selAp = o.ap.id; draw(); toast('Porta: ⇄ sposta la cerniera, ⇅ la fa aprire dall\'altro lato.'); return; }
     if (stroke) { const s = stroke; stroke = null; ui.trk = null; trkShow(null); finishStroke(s); return; }
     if (win) { const w0 = win; win = null;
       if (w0.moved) { ui.winArm = false; updTools(); winSelect(w0.p0, p); return; }
@@ -2168,8 +2184,9 @@ function dropGhost(gh) {
   if (ap) { pl.walls.forEach(w => { w.ap = (w.ap || []).filter(x => x !== ap); }); ap.d = f2(gh.d); delete ap.pos; ap.dp = true; }
   else { const df = DEF_AP[gh.tipo]; ap = {id:uid(), tipo:gh.tipo, d:f2(gh.d), l:df.l, h:df.h, dav:df.dav, inv:false, dp:true, lp:true}; }
   gh.w.ap = gh.w.ap || []; gh.w.ap.push(ap);
+  ui.selAp = ap.tipo === 'porta' ? ap.id : null;
   update(true);   // il pannello non si apre: le misure si inseriscono dopo, selezionando il muro
-  toast(TIPI_AP[ap.tipo] + (gh.ap ? ' spostata.' : ' posata.') + ' Tocca le caselle accanto per scrivere parziali e larghezza misurate.');
+  toast(TIPI_AP[ap.tipo] + (gh.ap ? ' spostata.' : ' posata.') + (ap.tipo === 'porta' ? ' Girala con i tasti tondi ⇄ e ⇅.' : '') + ' Tocca le caselle accanto per scrivere parziali e larghezza misurate.');
   return true;
 }
 /* ---- planimetria di sfondo (JPEG): carta da lucido sotto il disegno, una per piano ----
@@ -2612,7 +2629,7 @@ document.addEventListener('click', e => {
   const ab = e.target.closest('[data-ap]'); if (ab) { ui.placeSc = false; ui.place = ui.place === ab.dataset.ap ? null : ab.dataset.ap; ui.ghost = null; updTools(); draw();
     if (ui.place) toast(TIPI_AP[ui.place] + ': appoggia la penna sul muro e trascina; solleva per posarla.'); return; }
   const nt = e.target.closest('[data-nt]'); if (nt) { ui.newType = nt.dataset.nt; if (ui.mode !== 'draw') ui.mode = 'draw'; updTools(); draw(); return; }
-  const fa = e.target.closest('[data-flipap]'); if (fa) { const [id, k] = fa.dataset.flipap.split(':'); if (ui.sel && ui.sel.k === 'w') ui.sel.ap = id; flipDoor(k); return; }
+  const fa = e.target.closest('[data-flipap]'); if (fa) { const [id, k] = fa.dataset.flipap.split(':'); ui.selAp = id; flipDoor(k); return; }
   const sw = e.target.closest('[data-selw]'); if (sw) { ui.sel = {k:'w', id:sw.dataset.selw}; ui.mode = 'select'; updTools(); draw(); renderSide(); return; }
   const id = e.target.id, pl = piano();
   if (id === 'bUndo') return undo();
