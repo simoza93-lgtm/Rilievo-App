@@ -1727,15 +1727,15 @@ function draw() {
   // nodi
   if (ui.mode === 'draw') s += pl.nodes.map(n => `<circle cx="${X(n.x)}" cy="${Y(n.y)}" r="3" fill="var(--acc)"/>`).join('');
   // misure sulle facce (lato per lato, stanza per stanza)
-  ui.rbb = new Map(); ui.pbb = [];
+  ui.rbb = new Map(); ui.pbb = []; const K = ui.bk = Math.min(1.3, Math.max(0.3, v.s / 70));
   // le caselle non si coprono: una che finirebbe sopra un'altra si sposta più in fuori
   const placed = [], ovl = b => placed.some(q => b[0] < q[0] + q[2] + 2 && q[0] < b[0] + b[2] + 2 && b[1] < q[1] + q[3] + 2 && q[1] < b[1] + b[3] + 2);
-  const freeAt = (x, y, H, val, nS, step, max = 2) => { const txt = isFinite(val) ? f2(val) : '', bw = txt ? Math.max(35, txt.length * 7 + 10) : 37, bh = 19;
-    for (let k = 0; ; k++) { const bx = H ? [x - bw / 2, y - bh / 2, bw, bh] : [x - bh / 2, y - bw / 2, bh, bw]; if (!ovl(bx) || k >= max) { placed.push(bx); return [x, y, k]; } x += nS[0] * (step || 22); y += nS[1] * (step || 22); } };
+  const freeAt = (x, y, H, val, nS, step, max = 2) => { const txt = isFinite(val) ? f2(val) : '', bw = (txt ? Math.max(35, txt.length * 7 + 10) : 37) * K, bh = 19 * K;
+    for (let k = 0; ; k++) { const bx = H ? [x - bw / 2, y - bh / 2, bw, bh] : [x - bh / 2, y - bw / 2, bh, bw]; if (!ovl(bx) || k >= max) { placed.push(bx); return [x, y, k]; } x += nS[0] * (step || 22 * K); y += nS[1] * (step || 22 * K); } };
   if (v.s >= 18) G.runs.forEach(r => {
     if (r.ext || r.pieno) return;
-    const m = r.mis > 0, bad = m && Math.abs(r.diff || 0) > TOL, off = r.t / 2 * v.s + 9;
-    const lx = (r.P.x + r.Q.x) / 2 + (r.H ? 0 : r.o), ly = (r.P.y + r.Q.y) / 2 + (r.H ? r.o : 0), off2 = off + 5;
+    const m = r.mis > 0, bad = m && Math.abs(r.diff || 0) > TOL, off = r.t / 2 * v.s + 9 * K;
+    const lx = (r.P.x + r.Q.x) / 2 + (r.H ? 0 : r.o), ly = (r.P.y + r.Q.y) / 2 + (r.H ? r.o : 0), off2 = off + 5 * K;
     const tx = r.H ? X(lx) : X(lx) + r.sg * off2, ty = r.H ? Y(ly) - r.sg * off2 : Y(ly);
     const sel = ui.sel && ui.sel.k === 'w' && r.walls.some(x => x.id === ui.sel.id), edit = ui.inl && ui.inl.key === r.key;
     if (r.chain) {   // lato con vani: una casella per ogni tratto di muro (parziali), il totale non si scrive
@@ -1752,14 +1752,14 @@ function draw() {
     ui.rbb.set(r.key, bx);
   });
   // i nomi degli ambienti restano liberi: le larghezze dei vani si scostano
-  if (ui.labels) (pl.rooms || []).forEach(r => { const cc = G.comps[r._c]; if (!cc || !cc.room) return; const fs = Math.max(10, Math.min(15, v.s * 0.32)), w = Math.max(String(r.nome || '').length * fs * 0.62, 60);
+  if (ui.labels) (pl.rooms || []).forEach(r => { const cc = G.comps[r._c]; if (!cc || !cc.room) return; const fs = Math.max(6, Math.min(15, v.s * 0.22)), w = Math.max(String(r.nome || '').length * fs * 0.62, 60);
     placed.push([X(cc.label[0]) - w / 2, Y(cc.label[1]) - 2 - fs, w, fs * 2.2]); });
   // larghezza dei vani: linea perpendicolare al muro verso l'ambiente e numero lungo la linea (come nel disegno)
   if (v.s >= 18) G.ops.forEach(o => { const I = o.I; if (!(I.t > 0)) return;
-    const prop = !!o.ap.lp, txt = f2(num(o.ap.l)), bw = Math.max(35, txt.length * 7 + 10), L1 = 28, al = axC(I.a, I.H) + (o.s0 + o.s1) / 2;
+    const prop = !!o.ap.lp, txt = f2(num(o.ap.l)), bw = Math.max(35, txt.length * 7 + 10) * K, L1 = 28 * K, al = axC(I.a, I.H) + (o.s0 + o.s1) / 2;
     // di norma verso l'ambiente; se lì è pieno e dall'altra parte del muro c'è un altro ambiente, si scrive di là
     const geo = sg => { const f = (I.H ? I.a.y : I.a.x) + (I.o || 0) + sg * I.t / 2, F = I.H ? [X(al), Y(f)] : [X(f), Y(al)], nS = I.H ? [0, -sg] : [sg, 0];
-      const c = [F[0] + nS[0] * (L1 + bw / 2), F[1] + nS[1] * (L1 + bw / 2)], bx = I.H ? [c[0] - 9.5, c[1] - bw / 2, 19, bw] : [c[0] - bw / 2, c[1] - 9.5, bw, 19]; return {F, nS, c, bx}; };
+      const c = [F[0] + nS[0] * (L1 + bw / 2), F[1] + nS[1] * (L1 + bw / 2)], bx = I.H ? [c[0] - 9.5 * K, c[1] - bw / 2, 19 * K, bw] : [c[0] - bw / 2, c[1] - 9.5 * K, bw, 19 * K]; return {F, nS, c, bx}; };
     let sg = o.side || 1; if (ovl(geo(sg).bx) && o.sides && o.sides[sg > 0 ? 1 : 0] >= 0 && !ovl(geo(-sg).bx)) sg = -sg;
     const g = geo(sg), hb = {kind:'w', ap:o.ap.id}, ed = ui.inl && ui.inl.key === hbKey(hb);
     placed.push(g.bx);
@@ -1774,7 +1774,7 @@ function draw() {
     s += `<path d="M${A[0]} ${A[1]}L${c1[0]} ${c1[1]}M${B[0]} ${B[1]}L${c2[0]} ${c2[1]}" stroke="${col}" stroke-width=".8" stroke-opacity=".55" stroke-dasharray="3 3" fill="none"/>`;
     s += `<path d="M${c1[0]} ${c1[1]}L${c2[0]} ${c2[1]}${tick(c1)}${tick(c2)}" stroke="${col}" stroke-width="${sel ? 2.2 : 1.3}" fill="none"/>`;
     const mx = (c1[0] + c2[0]) / 2, my = (c1[1] + c2[1]) / 2, hb = {kind:'q', id:d.id};
-    const b = mbox(d.H ? mx : mx - 13, d.H ? my - 13 : my, d.H, m ? q.meas : q.known ? q.len : NaN, m, bad, ui.inl && ui.inl.key === hbKey(hb), sel);
+    const b = mbox(d.H ? mx : mx - 13 * K, d.H ? my - 13 * K : my, d.H, m ? q.meas : q.known ? q.len : NaN, m, bad, ui.inl && ui.inl.key === hbKey(hb), sel);
     s += b.s; ui.pbb.push({box:b.box, hb}); });
   if (ui.placeDim && ui.dimHover) { const h = ui.dimHover, c = [X(h.x), Y(h.y)];
     if (h.seg) s += `<line x1="${X(h.seg[0][0])}" y1="${Y(h.seg[0][1])}" x2="${X(h.seg[1][0])}" y2="${Y(h.seg[1][1])}" stroke="var(--acc)" stroke-width="5" stroke-opacity=".3"/>`;
@@ -1787,23 +1787,23 @@ function draw() {
     // il numero compare solo se l'hai misurato o se si ricava dalle tue misure; altrimenti casella vuota
     const sg = fc.out, m = fc.mis > 0, bad = m && Math.abs(fc.diff || 0) > TOL, val = m ? fc.mis : (fc.sum != null ? fc.sum : fc.tot), show = m || (fc.det && isFinite(val));
     const colr = bad ? 'var(--bad)' : m ? 'var(--ink)' : 'var(--mut)', txt = show ? f2(val) : '';
-    const tw = show ? txt.length * 7.6 + 8 : 37, gap = 22, edit = ui.inl && ui.inl.key === fc.key;
-    const empty = (cx, cy, vert) => { const b = vert ? [cx - 9.5, cy - tw / 2, 19, tw] : [cx - tw / 2, cy - 9.5, tw, 19];
+    const tw = (show ? txt.length * 7.6 + 8 : 37) * K, gap = 22 * K, edit = ui.inl && ui.inl.key === fc.key;
+    const empty = (cx, cy, vert) => { const b = vert ? [cx - 9.5 * K, cy - tw / 2, 19 * K, tw] : [cx - tw / 2, cy - 9.5 * K, tw, 19 * K];
       return `<rect x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${b[3]}" rx="5" fill="var(--cv)" fill-opacity=".95" stroke="${edit ? 'var(--acc)' : 'var(--mut)'}" stroke-width="1.5" stroke-dasharray="5 3"/>`; };
     if (fc.H) {
-      const yf = SY(fc.A.y + sg * fc.t / 2) - sg * gap, x0 = X(fc.a0), x1 = X(fc.a1), xm = (x0 + x1) / 2, yt = yf - sg * 10;
+      const yf = SY(fc.A.y + sg * fc.t / 2) - sg * gap, x0 = X(fc.a0), x1 = X(fc.a1), xm = (x0 + x1) / 2, yt = yf - sg * 10 * K;
       s += `<path d="M${x0} ${yf}H${x1}M${x0} ${yf - 5}V${yf + 5}M${x1} ${yf - 5}V${yf + 5}" stroke="${colr}" stroke-width="1" fill="none" ${show ? '' : 'stroke-opacity=".5"'}/>`;
-      s += show ? `<text x="${xm}" y="${yt}" font-size="12.5" text-anchor="middle" dominant-baseline="middle" fill="${colr}" font-weight="${m ? 700 : 500}" paint-order="stroke" stroke="var(--cv)" stroke-width="3">${txt}</text>` : empty(xm, yt, false);
-      ui.fbb.set(fc.key, [xm - tw / 2, yt - 10, tw, 20]);
+      s += show ? `<text x="${xm}" y="${yt}" font-size="${(12.5 * K).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="${colr}" font-weight="${m ? 700 : 500}" paint-order="stroke" stroke="var(--cv)" stroke-width="3">${txt}</text>` : empty(xm, yt, false);
+      ui.fbb.set(fc.key, [xm - tw / 2, yt - 10 * K, tw, 20 * K]);
     } else {
-      const xf = X(fc.A.x + sg * fc.t / 2) + sg * gap, y0 = Y(fc.a0), y1 = Y(fc.a1), ym = (y0 + y1) / 2, xt = xf + sg * 10;
+      const xf = X(fc.A.x + sg * fc.t / 2) + sg * gap, y0 = Y(fc.a0), y1 = Y(fc.a1), ym = (y0 + y1) / 2, xt = xf + sg * 10 * K;
       s += `<path d="M${xf} ${y0}V${y1}M${xf - 5} ${y0}H${xf + 5}M${xf - 5} ${y1}H${xf + 5}" stroke="${colr}" stroke-width="1" fill="none" ${show ? '' : 'stroke-opacity=".5"'}/>`;
-      s += show ? `<text x="${xt}" y="${ym}" font-size="12.5" text-anchor="middle" dominant-baseline="middle" fill="${colr}" font-weight="${m ? 700 : 500}" transform="rotate(-90 ${xt} ${ym})" paint-order="stroke" stroke="var(--cv)" stroke-width="3">${txt}</text>` : empty(xt, ym, true);
-      ui.fbb.set(fc.key, [xt - 10, ym - tw / 2, 20, tw]);
+      s += show ? `<text x="${xt}" y="${ym}" font-size="${(12.5 * K).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="${colr}" font-weight="${m ? 700 : 500}" transform="rotate(-90 ${xt} ${ym})" paint-order="stroke" stroke="var(--cv)" stroke-width="3">${txt}</text>` : empty(xt, ym, true);
+      ui.fbb.set(fc.key, [xt - 10 * K, ym - tw / 2, 20 * K, tw]);
     }
   });
   // ambienti
-  if (ui.labels) (pl.rooms || []).forEach(r => { const cc = G.comps[r._c]; if (!cc || !cc.room) return; const fs = Math.max(10, Math.min(15, v.s * 0.32));
+  if (ui.labels) (pl.rooms || []).forEach(r => { const cc = G.comps[r._c]; if (!cc || !cc.room) return; const fs = Math.max(6, Math.min(15, v.s * 0.22));
     s += `<text x="${X(cc.label[0])}" y="${Y(cc.label[1]) - 2}" font-size="${fs}" text-anchor="middle" font-weight="600" fill="var(--ink)">${esc(r.nome)}</text><text x="${X(cc.label[0])}" y="${Y(cc.label[1]) + fs}" font-size="${fs * 0.85}" text-anchor="middle" fill="var(--mut)">${cc.det ? f2(cArea(cc)) + ' m²' : '… m²'}</text>`; });
   (pl.notes || []).forEach(n => {
     const lines = String(n.t || '').split('\n'), x = SX(n.x), y = SY(n.y), sel = (ui.sel && ui.sel.k === 'n' && ui.sel.id === n.id) || inM('n', n.id);
@@ -1824,11 +1824,11 @@ function draw() {
 }
 // casella di una misura sulla tavola: piena = misura presa, numero grigio = ricavata, tratteggiata vuota = da misurare
 function mbox(tx, ty, H, val, m, bad, edit, sel, o = {}) {
-  const txt = isFinite(val) ? f2(val) : '', bw = txt ? Math.max(35, txt.length * 7 + 10) : 37, bh = 19;
+  const K = ui.bk || 1, txt = isFinite(val) ? f2(val) : '', bw = (txt ? Math.max(35, txt.length * 7 + 10) : 37) * K, bh = 19 * K;
   const box = H ? [tx - bw / 2, ty - bh / 2, bw, bh] : [tx - bh / 2, ty - bw / 2, bh, bw];
   const col = bad ? 'var(--bad)' : o.prop ? 'var(--mut)' : m ? 'var(--line)' : txt ? 'var(--mut)' : 'var(--acc)', dash = o.prop || (!m && !txt);
-  let s = `<rect x="${box[0]}" y="${box[1]}" width="${box[2]}" height="${box[3]}" rx="5" fill="var(--cv)" fill-opacity=".92" stroke="${edit ? 'var(--acc)' : col}" stroke-width="${edit || sel || (!m && !txt) ? 2 : 1}" ${dash ? 'stroke-dasharray="5 3"' : ''}/>`;
-  if (txt) s += `<text x="${tx}" y="${ty}" font-size="11" text-anchor="middle" dominant-baseline="central" fill="${bad ? 'var(--bad)' : m && !o.prop ? 'var(--ink)' : 'var(--mut)'}" font-weight="${bad || sel ? 700 : m && !o.prop ? 600 : 400}" ${o.prop ? 'font-style="italic"' : ''} ${H ? '' : `transform="rotate(-90 ${tx} ${ty})"`}>${esc(txt)}</text>`;
+  let s = `<rect x="${box[0]}" y="${box[1]}" width="${box[2]}" height="${box[3]}" rx="${(5 * K).toFixed(1)}" fill="var(--cv)" fill-opacity=".92" stroke="${edit ? 'var(--acc)' : col}" stroke-width="${(edit || sel || (!m && !txt) ? 2 : 1) * Math.max(.6, K)}" ${dash ? `stroke-dasharray="${(5 * K).toFixed(1)} ${(3 * K).toFixed(1)}"` : ''}/>`;
+  if (txt) s += `<text x="${tx}" y="${ty}" font-size="${(11 * K).toFixed(1)}" text-anchor="middle" dominant-baseline="central" fill="${bad ? 'var(--bad)' : m && !o.prop ? 'var(--ink)' : 'var(--mut)'}" font-weight="${bad || sel ? 700 : m && !o.prop ? 600 : 400}" ${o.prop ? 'font-style="italic"' : ''} ${H ? '' : `transform="rotate(-90 ${tx} ${ty})"`}>${esc(txt)}</text>`;
   return {s, box};
 }
 const hbKey = hb => hb.kind === 'p' ? 'p:' + hb.rk + ':' + (hb.nx || 'fine') : hb.kind === 'w' ? 'w:' + hb.ap : hb.kind === 'q' ? 'q:' + hb.id : hb.key;
