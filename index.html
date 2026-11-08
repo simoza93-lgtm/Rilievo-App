@@ -902,7 +902,17 @@ function geometry(pl) {
   // quote parziali: sui lati interni con dei vani, tratti di muro da uno spigolo al vano, tra un vano e l'altro, dal vano allo spigolo
   const AN = apAnchors(pl, T, runs), sameD = (a, b, H) => a === b || detD(a, b, H);
   runs.forEach(r => {
-    if (r.ext || r.pieno) return; const ro = runOps(pl, T, r); if (!ro.ops.length) return;
+    if (r.ext || r.pieno) return; const ro = runOps(pl, T, r);
+    if (!ro.ops.length) { const sp = stairHits(pl, r, ro); if (!sp.length) return;
+      const ax = r.H ? 'x' : 'y', pcs = [], mAnc = st => { const a = st.anc && st.anc[ax]; return a && a.m && a.m.k === r.key ? a : null; };
+      sp.forEach((h, i) => pcs.push(i ? {a:sp[i - 1].e, b:h.s} : {a:ro.fa, b:h.s, side:'a', st:h.st}));
+      pcs.push({a:sp[sp.length - 1].e, b:ro.fb, side:'b', st:sp[sp.length - 1].st});
+      pcs.forEach((pc, i) => { pc.i = i; pc.len = pc.b - pc.a; const A = pc.st && mAnc(pc.st); pc.meas = A && A.m.side === pc.side ? num(A.m.v) : NaN;
+        pc.known = !!A && (r.det || r.mis > 0); pc.sp = pc.side ? {st:pc.st.id, side:pc.side} : null;
+        if (pc.meas >= 0) { r.walls.forEach(x => covered.add(x.id)); pc.diff = pc.len - pc.meas;
+          if (Math.abs(pc.diff) > TOL) warns.push({w:r.walls[0].id, t:`Parziale ${f2(pc.meas)} m dal muro alla scala (${tipoNome(r.walls[0])}, ${latoNome(r)}): nel disegno viene ${f2(pc.len)} m. Controlla la lunghezza della scala (gradini e pedata).`}); } });
+      if (sp.some(h => h.over)) warns.push({w:r.walls[0].id, t:`La scala non entra nel lato (${tipoNome(r.walls[0])}, ${latoNome(r)}): con la parziale scritta finisce oltre il muro. Controlla la misura o la lunghezza della scala.`});
+      r.chain = {ops:[], pcs, fa:ro.fa, fb:ro.fb, stair:true}; return; }
     const ops = ro.ops, n = ops.length, pcs = [], nm = r.comp >= 0 && comps[r.comp].rec ? ' · ' + comps[r.comp].rec.nome : '';
     for (let i = 0; i <= n; i++) {
       const a = i ? ops[i - 1].e : ro.fa, b = i < n ? ops[i].s : ro.fb, nx = i < n ? ops[i].ap : null, pv = i ? ops[i - 1].ap : null;
@@ -1134,13 +1144,21 @@ function snapStair(st) {
 }
 // aggancio alla pianta: per ogni direzione la scala ricorda il muro più vicino e a che distanza ne sta il suo bordo;
 // quando le misure spostano i muri, la scala li segue
-function anchorStair(pl, st) {
+// scale accostate alla faccia di un lato interno: dividono il lato in parziali (dal muro alla scala, dalla scala al muro)
+function stairHits(pl, r, ro) { const out = [], face = (r.H ? r.P.y : r.P.x) + r.o + r.sg * r.t / 2;
+  (pl.stairs || []).forEach(st => { const b = stairPrims(st).bbox, near = r.H ? (r.sg > 0 ? b[1] : b[3]) : (r.sg > 0 ? b[0] : b[2]);
+    if (Math.abs(near - face) > 0.12) return; const a = r.H ? b[0] : b[1], e = r.H ? b[2] : b[3], ax = r.H ? 'x' : 'y';
+    const mk = !!(st.anc && st.anc[ax] && st.anc[ax].m && st.anc[ax].m.k === r.key);   // misurata su questo lato: resta anche se non ci sta (così si corregge)
+    if (!mk && (a < ro.fa - 0.03 || e > ro.fb + 0.03) || e - a < 0.05) return; out.push({st, s:mk ? a : Math.max(a, ro.fa), e:mk ? e : Math.min(e, ro.fb), over:a < ro.fa - 0.03 || e > ro.fb + 0.03}); });
+  return out.sort((x, y) => x.s - y.s); }
+function anchorStair(pl, st, keepM = true) {
   const b = stairPrims(st).bbox, anc = {x:null, y:null};
   pl.walls.forEach(w => { const a = nd(pl, w.a), c = nd(pl, w.b); if (!a || !c) return; const H = isH(a, c);
     const ax = H ? 'y' : 'x', lo = H ? Math.min(a.x, c.x) : Math.min(a.y, c.y), hi = H ? Math.max(a.x, c.x) : Math.max(a.y, c.y);
     const gap = H ? Math.max(0, lo - b[2], b[0] - hi) : Math.max(0, lo - b[3], b[1] - hi), v0 = H ? b[1] : b[0], v1 = H ? b[3] : b[2], av = H ? a.y : a.x;
     [['min', v0], ['max', v1]].forEach(([e, v]) => { const sc = Math.abs(v - av) + 2 * gap; if (!anc[ax] || sc < anc[ax].s) anc[ax] = {s:sc, n:a.id, e, d:r4(v - av)}; }); });
   ['x', 'y'].forEach(k => { if (anc[k]) delete anc[k].s; });
+  if (keepM && st.anc) ['x', 'y'].forEach(k => { if (st.anc[k] && st.anc[k].m) anc[k] = st.anc[k]; });   // la posizione misurata resta
   st.anc = anc;
 }
 function applyAnchor(pl, st) {
@@ -1595,7 +1613,11 @@ function recompute() {
     if (ne.size === ext.size && [...ne].every(x => ext.has(x))) break;
     ext = ne;
   }
+  const RK = new Map((G.runs || []).map(r => [r.key, r])), st0 = JSON.stringify((pl.stairs || []).map(st => [st.x, st.y]));
+  (pl.stairs || []).forEach(st => ['x', 'y'].forEach(k => { const a = st.anc && st.anc[k]; if (!a || !a.m) return; const r = RK.get(a.m.k);
+    if (!r) { delete a.m; return; } const v = num(a.m.v); a.n = a.m.side === 'a' ? r.p : r.q; a.e = a.m.side === 'a' ? 'min' : 'max'; a.d = r4(a.m.side === 'a' ? r.eA + v : -(r.eB + v)); }));
   (pl.stairs || []).forEach(st => { if (!applyAnchor(pl, st) || !st.anc) anchorStair(pl, st); });
+  if (JSON.stringify((pl.stairs || []).map(st => [st.x, st.y])) !== st0) G = geometry(pl);
   if (syncVarchi(pl)) { placeAps(pl); G = geometry(pl); }
   G.warns.push(...(ui.varcoWarn || []));
   syncRooms(pl, G);
@@ -1763,9 +1785,9 @@ function draw() {
       r.chain.pcs.forEach(pc => { if (pc.len < 0.02 && !(pc.meas >= 0)) return;
         const al = (pc.a + pc.b) / 2, pm = pc.meas >= 0, val0 = pm ? pc.meas : pc.known ? pc.len : NaN;
         const [px, py] = freeAt(r.H ? X(al) : X(lx) + r.sg * off2, r.H ? Y(ly) - r.sg * off2 : Y(al), r.H, val0, r.H ? [0, -r.sg] : [r.sg, 0]);
-        const hb = {kind:'p', rk:r.key, nx:pc.nx ? pc.nx.id : '', pv:pc.pv ? pc.pv.id : '', last:pc.last, wid:r.walls[0].id};
-        const b = mbox(px, py, r.H, pm ? pc.meas : pc.known ? pc.len : NaN, pm, pm && Math.abs(pc.diff || 0) > TOL, ui.inl && ui.inl.key === hbKey(hb), sel);
-        s += b.s; ui.pbb.push({box:b.box, hb}); });
+        const hb = r.chain.stair ? (pc.sp ? {kind:'sp', rk:r.key, st:pc.sp.st, side:pc.sp.side, wid:r.walls[0].id} : null) : {kind:'p', rk:r.key, nx:pc.nx ? pc.nx.id : '', pv:pc.pv ? pc.pv.id : '', last:pc.last, wid:r.walls[0].id};
+        const b = mbox(px, py, r.H, pm ? pc.meas : pc.known ? pc.len : NaN, pm, pm && Math.abs(pc.diff || 0) > TOL, hb && ui.inl && ui.inl.key === hbKey(hb), sel);
+        s += b.s; if (hb) ui.pbb.push({box:b.box, hb}); });
       return; }
     // casella toccabile: vuota se manca la misura, con il valore se c'è
     // casella toccabile: vuota se manca la misura, con il valore se c'è, grigio se si ricava dalle altre misure
@@ -1853,7 +1875,7 @@ function mbox(tx, ty, H, val, m, bad, edit, sel, o = {}) {
   if (txt) s += `<text x="${tx}" y="${ty}" font-size="${(11 * K).toFixed(1)}" text-anchor="middle" dominant-baseline="central" fill="${bad ? 'var(--bad)' : m && !o.prop ? 'var(--ink)' : 'var(--mut)'}" font-weight="${bad || sel ? 700 : m && !o.prop ? 600 : 400}" ${o.prop ? 'font-style="italic"' : ''} ${H ? '' : `transform="rotate(-90 ${tx} ${ty})"`}>${esc(txt)}</text>`;
   return {s, box};
 }
-const hbKey = hb => hb.kind === 'p' ? 'p:' + hb.rk + ':' + (hb.nx || 'fine') : hb.kind === 'w' ? 'w:' + hb.ap : hb.kind === 'q' ? 'q:' + hb.id : hb.key;
+const hbKey = hb => hb.kind === 'sp' ? 'sp:' + hb.rk + ':' + hb.side : hb.kind === 'p' ? 'p:' + hb.rk + ':' + (hb.nx || 'fine') : hb.kind === 'w' ? 'w:' + hb.ap : hb.kind === 'q' ? 'q:' + hb.id : hb.key;
 function roomRects(cc) {
   const v = ui.view; if (cc.isRect) { const b = cc.bbox; return `<rect x="${SX(b[0])}" y="${SY(b[3])}" width="${(b[2] - b[0]) * v.s}" height="${(b[3] - b[1]) * v.s}"/>`; }
   return cc.rects.map(b => `<rect x="${SX(b[0])}" y="${SY(b[3])}" width="${(b[2] - b[0]) * v.s + 0.3}" height="${(b[3] - b[1]) * v.s + 0.3}"/>`).join('');
@@ -1940,7 +1962,7 @@ function bindCanvas() {
       if (d.nuovo) { const st = ui.scGhost; ui.scGhost = null; ui.placeSc = false; updTools(); if (!st) return; pushUndo(); undemo(); snapStair(st); anchorStair(pl, st); (pl.stairs = pl.stairs || []).push(st); update(true); toast('Scala posata. Con «Seleziona» toccala per tipo, verso e misure.'); return; }
       if (!d.moved) { ui.sel = {k:'s', id:d.st.id}; draw(); renderSide(); return; }
       pl.walls.forEach(w => (w.ap || []).forEach(ap => { if (ap.sc === d.st.id && ap.pos) { delete ap.pos; ap.dp = true; } }));
-      snapStair(d.st); anchorStair(pl, d.st); undemo(); update(true); return; }
+      snapStair(d.st); anchorStair(pl, d.st, false); undemo(); update(true); return; }
     if (apDrag) { const a = apDrag; apDrag = null; const gh = ui.ghost; ui.ghost = null;
       if (!a.moved) { ui.sel = {k:'a', id:a.w.id, ap:a.ap.id}; ui.selAp = a.ap.tipo === 'porta' ? a.ap.id : null; draw(); renderSide(); return; }
       if (dropGhost(gh)) { if (a.tipo && !a.ap) { ui.place = null; updTools(); } } else draw();
@@ -2126,8 +2148,10 @@ function openInline(hb) {
   else if (kind === 'p') { if (hb.last) old = (pl.fl || {})[hb.rk] || ''; else { const ap = apOf(hb.nx), p = ap && ap.pos; if (p && p.k === hb.rk && (hb.pv ? p.prev === hb.pv : !p.prev)) old = p.v; } }
   else if (kind === 'w') { const ap = apOf(hb.ap); if (ap) { old = ap.lp ? '' : ap.l || ''; ph = ap.lp ? 'prop. ' + ap.l : 'm'; } }
   else if (kind === 'q') { const d = (pl.dims || []).find(x => x.id === hb.id); old = d ? d.v || '' : ''; }
+  const spR = kind === 'sp' ? (G.runs || []).find(x => x.key === hb.rk) : null, spSt = kind === 'sp' ? (pl.stairs || []).find(x => x.id === hb.st) : null, spAx = spR && (spR.H ? 'x' : 'y');
+  if (kind === 'sp' && spSt && spSt.anc && spSt.anc[spAx] && spSt.anc[spAx].m && spSt.anc[spAx].m.k === hb.rk && spSt.anc[spAx].m.side === hb.side) old = spSt.anc[spAx].m.v;
   // finestra «Modifica misura»: numero grande in metri e tastierino (niente tastiera del tablet)
-  const sub = kind === 'w' ? 'Larghezza del vano' : kind === 'q' ? 'Quota libera' : kind === 'p' ? (hb.last ? 'Parziale · ultimo tratto del lato' : 'Parziale · tratto di muro') : hb.fac ? 'Totale esterno della facciata' :
+  const sub = kind === 'sp' ? (hb.side === 'a' ? 'Parziale · dal muro al primo gradino (o al bordo della scala)' : 'Parziale · dalla scala al muro') : kind === 'w' ? 'Larghezza del vano' : kind === 'q' ? 'Quota libera' : kind === 'p' ? (hb.last ? 'Parziale · ultimo tratto del lato' : 'Parziale · tratto di muro') : hb.fac ? 'Totale esterno della facciata' :
     (() => { const r = (G.runs || []).find(x => x.key === hb.key); if (!r) return 'Lato del muro'; const c = r.comp >= 0 && G.comps[r.comp] && G.comps[r.comp].rec ? ' · ' + G.comps[r.comp].rec.nome : ''; return tipoNome(r.walls[0]) + ', ' + latoNome(r) + c; })();
   const pop = document.createElement('div'); pop.id = 'inl'; pop.className = 'mpop';
   pop.innerHTML = `<div class="mbox" role="dialog" aria-label="Modifica misura"><div class="mhd"><div><div class="mt">Modifica misura</div><div class="ms">${esc(sub)}</div></div><button class="mx" data-k="x" aria-label="Chiudi">✕</button></div>
@@ -2146,12 +2170,15 @@ function openInline(hb) {
   const commit = (vv) => {
     if (done) return; done = true; pop.remove(); document.removeEventListener('keydown', kd, true); ui.inl = null;
     const v = (vv === undefined ? val : vv).replace(/,$/, '').trim();
-    const ok = kind === 'p' ? num(v) >= 0 : num(v) > 0;
+    const ok = kind === 'p' || kind === 'sp' ? num(v) >= 0 : num(v) > 0;
     if (v && !ok) { toast('Misura non valida.'); draw(); return; }
     if (v === old) { draw(); return; }
     pushUndo(); undemo();
     if (kind === 'r') setMeasure(pl, 'r', hb.key, v);
     else if (kind === 'q') setMeasure(pl, 'q', hb.id, v);
+    else if (kind === 'sp') { if (spSt && spR) { spSt.anc = spSt.anc || {};
+        if (v) spSt.anc[spAx] = {n:hb.side === 'a' ? spR.p : spR.q, e:hb.side === 'a' ? 'min' : 'max', d:r4(hb.side === 'a' ? spR.eA + num(v) : -(spR.eB + num(v))), m:{k:hb.rk, v, side:hb.side}};
+        else if (spSt.anc[spAx]) delete spSt.anc[spAx].m; } }
     else if (kind === 'w') { const ap = apOf(hb.ap); if (ap) { if (v) { ap.l = v; delete ap.lp; } else ap.lp = true; } }
     else if (kind === 'p') {
       if (hb.last) setMeasure(pl, 'l', hb.rk, v);
@@ -2692,7 +2719,7 @@ document.addEventListener('click', e => {
   const scs = ui.sel && ui.sel.k === 's' && (pl.stairs || []).find(x => x.id === ui.sel.id);
   if (scs) {
     if (id === 'bDelS') { pushUndo(); pl.stairs = pl.stairs.filter(x => x !== scs); ui.sel = null; update(true); return; }
-    if (id === 'bRotS') { pushUndo(); rotateStair(scs); snapStair(scs); anchorStair(pl, scs); R.piani.forEach(pp => (pp.stairs || []).forEach(o => { if (o !== scs && o.link === scs.link) { rotateStair(o); anchorStair(pp, o); } })); update(true); return; }
+    if (id === 'bRotS') { pushUndo(); rotateStair(scs); snapStair(scs); anchorStair(pl, scs, false); R.piani.forEach(pp => (pp.stairs || []).forEach(o => { if (o !== scs && o.link === scs.link) { rotateStair(o); anchorStair(pp, o); } })); update(true); return; }
     if (id === 'bLinkS' || id === 'bLinkAll') {
       const up = scs.dir !== 'scende', vano = ui.copyVano !== false ? vanoWalls(pl, scs) : [];
       const last = up ? (id === 'bLinkAll' ? R.piani.length - 1 : R.cur + 1) : R.cur - 1;
