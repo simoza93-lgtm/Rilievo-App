@@ -10,8 +10,8 @@
 <link rel="apple-touch-icon" href="icons/apple-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <style>
-:root{--bg:#f3f4f7;--card:#fff;--ink:#1c2230;--mut:#687185;--line:#dde1e8;--acc:#1f5fbf;--accbg:#e6efff;--warn:#a86a12;--warnbg:#fff3dc;--bad:#c0392b;--badbg:#fde8e5;--ok:#2f855a;--okbg:#e3f5ea;--wall:#d6d9e1;--wP:#1c2230;--wI:#b8860b;--wR:#d0342c;--grid:#eceef3;--cv:#fbfbfd;--note:#c99a06;--notebg:#fff8d9}
-@media (prefers-color-scheme:dark){:root{--bg:#13161c;--card:#1b1f28;--ink:#e7eaf1;--mut:#99a1b2;--line:#2c3240;--acc:#5b9bff;--accbg:#1d2e4d;--warn:#e3a94b;--warnbg:#3a2f18;--bad:#ef6b5b;--badbg:#3d1f1b;--ok:#5fc08a;--okbg:#17331f;--wall:#2f3542;--wP:#f1f3f8;--wI:#e2b33c;--wR:#ff6b5f;--grid:#20242d;--cv:#171a21;--note:#d8ad2c;--notebg:#352f17}}
+:root{--bg:#f3f4f7;--card:#fff;--ink:#1c2230;--mut:#687185;--line:#dde1e8;--acc:#1f5fbf;--accbg:#e6efff;--warn:#a86a12;--warnbg:#fff3dc;--bad:#c0392b;--badbg:#fde8e5;--ok:#2f855a;--okbg:#e3f5ea;--wall:#d6d9e1;--wP:#1c2230;--wI:#b8860b;--wR:#d0342c;--grid:#eceef3;--cv:#fbfbfd;--note:#c99a06;--inkc:#7c3aed;--notebg:#fff8d9}
+@media (prefers-color-scheme:dark){:root{--bg:#13161c;--card:#1b1f28;--ink:#e7eaf1;--mut:#99a1b2;--line:#2c3240;--acc:#5b9bff;--accbg:#1d2e4d;--warn:#e3a94b;--warnbg:#3a2f18;--bad:#ef6b5b;--badbg:#3d1f1b;--ok:#5fc08a;--okbg:#17331f;--wall:#2f3542;--wP:#f1f3f8;--wI:#e2b33c;--wR:#ff6b5f;--grid:#20242d;--cv:#171a21;--note:#d8ad2c;--inkc:#b39bff;--notebg:#352f17}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,Segoe UI,Arial,sans-serif}
 header{background:var(--card);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -727,6 +727,7 @@ function solve(pl, extKeys) {
     pl.nodes.forEach(nn => { nn.x = r4(nn.x - mx); nn.y = r4(nn.y - my); });
     (pl.rooms || []).forEach(r => { r.px -= mx; r.py -= my; });
     (pl.notes || []).forEach(n => { n.x = r4(n.x - mx); n.y = r4(n.y - my); });
+    (pl.ink || []).forEach(k => { k.pts = k.pts.map(q => [r4(q[0] - mx), r4(q[1] - my)]); });
     if (pl.nord) { pl.nord.x = r4(pl.nord.x - mx); pl.nord.y = r4(pl.nord.y - my); }
     if (pl.bg) { pl.bg.ox = r4(pl.bg.ox - mx); pl.bg.oy = r4(pl.bg.oy - my); }   // la planimetria di sfondo segue lo spostamento del punto base
     if (pl === piano()) { ui.view.x -= mx; ui.view.y -= my; }
@@ -1473,6 +1474,7 @@ function genScript(pl) {
     w('_.SOLID', pt(g.left[0]), pt(g.left[1]), pt(g.left[2]), '', '');
     w('_.PLINE', pt(g.right[0]), pt(g.right[1]), pt(g.right[2]), '_C');
     w('_.TEXT', '_S', 'STUDIO', '_J', '_MC', pt(g.txt), '0.25', '0', 'N'); } }
+  if (R.opt.mano && (pl.ink || []).length) { w('; ---- note a mano', 'CLAYER', LAY.R); pl.ink.forEach(k => w('_.PLINE', ...k.pts.map(pt), '')); }
   if (R.opt.note) (pl.notes || []).forEach(n => String(n.t || '').split('\n').map(x => ascii(x).replace(/^;+/, '').trim()).forEach((l, i) => { if (l) w('_.TEXT', '_S', 'STUDIO', pt([n.x, n.y - 0.30 - i * 0.35]), '0.20', '0', l); }));
   if (R.opt.vani !== false && sp.vani.length) {
     // larghezza del vano: linea perpendicolare al muro dal centro del vano verso l'ambiente, numero lungo la linea
@@ -1615,7 +1617,7 @@ function render() {
     $('#main').innerHTML = banner + `<div class="cols"><div class="card cvcard">
       <div class="tbar">
         <div class="tcl"><button class="tb sm" id="bUndo"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg><span>Annulla</span></button><button class="tb sm" id="bRedo"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg><span>Ripeti</span></button></div>
-        <div class="tcl tmain"><div class="tg" data-g="sel"><button class="tb" data-fly="sel" data-auto="1"><svg viewBox="0 0 24 24"><path d="M6 3l12 9-6 1 3.5 7-2.5 1-3.5-7L5 18z"/></svg><span>Seleziona</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="select"><svg viewBox="0 0 24 24"><path d="M6 3l12 9-6 1 3.5 7-2.5 1-3.5-7L5 18z"/></svg><span>Seleziona</span></button><button class="tb" data-win="1" title="Tocca un angolo e poi quello opposto (anche dentro gli ambienti)"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1" stroke-dasharray="3 2.5"/><path d="M14 13l6 6M14 13h4M14 13v4"/></svg><span>Rettangolo</span></button><button class="tb" data-mode="pan"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg><span>Sposta vista</span></button></div></div><div class="tg" data-g="muri"><button class="tb" data-fly="muri" data-auto="1"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" stroke-width="2.2"/><path d="M6 8l-3 4M11 8l-6 8M16 8l-6 8M21 8l-6 8M21 13l-2 3" stroke-width="1.2"/></svg><span>Muri</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="draw" data-tw="P"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" stroke-width="2.2"/><path d="M6 8l-3 4M11 8l-6 8M16 8l-6 8M21 8l-6 8M21 13l-2 3" stroke-width="1.2"/></svg><span>Perimetrali</span></button><button class="tb" data-mode="draw" data-tw="T"><svg viewBox="0 0 24 24"><path d="M3 10h18M3 14h18" stroke-width="1.9"/></svg><span>Tramezzi</span></button></div></div><div class="tg" data-g="ap"><button class="tb" data-fly="ap"><svg viewBox="0 0 24 24"><path d="M2 18h4M18 18h4" stroke-width="2.2"/><path d="M6 18V6M6 6a12 12 0 0 1 12 12"/></svg><span>Aperture</span><i class="car"></i></button><div class="tfly"><button class="tb" data-ap="finestra"><svg viewBox="0 0 24 24"><path d="M3 8h4M17 8h4M3 16h4M17 16h4" stroke-width="2.2"/><path d="M7 8v8M17 8v8M7 11h10M7 13h10"/></svg><span>Finestra</span></button><button class="tb" data-ap="uscita"><svg viewBox="0 0 24 24"><path d="M3 8h4M17 8h4M3 16h4M17 16h4" stroke-width="2.2"/><path d="M7 8v8M17 8v8M7 12h10"/><path d="M7 12a5 5 0 0 1 5-4" stroke-dasharray="2 2"/></svg><span>Porta-finestra</span></button><button class="tb" data-ap="porta"><svg viewBox="0 0 24 24"><path d="M2 18h4M18 18h4" stroke-width="2.2"/><path d="M6 18V6M6 6a12 12 0 0 1 12 12"/></svg><span>Porta</span></button><button class="tb" data-ap="ingresso"><svg viewBox="0 0 24 24"><path d="M2 18h3M19 18h3" stroke-width="2.2"/><path d="M5 18V5M5 5a13 13 0 0 1 14 13"/><path d="M12 22v-6M10 18l2-2 2 2"/></svg><span>Ingresso</span></button></div></div><button class="tb" data-sc="1"><svg viewBox="0 0 24 24"><path d="M4 20h4v-4h4v-4h4V8h4V4"/><path d="M4 20V16M8 16v-4M12 12V8M16 8V4" stroke-width="1"/></svg><span>Scala</span></button><button class="tb" data-dim="1" title="Quota libera: tocca due fili e scrivi la misura"><svg viewBox="0 0 24 24"><path d="M4 7v10M20 7v10M4 12h16M4 12l3-2.5M4 12l3 2.5M20 12l-3-2.5M20 12l-3 2.5"/></svg><span>Quota</span></button><button class="tb" data-mode="text"><svg viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg><span>Testo</span></button><button class="tb" data-foto="1" title="Tocca dove ti trovi e scatta"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Foto</span></button><button class="tb" data-nord="1"><svg viewBox="0 0 24 24"><path d="M12 2l5 18-5-4-5 4z"/><path d="M12 2v14"/></svg><span>Nord</span></button><button class="tb" data-bg="1" title="Planimetria di sfondo da ricalcare (JPEG)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.6"/></svg><span>Sfondo</span></button></div>
+        <div class="tcl tmain"><div class="tg" data-g="sel"><button class="tb" data-fly="sel" data-auto="1"><svg viewBox="0 0 24 24"><path d="M6 3l12 9-6 1 3.5 7-2.5 1-3.5-7L5 18z"/></svg><span>Seleziona</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="select"><svg viewBox="0 0 24 24"><path d="M6 3l12 9-6 1 3.5 7-2.5 1-3.5-7L5 18z"/></svg><span>Seleziona</span></button><button class="tb" data-win="1" title="Tocca un angolo e poi quello opposto (anche dentro gli ambienti)"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1" stroke-dasharray="3 2.5"/><path d="M14 13l6 6M14 13h4M14 13v4"/></svg><span>Rettangolo</span></button><button class="tb" data-mode="pan"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg><span>Sposta vista</span></button></div></div><div class="tg" data-g="muri"><button class="tb" data-fly="muri" data-auto="1"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" stroke-width="2.2"/><path d="M6 8l-3 4M11 8l-6 8M16 8l-6 8M21 8l-6 8M21 13l-2 3" stroke-width="1.2"/></svg><span>Muri</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="draw" data-tw="P"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" stroke-width="2.2"/><path d="M6 8l-3 4M11 8l-6 8M16 8l-6 8M21 8l-6 8M21 13l-2 3" stroke-width="1.2"/></svg><span>Perimetrali</span></button><button class="tb" data-mode="draw" data-tw="T"><svg viewBox="0 0 24 24"><path d="M3 10h18M3 14h18" stroke-width="1.9"/></svg><span>Tramezzi</span></button></div></div><div class="tg" data-g="ap"><button class="tb" data-fly="ap"><svg viewBox="0 0 24 24"><path d="M2 18h4M18 18h4" stroke-width="2.2"/><path d="M6 18V6M6 6a12 12 0 0 1 12 12"/></svg><span>Aperture</span><i class="car"></i></button><div class="tfly"><button class="tb" data-ap="finestra"><svg viewBox="0 0 24 24"><path d="M3 8h4M17 8h4M3 16h4M17 16h4" stroke-width="2.2"/><path d="M7 8v8M17 8v8M7 11h10M7 13h10"/></svg><span>Finestra</span></button><button class="tb" data-ap="uscita"><svg viewBox="0 0 24 24"><path d="M3 8h4M17 8h4M3 16h4M17 16h4" stroke-width="2.2"/><path d="M7 8v8M17 8v8M7 12h10"/><path d="M7 12a5 5 0 0 1 5-4" stroke-dasharray="2 2"/></svg><span>Porta-finestra</span></button><button class="tb" data-ap="porta"><svg viewBox="0 0 24 24"><path d="M2 18h4M18 18h4" stroke-width="2.2"/><path d="M6 18V6M6 6a12 12 0 0 1 12 12"/></svg><span>Porta</span></button><button class="tb" data-ap="ingresso"><svg viewBox="0 0 24 24"><path d="M2 18h3M19 18h3" stroke-width="2.2"/><path d="M5 18V5M5 5a13 13 0 0 1 14 13"/><path d="M12 22v-6M10 18l2-2 2 2"/></svg><span>Ingresso</span></button></div></div><button class="tb" data-sc="1"><svg viewBox="0 0 24 24"><path d="M4 20h4v-4h4v-4h4V8h4V4"/><path d="M4 20V16M8 16v-4M12 12V8M16 8V4" stroke-width="1"/></svg><span>Scala</span></button><button class="tb" data-dim="1" title="Quota libera: tocca due fili e scrivi la misura"><svg viewBox="0 0 24 24"><path d="M4 7v10M20 7v10M4 12h16M4 12l3-2.5M4 12l3 2.5M20 12l-3-2.5M20 12l-3 2.5"/></svg><span>Quota</span></button><div class="tg" data-g="note"><button class="tb" data-fly="note" data-auto="1"><svg viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z"/><path d="M8 11h8M8 15h5"/></svg><span>Note</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="ink" title="Scrivi o disegna a mano libera con la penna (due dita: zoom e spostamento)"><svg viewBox="0 0 24 24"><path d="M4 20l1-5L16 4l4 4L9 19z"/><path d="M14 6l4 4"/><path d="M3 21c3-1 5 1 8 0" stroke-width="1.3"/></svg><span>A mano</span></button><button class="tb" data-mode="text" title="Nota scritta con la tastiera"><svg viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg><span>Testo</span></button><button class="tb" data-mode="gomma" title="Passa sopra ai tratti a mano per cancellarli"><svg viewBox="0 0 24 24"><path d="M8 20h12"/><path d="M5 15l9-9 5 5-8 8H8z"/><path d="M10 10l5 5"/></svg><span>Gomma</span></button></div></div><button class="tb" data-foto="1" title="Tocca dove ti trovi e scatta"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Foto</span></button><button class="tb" data-nord="1"><svg viewBox="0 0 24 24"><path d="M12 2l5 18-5-4-5 4z"/><path d="M12 2v14"/></svg><span>Nord</span></button><button class="tb" data-bg="1" title="Planimetria di sfondo da ricalcare (JPEG)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.6"/></svg><span>Sfondo</span></button></div>
         <div class="tcl"><button class="tb sm" id="bZo"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M7.5 10.5h6"/></svg><span>Zoom −</span></button><button class="tb sm" id="bZi"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M7.5 10.5h6M10.5 7.5v6"/></svg><span>Zoom +</span></button><button class="tb sm" id="bFit"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg><span>Adatta</span></button><span class="tsep"></span><label class="tb sm" title="Nomi e superfici degli ambienti"><input type="checkbox" id="cLab" ${ui.labels ? 'checked' : ''}><svg viewBox="0 0 24 24"><path d="M3 5h12l6 7-6 7H3z"/><path d="M7 10.5v4M7 11.5a1.5 1.5 0 0 1 3 0v3M10 11.5a1.5 1.5 0 0 1 3 0v3" stroke-width="1.3"/></svg><span>Nomi e m²</span></label><button class="tb sm" id="bFull">${ui.full ? '<svg viewBox="0 0 24 24"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg><span>Esci</span>' : '<svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span>Schermo</span>'}</button></div>
       </div>
       <div id="cv"><svg id="svg"></svg><div id="empty"></div><div id="toast"></div></div>
@@ -1642,7 +1644,7 @@ function updTools() {
   if (ui.winArm) document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('on'));
   const busy = ui.place || ui.placeSc || ui.placeDim || ui.placeFoto || ui.placeNord || ui.winArm || (ui.sel && ui.sel.k === 'bg');
   document.querySelectorAll('[data-tw]').forEach(b => b.classList.toggle('on', ui.mode === 'draw' && !busy && b.dataset.tw === ui.newType));
-  if (busy) document.querySelectorAll('[data-mode="select"],[data-mode="pan"],[data-mode="text"]').forEach(b => b.classList.remove('on'));
+  if (busy) document.querySelectorAll('[data-mode="select"],[data-mode="pan"],[data-mode="text"],[data-mode="ink"],[data-mode="gomma"]').forEach(b => b.classList.remove('on'));
   // pulsante del gruppo: mostra il comando scelto (o l'ultimo usato) ed è acceso se un suo comando è attivo
   document.querySelectorAll('.tg').forEach(g => { const m = g.querySelector('[data-fly]'), on = g.querySelector('.tfly .on');
     ui.flyLast = ui.flyLast || {}; if (on) ui.flyLast[g.dataset.g] = on;
@@ -1666,6 +1668,25 @@ function fit() {
 const SX = x => (x - ui.view.x) * ui.view.s, SY = y => ui.H - (y - ui.view.y) * ui.view.s;
 const WX = px => px / ui.view.s + ui.view.x, WY = py => (ui.H - py) / ui.view.s + ui.view.y;
 function zoomAt(f, px, py) { closeInline(true); const wx = WX(px), wy = WY(py); ui.view.s = Math.max(6, Math.min(400, ui.view.s * f)); ui.view.x = wx - px / ui.view.s; ui.view.y = wy - (ui.H - py) / ui.view.s; draw(); }
+
+/* ---- note a mano libera ---- */
+function rdp(P, eps) { if (P.length < 3) return P; let dm = 0, im = 0; const [a, b] = [P[0], P[P.length - 1]], L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1e-9;
+  for (let i = 1; i < P.length - 1; i++) { const d = Math.abs((b[0] - a[0]) * (a[1] - P[i][1]) - (a[0] - P[i][0]) * (b[1] - a[1])) / L; if (d > dm) { dm = d; im = i; } }
+  return dm > eps ? rdp(P.slice(0, im + 1), eps).slice(0, -1).concat(rdp(P.slice(im), eps)) : [a, b]; }
+function inkLive(pts) { const svg = $('#svg'); if (!svg) return; let el = svg.querySelector('#inkLive');
+  if (!pts) { if (el) el.remove(); return; }
+  if (!el) { el = document.createElementNS('http://www.w3.org/2000/svg', 'path'); el.id = 'inkLive'; el.setAttribute('fill', 'none'); el.setAttribute('stroke', 'var(--inkc)'); el.setAttribute('stroke-linecap', 'round'); el.setAttribute('stroke-linejoin', 'round'); svg.appendChild(el); }
+  el.setAttribute('stroke-width', inkW()); el.setAttribute('d', 'M' + pts.map(q => q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join(' L') + (pts.length === 1 ? ' l0.1 0' : '')); }
+function inkW() { return Math.max(1.2, Math.min(4, 0.025 * ui.view.s)).toFixed(2); }
+function inkSave(pts) { const pl = piano(); let P = rdp(pts, 0.8).map(q => [r4(WX(q[0])), r4(WY(q[1]))]); if (P.length === 1) P = [P[0], [r4(P[0][0] + 0.01), P[0][1]]];
+  pushUndo(); (pl.ink = pl.ink || []).push({id:uid(), pts:P}); draw(); save(); }
+function inkDist(k, p) { let best = 1e9; for (let i = 0; i < k.pts.length - 1; i++) { const a = [SX(k.pts[i][0]), SY(k.pts[i][1])], b = [SX(k.pts[i + 1][0]), SY(k.pts[i + 1][1])], dx = b[0] - a[0], dy = b[1] - a[1], L = dx * dx + dy * dy || 1e-9;
+  const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L)); best = Math.min(best, Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy)); } return best; }
+function inkAt(p, tol = 9) { const pl = piano(); let best = null, bd = tol; (pl.ink || []).forEach(k => { const d = inkDist(k, p); if (d < bd) { bd = d; best = k; } }); return best; }
+function gomAt(p, g) { const pl = piano(), hitk = (pl.ink || []).filter(k => inkDist(k, p) < 12); if (!hitk.length) return;
+  if (!g.undo) { pushUndo(); g.undo = true; } pl.ink = pl.ink.filter(k => !hitk.includes(k)); draw(); save(); }
+function inkSvg(pl) { const w = inkW(); return (pl.ink || []).map(k => { const sel = (ui.sel && ui.sel.k === 'ink' && ui.sel.id === k.id) || inM('i', k.id);
+  return `<path d="M${k.pts.map(q => SX(q[0]).toFixed(1) + ' ' + SY(q[1]).toFixed(1)).join(' L')}" fill="none" stroke="${sel ? 'var(--acc)' : 'var(--inkc)'}" stroke-width="${sel ? +w + 1.5 : w}" stroke-linecap="round" stroke-linejoin="round"/>`; }).join(''); }
 
 /* ---- porte: arco e pulsanti per girarle ---- */
 function arcPts(D, n = 16) { const a0 = Math.atan2(D.p0[1] - D.c[1], D.p0[0] - D.c[0]), a1 = Math.atan2(D.p1[1] - D.c[1], D.p1[0] - D.c[0]); let da = a1 - a0; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
@@ -1812,6 +1833,7 @@ function draw() {
     s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="var(--notebg)" stroke="${sel ? 'var(--acc)' : 'var(--note)'}" stroke-width="${sel ? 2.5 : 1}"/>` +
       (n.t ? lines.map((l, i) => `<text x="${x + 7}" y="${y + 18 + i * 17}" font-size="13" fill="var(--ink)">${esc(l)}</text>`).join('') : `<text x="${x + 7}" y="${y + 18}" font-size="13" fill="var(--mut)" font-style="italic">Nota</text>`);
   });
+  s += inkSvg(pl);
   s += pinsSvg(pl);
   renderStrip();
   s += nordSvg(pl, ui.sel && ui.sel.k === 'nord');
@@ -1839,12 +1861,15 @@ function roomRects(cc) {
 
 /* ---- interazione con la tavola ---- */
 function bindCanvas() {
-  const svg = $('#svg'), ptrs = new Map(); let bgTap = null, bgDrag = null, win = null, stroke = null, pan = null, pinch = null, drag = null, apDrag = null, boxTap = null, scDrag = null, fotoTap = null, nordTap = null, ndDrag = null, dimTap = null, dmDrag = null, doorTap = null;
+  const svg = $('#svg'), ptrs = new Map(); let bgTap = null, bgDrag = null, win = null, stroke = null, pan = null, pinch = null, drag = null, apDrag = null, boxTap = null, scDrag = null, fotoTap = null, nordTap = null, ndDrag = null, dimTap = null, dmDrag = null, doorTap = null, inkS = null, gom = null;
   const pos = e => { const r = svg.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
   svg.addEventListener('pointerdown', e => {
-    svg.setPointerCapture(e.pointerId); const p = pos(e); ptrs.set(e.pointerId, p);
-    if (ptrs.size === 2) { win = null; winShow(null); stroke = null; pan = null; drag = null; boxTap = null; dimTap = null; dmDrag = null; closeInline(true); if (apDrag) { apDrag = null; ui.ghost = null; draw(); } const [a, b] = [...ptrs.values()]; pinch = {d:Math.hypot(a[0] - b[0], a[1] - b[1]), s:ui.view.s, mx:(a[0] + b[0]) / 2, my:(a[1] + b[1]) / 2, wx:WX((a[0] + b[0]) / 2), wy:WY((a[1] + b[1]) / 2)}; const st = $('#stroke'); if (st) st.setAttribute('points', ''); return; }
+    try { svg.setPointerCapture(e.pointerId); } catch (_) {} const p = pos(e); ptrs.set(e.pointerId, p);
+    if (e.pointerType === 'pen') ui.penSeen = true;
+    if (ptrs.size === 2) { inkS = null; gom = null; inkLive(null); win = null; winShow(null); stroke = null; pan = null; drag = null; boxTap = null; dimTap = null; dmDrag = null; closeInline(true); if (apDrag) { apDrag = null; ui.ghost = null; draw(); } const [a, b] = [...ptrs.values()]; pinch = {d:Math.hypot(a[0] - b[0], a[1] - b[1]), s:ui.view.s, mx:(a[0] + b[0]) / 2, my:(a[1] + b[1]) / 2, wx:WX((a[0] + b[0]) / 2), wy:WY((a[1] + b[1]) / 2)}; const st = $('#stroke'); if (st) st.setAttribute('points', ''); return; }
     if (ptrs.size > 2) return;
+    if ((ui.mode === 'ink' || ui.mode === 'gomma') && ptrs.size === 1 && !(ui.penSeen && e.pointerType === 'touch')) {   // con la penna, il dito sposta la vista
+      e.preventDefault(); if (ui.mode === 'ink') { inkS = [p]; inkLive(inkS); } else { gom = {undo:false}; gomAt(p, gom); } return; }
     if (ptrs.size === 1) { const fb = flipAt(p); if (fb) { e.preventDefault(); ptrs.delete(e.pointerId); flipDoor(fb.k); return; } }
     doorTap = null; if (ptrs.size === 1 && !ui.place && !ui.placeSc && !ui.placeDim && !ui.winArm) { const dd = doorAt(p); if (dd) doorTap = {o:dd, p}; }
     if (!doorTap && (ui.selAp || (ui.mode === 'draw' && ui.sel && ui.sel.k === 'a'))) { ui.selAp = null; if (ui.mode === 'draw' && ui.sel && ui.sel.k === 'a') { ui.sel = null; renderSide(); } draw(); }
@@ -1869,6 +1894,8 @@ function bindCanvas() {
   });
   svg.addEventListener('pointermove', e => {
     if (!ptrs.has(e.pointerId)) { if (ui.winA && ui.mode === 'select') { winShow(ui.winA, pos(e)); return; } if (ui.placeDim && e.pointerType !== 'touch') { ui.dimHover = dimSnap(pos(e)); draw(); return; } if (ui.place && e.pointerType !== 'touch') { ui.ghost = ghostAt(pos(e), ui.place, num(DEF_AP[ui.place].l), null); draw(); } return; } const p = pos(e); ptrs.set(e.pointerId, p);
+    if (inkS && ptrs.size === 1) { const p = pos(e), l = inkS[inkS.length - 1]; if (Math.hypot(p[0] - l[0], p[1] - l[1]) >= 1.5) { inkS.push(p); inkLive(inkS); } return; }
+    if (gom && ptrs.size === 1) { gomAt(pos(e), gom); return; }
     if (pinch && ptrs.size >= 2) { const [a, b] = [...ptrs.values()]; const d = Math.hypot(a[0] - b[0], a[1] - b[1]), mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2; ui.view.s = Math.max(6, Math.min(400, pinch.s * d / pinch.d)); ui.view.x = pinch.wx - mx / ui.view.s; ui.view.y = pinch.wy - (ui.H - my) / ui.view.s; draw(); return; }
     if (boxTap) { if (Math.hypot(p[0] - boxTap.p[0], p[1] - boxTap.p[1]) > 8) { if (boxTap.hb.kind === 'q' && ui.mode !== 'draw') { const d = (piano().dims || []).find(x => x.id === boxTap.hb.id); if (d) dmDrag = {d, p0:boxTap.p, o0:d.o, moved:false}; } else if (ui.mode === 'select') { pan = {p:boxTap.p, vx:ui.view.x, vy:ui.view.y, moved:true}; } boxTap = null; } else return; }
     if (dmDrag) { const dx = p[0] - dmDrag.p0[0], dy = p[1] - dmDrag.p0[1];
@@ -1895,6 +1922,8 @@ function bindCanvas() {
   });
   const end = e => {
     if (!ptrs.has(e.pointerId)) return; const p = pos(e); ptrs.delete(e.pointerId);
+    if (inkS) { const pts = inkS; inkS = null; inkLive(null); inkSave(pts); return; }
+    if (gom) { gom = null; return; }
     if (pinch) { if (ptrs.size === 0) pinch = null; return; }
     if (bgTap) { const q = bgTap; bgTap = null; if (Math.hypot(p[0] - q[0], p[1] - q[1]) <= 12) bgCalTap(q); return; }
     if (bgDrag) { const d = bgDrag; bgDrag = null; if (d.moved) { undemo(); save(); } return; }
@@ -1934,7 +1963,7 @@ function bindCanvas() {
       return; }
     if (pan) { const wasMoved = pan.moved; pan = null; if (!wasMoved && ui.mode === 'select') hit(p); else if (!wasMoved && ui.mode === 'text') newNote(p); }
   };
-  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); bgTap = null; bgDrag = null; win = null; winShow(null); dimTap = null; dmDrag = null; stroke = null; ui.trk = null; scDrag = null; fotoTap = null; nordTap = null; ndDrag = null; ui.scGhost = null; pan = null; pinch = null; drag = null; apDrag = null; boxTap = null; ui.ghost = null; draw(); });
+  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); inkS = null; gom = null; inkLive(null); bgTap = null; bgDrag = null; win = null; winShow(null); dimTap = null; dmDrag = null; stroke = null; ui.trk = null; scDrag = null; fotoTap = null; nordTap = null; ndDrag = null; ui.scGhost = null; pan = null; pinch = null; drag = null; apDrag = null; boxTap = null; ui.ghost = null; draw(); });
   svg.addEventListener('click', e => { const el = $('#inl'); if (el && document.activeElement !== el) { e.preventDefault(); el.focus(); } });
   svg.addEventListener('pointerleave', e => { if (ui.place && !ptrs.size && ui.ghost) { ui.ghost = null; draw(); } if (ui.dimHover && !ptrs.size) { ui.dimHover = null; draw(); } });
   svg.addEventListener('wheel', e => { e.preventDefault(); const p = pos(e); zoomAt(e.deltaY < 0 ? 1.15 : 1 / 1.15, p[0], p[1]); }, {passive:false});
@@ -2249,16 +2278,17 @@ function winShow(a, b) {
 function winSelect(a, b) {
   const pl = piano(), cross = b[0] < a[0], X0 = WX(Math.min(a[0], b[0])), X1 = WX(Math.max(a[0], b[0])), Y0 = WY(Math.max(a[1], b[1])), Y1 = WY(Math.min(a[1], b[1]));
   const ok = r => cross ? (r[2] >= X0 && r[0] <= X1 && r[3] >= Y0 && r[1] <= Y1) : (r[0] >= X0 && r[2] <= X1 && r[1] >= Y0 && r[3] <= Y1);
-  const out = {k:'m', w:[], s:[], n:[], q:[]};
+  const out = {k:'m', w:[], s:[], n:[], q:[], i:[]};
   pl.walls.forEach(w => { const I = G.T.info.get(w.id); if (!I) return; const h = I.t / 2, o = I.o || 0;
     if (ok(I.H ? [I.a.x - I.da, I.a.y + o - h, I.b.x + I.db, I.a.y + o + h] : [I.a.x + o - h, I.a.y - I.da, I.a.x + o + h, I.b.y + I.db])) out.w.push(w.id); });
   (pl.stairs || []).forEach(st => { if (ok(stairPrims(st).bbox)) out.s.push(st.id); });
   (pl.notes || []).forEach(n => { const b = ui.nbb.get(n.id); if (!b) return; if (ok([WX(b[0]), WY(b[1] + b[3]), WX(b[0] + b[2]), WY(b[1])])) out.n.push(n.id); });
   (G.dims || []).forEach(q => { if (ok([Math.min(q.a[0], q.b[0]), Math.min(q.a[1], q.b[1]), Math.max(q.a[0], q.b[0]), Math.max(q.a[1], q.b[1])])) out.q.push(q.d.id); });
-  const n = out.w.length + out.s.length + out.n.length + out.q.length;
+  (pl.ink || []).forEach(k => { const xs = k.pts.map(q => q[0]), ys = k.pts.map(q => q[1]); if (ok([Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)])) out.i.push(k.id); });
+  const n = out.w.length + out.s.length + out.n.length + out.q.length + out.i.length;
   ui.winA = null; winShow(null);
   if (!n) { ui.sel = null; toast(cross ? 'Nessun elemento toccato dal rettangolo.' : 'Nessun elemento tutto dentro il rettangolo (trascinando da destra a sinistra basta toccarli).'); }
-  else if (n === 1) ui.sel = out.w.length ? {k:'w', id:out.w[0]} : out.s.length ? {k:'s', id:out.s[0]} : out.n.length ? {k:'n', id:out.n[0]} : {k:'q', id:out.q[0]};
+  else if (n === 1) ui.sel = out.w.length ? {k:'w', id:out.w[0]} : out.s.length ? {k:'s', id:out.s[0]} : out.n.length ? {k:'n', id:out.n[0]} : out.q.length ? {k:'q', id:out.q[0]} : {k:'ink', id:out.i[0]};
   else ui.sel = out;
   draw(); renderSide();
 }
@@ -2266,6 +2296,7 @@ function delMulti() {
   const pl = piano(), m = ui.sel; if (!m || m.k !== 'm') return; pushUndo(); undemo();
   m.w.forEach(id => { const w = pl.walls.find(x => x.id === id); if (w) deleteWall(pl, w); });
   pl.stairs = (pl.stairs || []).filter(x => !m.s.includes(x.id)); pl.notes = (pl.notes || []).filter(x => !m.n.includes(x.id));
+  pl.ink = (pl.ink || []).filter(x => !(m.i || []).includes(x.id));
   pl.dims = (pl.dims || []).filter(x => !m.q.includes(x.id)); pl.mord = (pl.mord || []).filter(k => !m.q.some(id => k === 'q:' + id));
   ui.sel = null; update(true); toast('Elementi eliminati. «Annulla» li riporta.');
 }
@@ -2348,6 +2379,7 @@ function hit(p) {
   purgeNotes();
   const fp = pinAt(p); if (fp) { openFoto(fp); return; }
   const qd = dimAt(p); if (qd) { ui.sel = {k:'q', id:qd.d.id}; draw(); renderSide(); return; }
+  const ik = inkAt(p); if (ik) { ui.sel = {k:'ink', id:ik.id}; draw(); renderSide(); return; }
   for (const [key, b] of (ui.rbb || new Map())) if (p[0] >= b[0] - 3 && p[0] <= b[0] + b[2] + 3 && p[1] >= b[1] - 3 && p[1] <= b[1] + b[3] + 3) {
     const r = G.runs.find(x => x.key === key); if (r) { ui.sel = {k:'w', id:r.walls[0].id}; draw(); renderSide(); const el = document.querySelector(`[data-run="${key}"]`); if (el) { el.scrollIntoView({block:'center'}); el.focus(); } return; }
   }
@@ -2394,6 +2426,9 @@ function renderSide() {
   const w = ui.sel && ui.sel.k === 'w' && pl.walls.find(x => x.id === ui.sel.id);
   const r = ui.sel && ui.sel.k === 'r' && (pl.rooms || []).find(x => x.id === ui.sel.id);
   const nt = ui.sel && ui.sel.k === 'n' && (pl.notes || []).find(x => x.id === ui.sel.id);
+  if (ui.sel && ui.sel.k === 'ink') { if (!(pl.ink || []).some(k => k.id === ui.sel.id)) { ui.sel = null; el.innerHTML = ''; el.style.display = 'none'; renderMsgs(); return; }
+    el.innerHTML = `<div class="cardh">Nota a mano <span class="sp"></span><button class="sm bad" data-rmink="1">Elimina</button></div><p class="hint">Per cancellarne solo un pezzo usa la «Gomma» (menu Note). Nello script va solo se lo attivi nelle Impostazioni.</p>`;
+    renderMsgs(); return; }
   if (ui.sel && ui.sel.k === 'a') { const wa = pl.walls.find(x => x.id === ui.sel.id), x = wa && (wa.ap || []).find(q => q.id === ui.sel.ap);
     if (!x) { ui.sel = null; el.innerHTML = ''; el.style.display = 'none'; renderMsgs(); return; }
     el.innerHTML = `<div class="cardh">${esc(TIPI_AP[x.tipo] || 'Vano')} <span class="sp"></span><button class="sm bad" data-rmsel="1">Elimina</button></div>
@@ -2576,7 +2611,7 @@ function renderSet() {
   <p class="hint">Per un muro diverso (portante interno, muro vecchio più spesso) selezionalo e scegli «Spessore diverso».</p></div>
   <div class="card"><div class="cardh">Limiti dei controlli</div><div class="grid">${i('rai', 'RAI minimo 1/…')}${i('hA', 'Altezza min. abitabili (m)')}${i('hC', 'Altezza min. accessori (m)')}</div>
   <p class="hint">Valori di partenza del D.M. 5 luglio 1975. Il regolamento edilizio del comune può prevedere valori diversi.</p></div>
-  <div class="card"><div class="cardh">Script AutoCAD</div>${c('qInt', 'Quote parziali interne, lato per lato (tratti di muro tra spigoli e vani)')}${c('vani', 'Larghezza dei vani (porte, finestre, ingressi, uscite)')}${c('qExt', 'Quote esterne d\'ingombro')}${c('testi', 'Nome e superficie degli ambienti')}${c('porte', 'Porte con anta e arco, girate come in pianta')}${c('note', 'Note scritte con «Testo» (nel punto in cui le hai messe)')}
+  <div class="card"><div class="cardh">Script AutoCAD</div>${c('qInt', 'Quote parziali interne, lato per lato (tratti di muro tra spigoli e vani)')}${c('vani', 'Larghezza dei vani (porte, finestre, ingressi, uscite)')}${c('qExt', 'Quote esterne d\'ingombro')}${c('testi', 'Nome e superficie degli ambienti')}${c('porte', 'Porte con anta e arco, girate come in pianta')}${c('note', 'Note scritte con «Testo» (nel punto in cui le hai messe)')}${c('mano', 'Note a mano (polilinee sul layer degli infissi e testi)')}
   <p class="hint">Layer PLAN_MURI_PERIM, PLAN_MURI_INT e PLAN_INFISSI_TESTI, stile di quota STUDIO, delle porte solo il vano, osnap dello studio riattivati alla fine. Le quote libere messe con «Quota» vanno sempre nello script. I totali interni non si scrivono da soli: mettili tu con «Quota».</p></div>`;
 }
 
@@ -2638,6 +2673,7 @@ document.addEventListener('click', e => {
     if (ui.place) toast(TIPI_AP[ui.place] + ': appoggia la penna sul muro e trascina; solleva per posarla.'); return; }
   const nt = e.target.closest('[data-nt]'); if (nt) { ui.newType = nt.dataset.nt; if (ui.mode !== 'draw') ui.mode = 'draw'; updTools(); draw(); return; }
   const fa = e.target.closest('[data-flipap]'); if (fa) { const [id, k] = fa.dataset.flipap.split(':'); ui.selAp = id; flipDoor(k); return; }
+  if (e.target.closest('[data-rmink]') && ui.sel && ui.sel.k === 'ink') { const pl = piano(); pushUndo(); pl.ink = (pl.ink || []).filter(k => k.id !== ui.sel.id); ui.sel = null; draw(); renderSide(); save(); return; }
   const ra = e.target.closest('[data-rmsel]'); if (ra && ui.sel && ui.sel.k === 'a') { const w = piano().walls.find(x => x.id === ui.sel.id); if (w) { pushUndo(); w.ap = (w.ap || []).filter(x => x.id !== ui.sel.ap); ui.sel = null; ui.selAp = null; update(true); toast('Vano eliminato.'); } return; }
   const gw = e.target.closest('[data-gowall]'); if (gw && ui.sel && ui.sel.k === 'a') { ui.focusAp = ui.sel.ap; ui.sel = {k:'w', id:ui.sel.id}; ui.selAp = null; draw(); renderSide(); return; }
   const sw = e.target.closest('[data-selw]'); if (sw) { ui.sel = {k:'w', id:sw.dataset.selw}; ui.mode = 'select'; updTools(); draw(); renderSide(); return; }
