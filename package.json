@@ -1,0 +1,13 @@
+{
+  "name": "rilievo-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "App di rilievo per sopralluoghi (pagina unica HTML/JS, pubblicata con GitHub Pages)",
+  "scripts": {
+    "test": "node test/run.js",
+    "test:aggiorna": "node test/run.js --aggiorna"
+  },
+  "devDependencies": {
+    "playwright": "^1.48.0"
+  }
+}
