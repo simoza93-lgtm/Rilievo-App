@@ -45,7 +45,7 @@ finiscono in `test/out/` (non va nel repository).
   a Simone e solo dopo aggiorna gli attesi con `node test/run.js --aggiorna <nome>`.
 - Per ogni funzione nuova o bug corretto aggiungi una prova nuova (copia lo schema di `split.js` o `apfit.js`).
 - Le prove `shot35`–`shot41` riguardano le scale, `p1`–`p5` le parziali, `ang*` gli angoli disegnati in due
-  tratti, `balc*` i balconi e i parapetti a filo, `rot` la rotazione della vista, `mano` le note a mano,
+  tratti, `balc*` i balconi e i parapetti a filo, `rot` la rotazione della vista, `mano` le note a mano, `orto` le linee a mano raddrizzate,
   `scp` le parziali delle scale, `split*` i muri divisi, `apfit` le aperture che non entrano nel muro.
 
 ## Regole del rilievo (non cambiarle senza chiedere)
@@ -95,6 +95,10 @@ Tutti i muri sono orizzontali o verticali (le coordinate del mondo hanno la y ve
   «Modifica misura» con tastierino.
 - `finishStroke` — trasforma il tratto disegnato in muri (agganci, `autoFilo`, `splitWall`, `fixCapGlue`).
 - `stairPrims`, `anchorStair`, `applyAnchor`, `stairHits` — scale, aggancio ai muri e parziali delle scale.
+- `measItems()` — tutti i tratti interni da quotare (lati, parziali, larghezze) con stato `m` misurato,
+  `d` ricavato, `x` da misurare; li usano la grafica nuova delle misure (`ui.mnew`, preferenza
+  `rilievo-mstile` nel localStorage, «classico» per la grafica a caselle) e la misura guidata
+  (`startGuide`, `guideNext`, `ui.guide`). `focusComps()` dice quali stanze mostrano anche ricavate e caselle.
 - `genScript(pl)` — lo script `.scr`.
 
 Salvataggio: `localStorage` per i rilievi, IndexedDB `rilievo-foto` (store foto e `sfondi`) per foto e

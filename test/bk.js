@@ -3,7 +3,7 @@ const OUT = require('path').join(__dirname, 'out'); require('fs').mkdirSync(OUT,
 const {chromium}=require('playwright');
 (async()=>{const b=await chromium.launch(); const errs=[];
 const p=await b.newPage({viewport:{width:1280,height:800}, colorScheme:'dark'}); p.on('pageerror',e=>errs.push(e.message));
-await p.goto(process.argv[2]||APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
+await p.goto(process.argv[2]||APP); await p.evaluate(()=>(localStorage.clear(), localStorage.setItem('rilievo-mstile','classico'))); await p.reload(); await p.waitForTimeout(300);
 await p.click('#bFull'); await p.waitForTimeout(200);
 const info=[];
 for (const [f,n] of [[0.4,'bk_lontano'],[1,'bk_adatta'],[2.6,'bk_vicino']]) {

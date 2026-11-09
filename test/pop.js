@@ -4,7 +4,7 @@ const { chromium } = require('playwright');
 (async () => {
   const b = await chromium.launch(); const p = await b.newPage({viewport:{width:1280,height:800}, hasTouch:true});
   const errs=[]; p.on('pageerror',e=>errs.push(e.message));
-  await p.goto(APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
+  await p.goto(APP); await p.evaluate(()=>(localStorage.clear(), localStorage.setItem('rilievo-mstile','classico'))); await p.reload(); await p.waitForTimeout(300);
   const side0 = await p.evaluate(()=>getComputedStyle(document.querySelector('#side')).display);
   // tocco una casella di misura vuota
   await p.evaluate(()=>{ piano().walls.forEach(w=>{}); fit(); draw(); });

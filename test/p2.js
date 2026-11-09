@@ -4,7 +4,7 @@ const { chromium } = require('playwright'); const fs=require('fs');
 (async () => {
   const b = await chromium.launch(); const p = await b.newPage({viewport:{width:1400,height:950}});
   const errs=[]; p.on('pageerror',e=>errs.push(e.message));
-  await p.goto(APP); await p.evaluate(()=>localStorage.clear()); await p.reload();
+  await p.goto(APP); await p.evaluate(()=>(localStorage.clear(), localStorage.setItem('rilievo-mstile','classico'))); await p.reload();
   await p.evaluate(()=>{ R = blank(); R.id='t5'; tab='pianta'; render(); const pl = piano();
     const pts=[[0,0],[5,0],[5,4],[0,4],[0,0]]; for(let i=0;i<pts.length-1;i++) addSegment(pl,{x:pts[i][0],y:pts[i][1]},{x:pts[i+1][0],y:pts[i+1][1]},'P'); update(true); fit(); draw(); });
   const S = (x,y)=>p.evaluate(([x,y])=>{ const r=document.querySelector('#svg').getBoundingClientRect(); return {x:r.left+SX(x), y:r.top+SY(y)}; },[x,y]);

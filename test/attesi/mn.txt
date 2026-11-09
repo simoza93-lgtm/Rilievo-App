@@ -1,0 +1,2 @@
+{"items":{"c":{"d":13,"x":22,"m":11},"guide":22,"lab":"PX (22)"},"foc":{"sel":"r","foc":1},"g1":{"open":true,"sub":"Misura X · 22 da Xe · PX · tratto di muro","cur":"p:-:n11:n4:X","room":"Cucina"},"g2":{"open":true,"sub":"Misura X · 22 da Xe · PX · ultimo tratto del lato","left":22},"g3":{"open":true,"sub":"Misura X · 21 da Xe · Xrale, lato Xo · Cucina","skip":1},"g4":{"open":false,"guide":false,"lab":"PX (22)"},"dot":true}
+errors []

@@ -842,11 +842,14 @@ function geometry(pl) {
     const a = S(i - 1, j), b = S(i, j);
     if (a === 1 && b !== 1) edge(xs[i], ys[j], xs[i], ys[j + 1], lay(i - 1, j));
     else if (b === 1 && a !== 1) edge(xs[i], ys[j + 1], xs[i], ys[j], lay(i, j));
+    // perimetrale contro tramezzo: la linea del perimetrale resta chiusa (il tramezzo si ferma sulla sua faccia)
+    else if (a === 1 && b === 1 && lay(i - 1, j) !== lay(i, j)) { if (lay(i - 1, j) === 'P') edge(xs[i], ys[j], xs[i], ys[j + 1], 'P'); else edge(xs[i], ys[j + 1], xs[i], ys[j], 'P'); }
   }
   for (let j = 0; j <= ny; j++) for (let i = 0; i < nx; i++) {
     const a = S(i, j - 1), b = S(i, j);
     if (b === 1 && a !== 1) edge(xs[i], ys[j], xs[i + 1], ys[j], lay(i, j));
     else if (a === 1 && b !== 1) edge(xs[i + 1], ys[j], xs[i], ys[j], lay(i, j - 1));
+    else if (a === 1 && b === 1 && lay(i, j - 1) !== lay(i, j)) { if (lay(i, j) === 'P') edge(xs[i], ys[j], xs[i + 1], ys[j], 'P'); else edge(xs[i + 1], ys[j], xs[i], ys[j], 'P'); }
   }
   const loops = [];
   for (const e0 of edges) {

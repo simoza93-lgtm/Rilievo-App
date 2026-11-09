@@ -1,0 +1,2 @@
+{"select":{"sel":"a","bx":{"x":696.X000001,"y":362.X000001,"w":24.7,"inSector":true},"popup":"LXa del vano"},"draw":{"sel":"a","bx":{"x":696.X000001,"y":376.4,"w":24.7,"inSector":false},"popup":"LXa del vano"}}
+errors []
