@@ -221,7 +221,10 @@ function topo(pl) {
     const a = N.get(w.a), b = N.get(w.b); if (!a || !b) return;
     const H = isH(a, b), t = thick(w); let o = 0;
     if (w.filo === '+' || w.filo === '-') {
-      let ref = 0; [w.a, w.b].forEach(id => (at.get(id) || []).forEach(x => { if (x === w) return; const xa = N.get(x.a), xb = N.get(x.b); if (xa && xb && isH(xa, xb) === H) ref = Math.max(ref, thick(x) || 0); }));
+      // muro più spesso in linea: si cerca anche oltre i tratti dello stesso muro (stesso spessore e stesso filo), così un muro diviso da un tramezzo resta allineato
+      let ref = 0; const seen = new Set([w]), q = [w];
+      while (q.length) { const c = q.pop(); [c.a, c.b].forEach(id => (at.get(id) || []).forEach(x => { if (seen.has(x)) return; const xa = N.get(x.a), xb = N.get(x.b); if (!xa || !xb || isH(xa, xb) !== H) return; const tx = thick(x) || 0;
+        if (tx > t + 1e-6) ref = Math.max(ref, tx); else if (Math.abs(tx - t) < 1e-6 && x.filo === w.filo) { seen.add(x); q.push(x); } })); }
       if (!(ref > t)) ref = t;   // nessun muro più spesso in linea (per esempio cambiato in tramezzo o cancellato): il muro torna centrato
       o = (w.filo === '+' ? 1 : -1) * (ref - t) / 2;
     }
