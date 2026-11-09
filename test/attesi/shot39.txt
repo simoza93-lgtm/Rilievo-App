@@ -1,0 +1,2 @@
+{"vano":4,"toastT":"Scala Xta in «Piano primo», con i muri del vano senza misure. CX i muri che in un piano non ci sono.","muriSu":["T","T","P","P"],"comps":[[9.68,5.81]],"anc":true,"bb":[0.1,0.6,2,3.67]}
+errors []

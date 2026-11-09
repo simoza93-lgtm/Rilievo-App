@@ -1,0 +1,2 @@
+{"vis":true,"st":{"place":"porta","open":false,"lab":"Porta","on":true},"st2":{"mode":"draw","place":null,"nt":"P"},"st3":{"mode":"draw","nt":"T","lab":"TX","on":true,"open":false},"st4":{"mode":"select","open":true,"muriOn":false},"st5":{"arm":true,"lab":"RXlo"},"st6":false,"und":[16,13,16,13,13,16,13],"lab":false,"fullTxt":"Esci"}
+errors []

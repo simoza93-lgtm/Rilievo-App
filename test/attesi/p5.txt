@@ -1,0 +1,6 @@
+nodi [[0.15,0.15],[6.15,0.15],[6.15,4.15],[0.15,4.15],[3.65,0.15],[3.65,4.15]]
+A asse muro -> {"x":0,"y":2,"snap":"f","fH":false,"seg":[[0,4.3],[0,0]]}
+B stanza -> null La quota si Xa solo al filo dei muri: tocca una faccia o uno X.
+C Xlo -> Quel punto sta su un filo Xlo alla quota: tocca il filo di fronte o uno X. [[],true]
+{"d":[{"a":{"n":"X","dx":0.15,"dy":-1.95,"x":0.3,"y":2.2},"b":{"n":"X","dx":-0.05,"dy":1.65,"x":3.4,"y":1.8},"H":true}],"g":[["3,10",3.1,true,true]],"nodes":[[0.15,0.15],[5.95,0.15],[5.95,4.15],[0.15,4.15],[3.45,0.15],[3.45,4.15]],"warns":[]}
+errors []

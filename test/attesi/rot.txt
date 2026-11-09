@@ -1,0 +1,2 @@
+{"r0":{"info":{"W":1248,"H":699,"Wr":1248,"Hr":699,"lab":"0°"},"sel":true,"upside":0},"r1":{"info":{"rot":1,"W":699,"H":1248,"Wr":1248,"Hr":699,"lab":"90°"},"sel":true,"upside":0},"r2":{"info":{"rot":2,"W":1248,"H":699,"Wr":1248,"Hr":699,"lab":"180°"},"sel":true,"upside":0},"r3":{"info":{"rot":3,"W":699,"H":1248,"Wr":1248,"Hr":699,"lab":"270°"},"sel":true,"upside":0},"draw":{"added":1,"Xl":true,"x":2.7},"reset":{"rot":0,"W":1248}}
+errors []

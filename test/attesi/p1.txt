@@ -1,0 +1,212 @@
+{
+ "warns": [],
+ "chains": [
+  {
+   "k": "lato sopra",
+   "pcs": [
+    [
+     "1,00",
+     null,
+     true
+    ],
+    [
+     "0,80",
+     null,
+     true
+    ],
+    [
+     "0,60",
+     null,
+     true
+    ]
+   ]
+  },
+  {
+   "k": "lato sopra",
+   "pcs": [
+    [
+     "1,40",
+     null,
+     true
+    ],
+    [
+     "1,70",
+     null,
+     true
+    ]
+   ]
+  },
+  {
+   "k": "lato destro",
+   "pcs": [
+    [
+     "1,20",
+     null,
+     true
+    ],
+    [
+     "1,42",
+     null,
+     true
+    ]
+   ]
+  },
+  {
+   "k": "lato sopra",
+   "pcs": [
+    [
+     "2,30",
+     null,
+     true
+    ],
+    [
+     "0,20",
+     null,
+     true
+    ]
+   ]
+  },
+  {
+   "k": "lato sopra",
+   "pcs": [
+    [
+     "0,30",
+     null,
+     true
+    ],
+    [
+     "1,20",
+     null,
+     true
+    ]
+   ]
+  },
+  {
+   "k": "lato sopra",
+   "pcs": [
+    [
+     "0,30",
+     null,
+     true
+    ],
+    [
+     "2,40",
+     null,
+     true
+    ]
+   ]
+  },
+  {
+   "k": "lato destro",
+   "pcs": [
+    [
+     "0,60",
+     null,
+     true
+    ],
+    [
+     "2,42",
+     null,
+     true
+    ]
+   ]
+  },
+  {
+   "k": "lato sotto",
+   "pcs": [
+    [
+     "1,00",
+     null,
+     true
+    ],
+    [
+     "1,10",
+     null,
+     true
+    ]
+   ]
+  },
+  {
+   "k": "lato sotto",
+   "pcs": [
+    [
+     "0,80",
+     null,
+     true
+    ],
+    [
+     "0,80",
+     null,
+     true
+    ]
+   ]
+  },
+  {
+   "k": "lato sotto",
+   "pcs": [
+    [
+     "1,20",
+     null,
+     true
+    ],
+    [
+     "1,10",
+     null,
+     true
+    ]
+   ]
+  },
+  {
+   "k": "lato sotto",
+   "pcs": [
+    [
+     "2,30",
+     null,
+     true
+    ],
+    [
+     "0,60",
+     null,
+     true
+    ],
+    [
+     "0,40",
+     null,
+     true
+    ]
+   ]
+  },
+  {
+   "k": "lato sotto",
+   "pcs": [
+    [
+     "1,10",
+     null,
+     true
+    ],
+    [
+     "2,40",
+     null,
+     true
+    ]
+   ]
+  },
+  {
+   "k": "lato Xo",
+   "pcs": [
+    [
+     "0,60",
+     null,
+     true
+    ],
+    [
+     "2,42",
+     null,
+     true
+    ]
+   ]
+  }
+ ],
+ "pbb": 39
+}
+errors []

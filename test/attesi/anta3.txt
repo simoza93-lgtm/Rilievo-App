@@ -1,0 +1,2 @@
+{"draw":{"selAp":"X","btn":2,"walls":16},"flip":{"cx":true,"vx":true,"btn":2},"off":{"selAp":null,"btn":0},"sel":{"selAp":"X","sel":"a","btn":2},"place":{"selAp":"X","btn":2,"toast":"Porta posata. Girala con i tasti tondi ⇄ e ⇅. Tocca le X X per Xe Xi e Xza Xe."}}
+errors []

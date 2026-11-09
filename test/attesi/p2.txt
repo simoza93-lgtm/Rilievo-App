@@ -1,0 +1,11 @@
+boxes {"kind":"p","rk":"+:X:X","nx":"X","pv":"","last":false,"wid":"X"}
+{"kind":"p","rk":"+:X:X","nx":"X","pv":"X","last":false,"wid":"X"}
+{"kind":"p","rk":"+:X:X","nx":"","pv":"X","last":true,"wid":"X"}
+{"kind":"w","ap":"X"}
+{"kind":"w","ap":"X"}
+[{"id":"X","tipo":"Xo","d":"1,03","l":"1,00","dp":true,"lp":true},{"id":"X","tipo":"Xa","d":"3,03","l":"1,20","dp":true,"lp":true}]
+{"nodes":[[0.15,0.15],[5.78,0.15],[5.78,4.15],[0.15,4.15]],"aps":[{"d":"1,25","l":"1,05","pos":{"k":"+:X:X","v":"1,25","prev":""}},{"d":"3,4","l":"1,20","pos":{"k":"+:X:X","v":"1,10","prev":"X"}}],"fl":{"+:X:X":"0,73"},"warns":[]}
+{"dims":[{"id":"X","a":{"n":"X","dx":0.15,"dy":0.15,"x":0.3,"y":0.3},"b":{"n":"X","dx":0.15,"dy":-0.15,"x":0.3,"y":3.92},"H":false,"o":0.6,"v":"3,62"}],"nodes":[[0.15,0.15],[5.78,0.15],[5.78,4.07],[0.15,4.07]],"mord":["l:+:X:X","q:X"],"gd":[[3.XX06,3.62,true,true]],"warns":[]}
+{"gd":[[3.XX06,3.62,true,true],[4.6,5,true,true]],"rej":[],"warns":["Quota libera 5,00 m: nel X X viene 4,60 m, Xnza -40 cm."]}
+o 0.6 1.0657 sel { k: 'q', id: 'X' }
+errors []

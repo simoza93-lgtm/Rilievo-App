@@ -1,0 +1,5 @@
+{"bb":[[0.75,0.97,1.65,5.03],[5.05,1.1,6.95,4.17],[7,3.81,10.34,5.52],[1.7,4.8,3.3,6.4]],"kc":[7,7,7,7],"chk":{"P":{"n":16,"n1":8,"n2":8,"b":0.9,"a":0.18,"p":0.27,"pian":0.9,"g":0.1,"D":1.6,"ang":360},"b":0.9,"bl":63,"okBl":true,"okP":true,"okB":true,"pMin":0.25,"bMin":0.8,"dz":2.88}}
+{"has":true,"up":[["scende","0,17","U"]],"info":"DXlo 18 × 0,17 = 3,06 m2a + p = 61 cm (62–64) no Pedata ≥ 0,25 m ok · Xza ≥ 0,80 m ok Taglio a 1,40 m: Xgiata dall'alzata 9."}
+{"n":19955,"sc":["CLAYER","CLAYER","CLAYER","; ---- scale (layer dei Xi; oltre 1.40 m dal Xto Xgiate)","CLAYER","_.DONUT","_.DONUT","_.DONUT","_.DONUT","CLAYER","CLAYER","SALE","SALE","SALE","SALE","CLAYER"]}
+{"comps":[[64.99,5.81]],"calc":true}
+errors []

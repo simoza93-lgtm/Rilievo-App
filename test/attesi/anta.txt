@@ -1,0 +1,3 @@
+{"info":{"x":547.X118299,"y":424.X731978,"id":"X","n":4},"sel":"{\"k\":\"a\",\"id\":\"X\",\"ap\":\"X\"} btns=2","s1":{"cx":true,"sel":"{\"k\":\"a\",\"id\":\"X\",\"ap\":\"X\"}"},"s2":{"cx":true,"vx":true},"s3":{"cx":true},"arcs":4,"blk":false}
+; ---- porte: anta e arco come il blocco dello studio | _.ARC | _.ARC | _.ARC
+errors []

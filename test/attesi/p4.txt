@@ -1,0 +1,2 @@
+ Xed {"id":"p1","tipo":"uscita","d":"0,90","l":"1,18","h":"2,20","dav":"","inv":false,"dp":true}
+errors []

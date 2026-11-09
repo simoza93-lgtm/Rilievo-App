@@ -1,0 +1,2 @@
+1 "Apri il varco nel muro dove sbarca (X, piano Xo)\nVarco aperto: largo quanto la scala finché non misuri la sua Xza in pianta; se misuri la sua Xne, è la scala ad Xrsi al varco." 0 [["varco","1,2"]]
+errors []

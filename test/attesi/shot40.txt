@@ -1,0 +1,74 @@
+{
+ "t1": "Scala Xta su 3 piani, con i muri del vano senza misure. CX i muri che in un piano non ci sono.",
+ "stato": [
+  [
+   "sale",
+   "20",
+   "0,175",
+   "",
+   ""
+  ],
+  [
+   "inter",
+   "20",
+   "0,175",
+   "20",
+   "0,175"
+  ],
+  [
+   "inter",
+   "20",
+   "0,175",
+   "20",
+   "0,175"
+  ],
+  [
+   "scende",
+   "20",
+   "0,175",
+   "",
+   ""
+  ]
+ ],
+ "dopo": [
+  [
+   "sale",
+   "20",
+   ""
+  ],
+  [
+   "inter",
+   "18",
+   "20"
+  ],
+  [
+   "inter",
+   "20",
+   "18"
+  ],
+  [
+   "scende",
+   "20",
+   ""
+  ]
+ ],
+ "arrs": [
+  [
+   "SALE",
+   2,
+   true
+  ],
+  [
+   "SCENDE",
+   4,
+   false
+  ]
+ ],
+ "dash": 0,
+ "segs": 60,
+ "foro": [
+  6.33
+ ],
+ "info": "DXlo 18 × 0,175 = 3,15 m2a + p = 62 cm (62–64) ok Pedata ≥ 0,25 m ok · Xza ≥ 0,80 m ok Piano Xdio: piena la rampa che parte fino all'alzata 8 e, oltre la linea d'Xzione, quella che arriva da sotto. Foro tolto dalla Xcie netta."
+}
+errors []

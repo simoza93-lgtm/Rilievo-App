@@ -1,0 +1,73 @@
+{
+ "prop": [
+  [
+   "2,00",
+   false
+  ],
+  [
+   "2,50",
+   false
+  ]
+ ],
+ "scr1": [
+  "; Quote Xi: 5 tratti senza misura non X (si Xo solo dallo X).",
+  "; Vani: 1 con Xza Xa e non Xa, Xza non X."
+ ],
+ "extChain": 0,
+ "nodesX": [
+  0.15,
+  0.15,
+  5.85,
+  5.85
+ ],
+ "rej": [
+  "q:q1"
+ ],
+ "q": [
+  [
+   "5,40",
+   5.6,
+   true,
+   true
+  ]
+ ],
+ "warn": [
+  "Quota libera 5,60 m NON APPLICATA (non torna con le misure Xe prima): nel X X viene 5,40 m, Xnza -20 cm."
+ ],
+ "after": {
+  "rej": [],
+  "q": [
+   "5,60"
+  ],
+  "last": [
+   [
+    "2,10",
+    2.1,
+    true
+   ],
+   [
+    "2,25",
+    null,
+    true
+   ]
+  ]
+ },
+ "split": {
+  "pos": [
+   [
+    "1,35",
+    false
+   ]
+  ],
+  "toast": "Un lato è Xo (muro Xo o tolto): Xolla le Xi dei vani su quel lato."
+ }
+}
+Quota libera
+Elimina quota
+Misura presa (m)
+torna · Xata agli X
+
+OXale. TX la linea di quota per Xla. Gli X stanno sul filo dei muri (facce, X, Xte dei vani) e li X quando le misure Xo i muri. La misura X come le altre: vale l'ordine 
+dims dopo X 0 
+dopo X 1
+errors []

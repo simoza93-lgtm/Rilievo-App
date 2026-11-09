@@ -1,0 +1,2 @@
+{"fly":true,"mode":"ink","mode2":"ink","ink":[2,2,6],"ink2":{"n":4,"pen":true},"finger":{"n":4,"panned":true},"sel":{"sel":"ink","head":"Nota a mano Elimina"},"afterDel":3,"afterUndo":4,"gomma":3,"rett":3,"scr0":false,"scr1":"note a mano\r | CLAYER\r | PLAN_INFISSI_TESTI\r | _.PLINE\r | -1.739,4.924\r | -0.510,3.695\r | \r | _.PLINE\r | -0.510,4.924\r | -1.739,3.695\r | \r | _"}
+errors []

@@ -1,0 +1,2 @@
+{"panel0":"PXria di sfondo\n\nCarica una planim","bg0":{"pw":1200,"ph":1000,"m":0.XX061},"bg1":{"m":0.XX6632,"ox":-1.4036,"oy":9.1529},"rot":0,"bg2":{"ox":-0.3682,"oy":8.4626},"walls":{"n":4,"bb":[0,0,10.3,8.3]},"back":true}
+errors []

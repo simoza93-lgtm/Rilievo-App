@@ -1,0 +1,2 @@
+{"prima":{"pcs":[["5,00",null,false,null],["1,70",null,false,null]],"d":"5,00","warns":[]},"ultima":{"pcs":[["5,70",null,false,null],["1,00",1,false,0]],"d":"5,7","warns":[]},"Xza":{"pcs":[["5,50",null,false,null],["1,00",1,true,0]],"d":"5,5","warns":[]},"Xa":{"pcs":[["4,00",4,true,0],["1,00",1,true,0]],"d":"4","warns":[]},"nodi":[[0.15,0.15],[6.65,0.15],[6.65,6.15],[0.15,6.15]]}
+errors []

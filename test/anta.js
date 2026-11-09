@@ -1,0 +1,26 @@
+const APP = require('url').pathToFileURL(require('path').resolve(__dirname, '..', 'index.html')).href;
+const OUT = require('path').join(__dirname, 'out'); require('fs').mkdirSync(OUT, {recursive: true});
+const {chromium}=require('playwright');
+(async()=>{const b=await chromium.launch(); const errs=[];
+const p=await b.newPage({viewport:{width:1280,height:800}}); p.on('pageerror',e=>errs.push(e.message));
+await p.goto(APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
+await p.click('#bFull'); await p.waitForTimeout(200);
+await p.$eval('[data-mode="select"]', b => b.click());
+// prima porta
+const info=await p.evaluate(()=>{ const o=G.ops.find(o=>o.door); const r=document.querySelector('#svg').getBoundingClientRect(); const c=o.at((o.s0+o.s1)/2, o.I.t/2); return {x:r.left+SX(c[0]), y:r.top+SY(c[1]), id:o.ap.id, n:G.ops.filter(o=>o.door).length}; });
+await p.mouse.click(info.x, info.y); await p.waitForTimeout(150);
+const sel=await p.evaluate(()=>JSON.stringify(ui.sel)+' btns='+document.querySelectorAll('[data-flip]').length);
+await p.screenshot({path:require('path').join(OUT, 'anta1.png')});
+const g0=await p.evaluate(()=>JSON.stringify(selDoor().door.rect));
+const fb=await p.evaluate(()=>{ const r=document.querySelector('#svg').getBoundingClientRect(); return flipBtns().map(b=>({k:b.k,x:r.left+b.p[0],y:r.top+b.p[1]})); });
+await p.mouse.click(fb[0].x, fb[0].y); await p.waitForTimeout(150);
+const s1=await p.evaluate(()=>({cx:selDoor().ap.cx, vx:selDoor().ap.vx, sel:JSON.stringify(ui.sel)}));
+const fb2=await p.evaluate(()=>{ const r=document.querySelector('#svg').getBoundingClientRect(); return flipBtns().map(b=>({k:b.k,x:r.left+b.p[0],y:r.top+b.p[1]})); });
+await p.mouse.click(fb2[1].x, fb2[1].y); await p.waitForTimeout(150);
+const s2=await p.evaluate(()=>({cx:selDoor().ap.cx, vx:selDoor().ap.vx}));
+await p.screenshot({path:require('path').join(OUT, 'anta2.png')});
+await p.click('#bUndo'); const s3=await p.evaluate(()=>{const o=G.ops.find(o=>o.ap.id===ui.sel?.ap)||G.ops.find(o=>o.door); return {cx:o.ap.cx,vx:o.ap.vx};});
+const scr=await p.evaluate(()=>genScript(piano()));
+console.log(JSON.stringify({info,sel,s1,s2,s3, arcs:(scr.match(/_\.ARC/g)||[]).length, blk:/PORTA_80|BLOCK/.test(scr)}));
+console.log(scr.split('\n').filter(l=>/porte|ARC/.test(l)).slice(0,4).join(' | '));
+console.log('errors',errs); await b.close();})();

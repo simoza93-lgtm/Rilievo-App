@@ -1,0 +1,2 @@
+{"vis0":1,"d":"2,8","l":"1,20","shown":true,"bad":false,"errs":[],"Xd":{"d":"3,50","shown":true,"bad":true,"errs":["FX nel Xrale: l'Xa esce dal muro (luce 4,00 m). CXa Xa e Xza, oppure Xa."]}}
+errors []
