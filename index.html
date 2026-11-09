@@ -2011,8 +2011,10 @@ function bindCanvas() {
     if ((ui.mode === 'ink' || ui.mode === 'gomma') && ptrs.size === 1 && !(ui.penSeen && e.pointerType === 'touch')) {   // con la penna, il dito sposta la vista
       e.preventDefault(); if (ui.mode === 'ink') { inkS = [p]; inkLive(inkS); } else { gom = {undo:false}; gomAt(p, gom); } return; }
     if (ptrs.size === 1) { const fb = flipAt(p); if (fb) { e.preventDefault(); ptrs.delete(e.pointerId); flipDoor(fb.k); return; } }
-    doorTap = null; if (ptrs.size === 1 && !ui.place && !ui.placeSc && !ui.placeDim && !ui.winArm) { const dd = doorAt(p); if (dd) doorTap = {o:dd, p}; }
-    if (!doorTap && (ui.selAp || (ui.mode === 'draw' && ui.sel && ui.sel.k === 'a'))) { ui.selAp = null; if (ui.mode === 'draw' && ui.sel && ui.sel.k === 'a') { ui.sel = null; renderSide(); } draw(); }
+    // una casella di misura sopra lo spicchio della porta (per esempio la larghezza) vince sulla porta
+    const bx0 = ptrs.size === 1 && !ui.place && !ui.placeSc && !ui.placeDim && !ui.winArm ? boxAt(p) : null;
+    doorTap = null; if (ptrs.size === 1 && !bx0 && !ui.place && !ui.placeSc && !ui.placeDim && !ui.winArm) { const dd = doorAt(p); if (dd) doorTap = {o:dd, p}; }
+    if (!doorTap && !bx0 && (ui.selAp || (ui.mode === 'draw' && ui.sel && ui.sel.k === 'a'))) { ui.selAp = null; if (ui.mode === 'draw' && ui.sel && ui.sel.k === 'a') { ui.sel = null; renderSide(); } draw(); }
     if (doorTap && ui.mode !== 'draw' && !opAt(p)) { apDrag = {tipo:doorTap.o.ap.tipo, l:num(doorTap.o.ap.l), ap:doorTap.o.ap, w:doorTap.o.w, p0:p, moved:false}; return; }
     if (ui.placeFoto && ptrs.size === 1) { fotoTap = p; return; }
     if (ui.placeNord && ptrs.size === 1) { nordTap = p; return; }
