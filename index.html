@@ -510,6 +510,34 @@ function fixCapGlue(pl) {
     const a = nd(pl, wq.a), b = nd(pl, wq.b); if ((isH(a, b) && b.x < a.x) || (!isH(a, b) && b.y < a.y)) { const t = wq.a; wq.a = wq.b; wq.b = t; } });
   if (n) toast(n === 1 ? 'Angolo sistemato: i due muri ora si uniscono nello spigolo.' : n + ' angoli sistemati.');
 }
+/* ---- disegni vecchi: tramezzo messo «a filo» con uno spigolo dentro un incrocio (estremità libera a pochi cm dal nodo):
+   diventa attaccato al nodo dell'incrocio. Le misure scritte sui lati restano (le chiavi dei lati passano al nodo dell'incrocio). ---- */
+function rekeyNode(pl, oldId, newId) {
+  const rk = s => typeof s === 'string' ? s.split(':').map(x => x === oldId ? newId : x).join(':') : s;
+  ['fm', 'fl'].forEach(f => { if (!pl[f]) return; const o = {}; Object.keys(pl[f]).forEach(k => { o[rk(k)] = pl[f][k]; }); pl[f] = o; });
+  if (pl.mord) pl.mord = pl.mord.map(rk);
+  pl.walls.forEach(w => (w.ap || []).forEach(ap => { if (ap.pos && ap.pos.k) ap.pos.k = rk(ap.pos.k); }));
+  (pl.stairs || []).forEach(st => Object.values(st.anc || {}).forEach(a => { if (!a) return; if (a.n === oldId) a.n = newId; if (a.m && a.m.k) a.m.k = rk(a.m.k); }));
+}
+const jgSeen = new WeakMap();   // estremità già controllate (muretti esterni): si ricontrolla solo se il disegno cambia
+function fixJuncGlue(pl) {
+  const sig = pl.walls.length + ':' + pl.nodes.length; const deg = new Map(); pl.walls.forEach(w => [w.a, w.b].forEach(id => deg.set(id, (deg.get(id) || 0) + 1)));
+  const cand = pl.nodes.filter(q => { if (!q.glue || deg.get(q.id) !== 1 || jgSeen.get(q) === sig) return false; const h = nd(pl, q.glue.n); if (!h || (deg.get(h.id) || 0) < 2) return false;
+    const hm = Math.max(...pl.walls.filter(w => w.a === h.id || w.b === h.id).map(w => thick(w))) / 2 + 0.06; return Math.abs(q.x - h.x) <= hm && Math.abs(q.y - h.y) <= hm; });
+  if (!cand.length) return;
+  const Gx = geometry(pl); let n = 0;
+  cand.forEach(q => { const h = nd(pl, q.glue.n), wq = pl.walls.find(w => w.a === q.id || w.b === q.id); if (!wq) return;
+    const fid = wq.a === q.id ? wq.b : wq.a, far = nd(pl, fid), H = isH(nd(pl, wq.a), nd(pl, wq.b));
+    // solo dentro l'edificio: ai due lati del muro ci sono ambienti (i muretti a filo all'esterno restano come sono)
+    const I = Gx.T.info.get(wq.id); if (!I) return; const mx = (I.a.x + I.b.x) / 2, my = (I.a.y + I.b.y) / 2, o = I.o || 0, d = I.t / 2 + 0.03;
+    const sides = H ? [Gx.compAt(mx, my + o + d), Gx.compAt(mx, my + o - d)] : [Gx.compAt(mx + o + d, my), Gx.compAt(mx + o - d, my)]; if (sides.some(c => c < 0)) { jgSeen.set(q, sig); return; }
+    // l'altra estremità si sposta solo lungo i muri che ci arrivano di traverso (restano dritti)
+    const others = pl.walls.filter(w => w !== wq && (w.a === fid || w.b === fid)); if (others.some(w => isH(nd(pl, w.a), nd(pl, w.b)) === H)) { jgSeen.set(q, sig); return; }
+    if (H) far.y = h.y; else far.x = h.x;
+    if (wq.a === q.id) wq.a = h.id; else wq.b = h.id; delete q.glue; pl.nodes = pl.nodes.filter(x => x !== q); rekeyNode(pl, q.id, h.id); n++;
+    const a = nd(pl, wq.a), b = nd(pl, wq.b); if ((H && b.x < a.x) || (!H && b.y < a.y)) { const t = wq.a; wq.a = wq.b; wq.b = t; } });
+  if (n) toast(n === 1 ? 'Tramezzo sistemato: ora si attacca all\'incrocio dei muri.' : n + ' tramezzi sistemati: ora si attaccano agli incroci.');
+}
 /* ---- tratti minuscoli (sotto 5 cm, residui del disegno): eliminati, i loro nodi fusi ---- */
 function cleanTiny(pl) {
   let n = 0;
@@ -588,6 +616,19 @@ function attachEnds(pl) {
         }
         if (done) break;
       }
+      // estremità che punta dritta a un incrocio poco più in là (si è fermata prima della faccia): si attacca al nodo dell'incrocio
+      for (const h of pl.nodes) {
+        if (h === n || h === o) continue; const ws = pl.walls.filter(x => x.a === h.id || x.b === h.id), pw = ws.filter(x => isH(nd(pl, x.a), nd(pl, x.b)) !== H); if (!pw.length) continue;
+        const t = Math.max(...pw.map(thick)), along = H ? h.x - n.x : h.y - n.y, across = H ? n.y - h.y : n.x - h.x, go = H ? n.x - o.x : n.y - o.y;
+        if (Math.abs(across) > 0.03 || Math.abs(along) > t / 2 + 0.20 || !(Math.sign(along) === Math.sign(go) || Math.abs(along) <= t / 2 + 0.01)) continue;
+        // all'incrocio c'è già un muro nella stessa direzione: non si sovrappone
+        if (ws.some(x => { if (isH(nd(pl, x.a), nd(pl, x.b)) !== H) return false; const q = nd(pl, x.a === h.id ? x.b : x.a); return Math.sign(H ? q.x - h.x : q.y - h.y) === -Math.sign(go); })) continue;
+        if (Math.abs(across) > 1e-6) { if (pl.walls.some(x => x !== w && (x.a === o.id || x.b === o.id) && isH(nd(pl, x.a), nd(pl, x.b)) === H)) continue; if (H) o.y = h.y; else o.x = h.x; }
+        w[end] = h.id; pl.nodes = pl.nodes.filter(x => x !== n); rekeyNode(pl, n.id, h.id);
+        const a = nd(pl, w.a), b = nd(pl, w.b); if ((H && b.x < a.x) || (!H && b.y < a.y)) { const tt = w.a; w.a = w.b; w.b = tt; }
+        done = true; break;
+      }
+      if (done) break;
       for (const h of pl.walls) {
         if (h === w) continue; const ha = nd(pl, h.a), hb = nd(pl, h.b); if (isH(ha, hb) === H) continue;
         const t = thick(h); if (!(t > 0)) continue;
@@ -1628,7 +1669,7 @@ function toast(t) { const el = $('#toast'); if (!el) return; el.textContent = t;
 
 /* ================= ciclo di aggiornamento ================= */
 function recompute() {
-  const pl = piano(); fixCapGlue(pl); joinEnds(pl); cleanTiny(pl); trimStubs(pl); attachEnds(pl); trimStubs(pl); mergeCollinear(pl); migrate(pl);
+  const pl = piano(); fixCapGlue(pl); fixJuncGlue(pl); joinEnds(pl); cleanTiny(pl); trimStubs(pl); attachEnds(pl); fixJuncGlue(pl); trimStubs(pl); mergeCollinear(pl); migrate(pl);
   // quali facce sono esterne si sa solo dopo il disegno: si ricalcola finché l'elenco non cambia più
   let ext = new Set(((G && G.runs) || []).filter(r => r.ext).map(r => r.key));
   for (let k = 0; k < 3; k++) {
@@ -2158,11 +2199,28 @@ function finishStroke(sp) {
     if (!b) return null; const nn = pl.nodes.some(n => Math.hypot(n.x - x, n.y - y) < bd - 1e-6); return nn ? null : b; };
   // spigoli della testata di un muro con l'estremità libera: lì si fa un angolo (L), non un muro a filo; il tratto parte dal nodo
   const deg = new Map(); pl.walls.forEach(w => [w.a, w.b].forEach(id => deg.set(id, (deg.get(id) || 0) + 1)));
+  // nodo d'incrocio che contiene il punto (dentro il quadrato dei muri che ci arrivano)
+  const junction = q => { let b = null, bd = Infinity; pl.nodes.forEach(n => { if ((deg.get(n.id) || 0) < 2) return; const h = Math.max(...pl.walls.filter(w => w.a === n.id || w.b === n.id).map(w => thick(w))) / 2 + 0.06;
+    if (Math.abs(q.x - n.x) <= h && Math.abs(q.y - n.y) <= h) { const d = Math.hypot(q.x - n.x, q.y - n.y); if (d < bd) { bd = d; b = n; } } }); return b; };
   const capEnd = c => { if (!c) return null; for (const n of pl.nodes) { if (deg.get(n.id) !== 1) continue; const w = pl.walls.find(x => x.a === n.id || x.b === n.id), h = thick(w) / 2 + 0.02;
       if (Math.abs(c[0] - n.x) <= h && Math.abs(c[1] - n.y) <= h) return n; } return null; };
   let c0 = nearCorner(raw[0].x, raw[0].y), c1 = nearCorner(raw[raw.length - 1].x, raw[raw.length - 1].y);
   const e0 = capEnd(c0); if (e0) c0 = null; if (capEnd(c1)) c1 = null;
-  let cur = c0 ? {x:c0[0], y:c0[1]} : e0 ? {x:e0.x, y:e0.y} : snapPoint(pl, raw[0].x, raw[0].y, tol); const chain = [cur];
+  // muro a filo con uno spigolo solo se lo spigolo è vero: dietro lo spigolo c'è una faccia di muro che il nuovo muro prosegue,
+  // e davanti lo spazio è libero. Uno spigolo dentro un incrocio (il nuovo muro entrerebbe subito in un muro esistente, o la
+  // faccia continua oltre, o si è dentro un ambiente) non fa il muro a filo: il muro si attacca all'incrocio, al nodo.
+  const tN0 = ui.newType === 'P' ? P_() : T_(), inW = (x, y) => G.compAt(x, y) === -2;
+  const flushOK = (c, from) => { const v = (from ? raw : raw.slice().reverse()).find(q => Math.hypot(q.x - c[0], q.y - c[1]) >= minLen); if (!v) return true;
+    const H = Math.abs(v.x - c[0]) >= Math.abs(v.y - c[1]), dir = H ? [Math.sign(v.x - c[0]), 0] : [0, Math.sign(v.y - c[1])], pp = H ? [0, 1] : [1, 0], e = 0.03;
+    let sg = 0; for (const s2 of [1, -1]) if (inW(c[0] + pp[0] * s2 * e - dir[0] * e, c[1] + pp[1] * s2 * e - dir[1] * e)) { sg = s2; break; }
+    if (!sg) return true;
+    if (inW(c[0] - pp[0] * sg * e - dir[0] * e, c[1] - pp[1] * sg * e - dir[1] * e)) return false;   // dietro non c'è una faccia
+    const A = [c[0] + pp[0] * sg * tN0 / 2, c[1] + pp[1] * sg * tN0 / 2]; if (inW(A[0] + dir[0] * 0.04, A[1] + dir[1] * 0.04)) return false;
+    // il muro a filo serve fuori dall'edificio (parapetti, muretti che proseguono la facciata); dentro un ambiente si attacca al nodo
+    return G.compAt(c[0] - pp[0] * sg * e + dir[0] * 0.04, c[1] - pp[1] * sg * e + dir[1] * 0.04) === -1; };
+  let jn0 = null;
+  if (c0 && !flushOK(c0, true)) { c0 = null; jn0 = junction(raw[0]); } if (c1 && !flushOK(c1, false)) c1 = null;
+  let cur = c0 ? {x:c0[0], y:c0[1]} : e0 ? {x:e0.x, y:e0.y} : jn0 ? {x:jn0.x, y:jn0.y} : snapPoint(pl, raw[0].x, raw[0].y, tol); const chain = [cur];
   const start = cur;
   for (let k = 1; k < raw.length; k++) {
     const v = raw[k], dx = v.x - cur.x, dy = v.y - cur.y; if (Math.max(Math.abs(dx), Math.abs(dy)) < minLen) continue;

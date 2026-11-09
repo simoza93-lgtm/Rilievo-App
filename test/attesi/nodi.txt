@@ -1,0 +1,2 @@
+{"casi":40,"Xti":[],"X":{"nodi":[4],"misSopra":4,"latoSXFinoA":6,"err":0}}
+errors []
