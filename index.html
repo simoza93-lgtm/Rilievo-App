@@ -234,7 +234,7 @@ function topo(pl) {
     const a = N.get(w.a), b = N.get(w.b); if (!a || !b) return;
     const H = isH(a, b), t = thick(w);
     // estensione oltre il nodo fino alla faccia lontana dei muri perpendicolari (tiene conto di quelli a filo)
-    const ded = (id, start) => { let m = 0; (at.get(id) || []).forEach(x => { if (x === w) return; const xa = N.get(x.a), xb = N.get(x.b); if (xa && xb && isH(xa, xb) !== H) { const ox = offs.get(x.id) || 0, tx = thick(x) || 0; m = Math.max(m, start ? tx / 2 - ox : tx / 2 + ox); } }); return Math.max(0, m); };
+    const ded = (id, start) => { let m = -Infinity; (at.get(id) || []).forEach(x => { if (x === w) return; const xa = N.get(x.a), xb = N.get(x.b); if (xa && xb && isH(xa, xb) !== H) { const ox = offs.get(x.id) || 0, tx = thick(x) || 0; m = Math.max(m, start ? tx / 2 - ox : tx / 2 + ox); } }); return isFinite(m) ? m : 0; };   // può essere negativo: il muro perpendicolare a filo sta tutto oltre il nodo
     // tipo di attacco a ogni estremo: muro passante (thru), spigolo (corner), muro che prosegue (cont), libero (free)
     const endType = id => { const node = N.get(id); let up = false, dn = false, cont = false;
       (at.get(id) || []).forEach(o => { if (o === w) return; const oa = N.get(o.a), ob = N.get(o.b); if (!oa || !ob) return;
