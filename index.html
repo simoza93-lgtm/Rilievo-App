@@ -1778,7 +1778,17 @@ function inkLive(pts) { const svg = $('#svg'); if (!svg) return; let el = svg.qu
   if (!el) { el = document.createElementNS('http://www.w3.org/2000/svg', 'path'); el.id = 'inkLive'; el.setAttribute('fill', 'none'); el.setAttribute('stroke', 'var(--inkc)'); el.setAttribute('stroke-linecap', 'round'); el.setAttribute('stroke-linejoin', 'round'); (svg.querySelector('#vg') || svg).appendChild(el); }
   el.setAttribute('stroke-width', inkW()); el.setAttribute('d', 'M' + pts.map(q => q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join(' L') + (pts.length === 1 ? ' l0.1 0' : '')); }
 function inkW() { return Math.max(1.2, Math.min(4, 0.025 * ui.view.s)).toFixed(2); }
-function inkSave(pts) { const pl = piano(); let P = rdp(pts, 0.8).map(q => [r4(WX(q[0])), r4(WY(q[1]))]); if (P.length === 1) P = [P[0], [r4(P[0][0] + 0.01), P[0][1]]];
+// «disegna e tieni fermo»: ferma la penna mezzo secondo alla fine del tratto e diventa una linea dritta
+let inkT = null, inkA = null;
+function inkHold(p, inkS) { if (inkA && Math.hypot(p[0] - inkA[0], p[1] - inkA[1]) < 5) return; inkA = p; clearTimeout(inkT);
+  inkT = setTimeout(() => { if (!inkS || inkS.dritta || inkS.length < 2) return; const a = inkS[0], b = inkS[inkS.length - 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < 30) return; let dv = 0; for (const q of inkS) dv = Math.max(dv, Math.abs((q[0] - a[0]) * (b[1] - a[1]) - (q[1] - a[1]) * (b[0] - a[0])) / L); if (dv > Math.max(8, 0.2 * L)) return;
+    inkS.dritta = true; inkS.ini = inkSnapPt(a, true) || a; inkS.fine = inkEnd(inkS.ini, b); inkLive([inkS.ini, inkS.fine]); try { navigator.vibrate && navigator.vibrate(12); } catch (_) {} }, 480); }
+// aggancio di un estremo: spigolo dei muri (o faccia, per l'inizio)
+function inkSnapPt(p, face) { const q = typeof dimSnap === 'function' ? dimSnap(p) : null; if (!q || (!face && q.snap !== 'c')) return null; return [SX(q.x), SY(q.y)]; }
+// fine della linea dritta: spigolo vicino, altrimenti angolo agganciato a orizzontale, verticale e multipli di 15°
+function inkEnd(a, p) { const c = inkSnapPt(p, false); if (c) return c; const dx = p[0] - a[0], dy = p[1] - a[1], L = Math.hypot(dx, dy); if (L < 1) return p;
+  const ang = Math.atan2(dy, dx) * 180 / Math.PI, k = Math.round(ang / 15) * 15; if (Math.abs(ang - k) > 6) return p; const t = k * Math.PI / 180; return [a[0] + L * Math.cos(t), a[1] + L * Math.sin(t)]; }
+function inkSave(pts, dritta) { const pl = piano(); let P = dritta ? pts.map(q => [r4(WX(q[0])), r4(WY(q[1]))]) : rdp(pts, 0.8).map(q => [r4(WX(q[0])), r4(WY(q[1]))]); if (P.length === 1) P = [P[0], [r4(P[0][0] + 0.01), P[0][1]]];
   pushUndo(); (pl.ink = pl.ink || []).push({id:uid(), pts:P}); draw(); save(); }
 function inkDist(k, p) { let best = 1e9; for (let i = 0; i < k.pts.length - 1; i++) { const a = [SX(k.pts[i][0]), SY(k.pts[i][1])], b = [SX(k.pts[i + 1][0]), SY(k.pts[i + 1][1])], dx = b[0] - a[0], dy = b[1] - a[1], L = dx * dx + dy * dy || 1e-9;
   const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L)); best = Math.min(best, Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy)); } return best; }
@@ -2009,10 +2019,10 @@ function bindCanvas() {
   svg.addEventListener('pointerdown', e => {
     try { svg.setPointerCapture(e.pointerId); } catch (_) {} const p = pos(e); ptrs.set(e.pointerId, p);
     if (e.pointerType === 'pen') ui.penSeen = true;
-    if (ptrs.size === 2) { inkS = null; gom = null; inkLive(null); win = null; winShow(null); stroke = null; pan = null; drag = null; boxTap = null; dimTap = null; dmDrag = null; closeInline(true); if (apDrag) { apDrag = null; ui.ghost = null; draw(); } const [a, b] = [...ptrs.values()]; pinch = {d:Math.hypot(a[0] - b[0], a[1] - b[1]), s:ui.view.s, mx:(a[0] + b[0]) / 2, my:(a[1] + b[1]) / 2, wx:WX((a[0] + b[0]) / 2), wy:WY((a[1] + b[1]) / 2)}; const st = $('#stroke'); if (st) st.setAttribute('points', ''); return; }
+    if (ptrs.size === 2) { inkS = null; clearTimeout(inkT); gom = null; inkLive(null); win = null; winShow(null); stroke = null; pan = null; drag = null; boxTap = null; dimTap = null; dmDrag = null; closeInline(true); if (apDrag) { apDrag = null; ui.ghost = null; draw(); } const [a, b] = [...ptrs.values()]; pinch = {d:Math.hypot(a[0] - b[0], a[1] - b[1]), s:ui.view.s, mx:(a[0] + b[0]) / 2, my:(a[1] + b[1]) / 2, wx:WX((a[0] + b[0]) / 2), wy:WY((a[1] + b[1]) / 2)}; const st = $('#stroke'); if (st) st.setAttribute('points', ''); return; }
     if (ptrs.size > 2) return;
     if ((ui.mode === 'ink' || ui.mode === 'gomma') && ptrs.size === 1 && !(ui.penSeen && e.pointerType === 'touch')) {   // con la penna, il dito sposta la vista
-      e.preventDefault(); if (ui.mode === 'ink') { inkS = [p]; inkLive(inkS); } else { gom = {undo:false}; gomAt(p, gom); } return; }
+      e.preventDefault(); if (ui.mode === 'ink') { inkS = [p]; inkA = null; inkHold(p, inkS); inkLive(inkS); } else { gom = {undo:false}; gomAt(p, gom); } return; }
     if (ptrs.size === 1) { const fb = flipAt(p); if (fb) { e.preventDefault(); ptrs.delete(e.pointerId); flipDoor(fb.k); return; } }
     // una casella di misura sopra lo spicchio della porta (per esempio la larghezza) vince sulla porta
     const bx0 = ptrs.size === 1 && !ui.place && !ui.placeSc && !ui.placeDim && !ui.winArm ? boxAt(p) : null;
@@ -2039,7 +2049,9 @@ function bindCanvas() {
   });
   svg.addEventListener('pointermove', e => {
     if (!ptrs.has(e.pointerId)) { if (ui.winA && ui.mode === 'select') { winShow(ui.winA, pos(e)); return; } if (ui.placeDim && e.pointerType !== 'touch') { ui.dimHover = dimSnap(pos(e)); draw(); return; } if (ui.place && e.pointerType !== 'touch') { ui.ghost = ghostAt(pos(e), ui.place, num(DEF_AP[ui.place].l), null); draw(); } return; } const p = pos(e); ptrs.set(e.pointerId, p);
-    if (inkS && ptrs.size === 1) { const p = pos(e), l = inkS[inkS.length - 1]; if (Math.hypot(p[0] - l[0], p[1] - l[1]) >= 1.5) { inkS.push(p); inkLive(inkS); } return; }
+    if (inkS && ptrs.size === 1) { const p = pos(e);
+      if (inkS.dritta) { inkS.fine = inkEnd(inkS.ini, p); inkLive([inkS.ini, inkS.fine]); return; }
+      const l = inkS[inkS.length - 1]; if (Math.hypot(p[0] - l[0], p[1] - l[1]) >= 1.5) { inkS.push(p); inkLive(inkS); } inkHold(p, inkS); return; }
     if (gom && ptrs.size === 1) { gomAt(pos(e), gom); return; }
     if (pinch && ptrs.size >= 2) { const [a, b] = [...ptrs.values()]; const d = Math.hypot(a[0] - b[0], a[1] - b[1]), mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2; ui.view.s = Math.max(6, Math.min(400, pinch.s * d / pinch.d)); ui.view.x = pinch.wx - mx / ui.view.s; ui.view.y = pinch.wy - (ui.H - my) / ui.view.s; draw(); return; }
     if (boxTap) { if (Math.hypot(p[0] - boxTap.p[0], p[1] - boxTap.p[1]) > 8) { if (boxTap.hb.kind === 'q' && ui.mode !== 'draw') { const d = (piano().dims || []).find(x => x.id === boxTap.hb.id); if (d) dmDrag = {d, p0:boxTap.p, o0:d.o, moved:false}; } else if (ui.mode === 'select') { pan = {p:boxTap.p, vx:ui.view.x, vy:ui.view.y, moved:true}; } boxTap = null; } else return; }
@@ -2067,7 +2079,7 @@ function bindCanvas() {
   });
   const end = e => {
     if (!ptrs.has(e.pointerId)) return; const p = pos(e); ptrs.delete(e.pointerId);
-    if (inkS) { const pts = inkS; inkS = null; inkLive(null); inkSave(pts); return; }
+    if (inkS) { const pts = inkS; inkS = null; clearTimeout(inkT); inkLive(null); inkSave(pts.dritta ? [pts.ini, pts.fine] : pts, !!pts.dritta); return; }
     if (gom) { gom = null; return; }
     if (pinch) { if (ptrs.size === 0) pinch = null; return; }
     if (bgTap) { const q = bgTap; bgTap = null; if (Math.hypot(p[0] - q[0], p[1] - q[1]) <= 12) bgCalTap(q); return; }
@@ -2108,7 +2120,7 @@ function bindCanvas() {
       return; }
     if (pan) { const wasMoved = pan.moved; pan = null; if (!wasMoved && ui.mode === 'select') hit(p); else if (!wasMoved && ui.mode === 'text') newNote(p); }
   };
-  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); inkS = null; gom = null; inkLive(null); bgTap = null; bgDrag = null; win = null; winShow(null); dimTap = null; dmDrag = null; stroke = null; ui.trk = null; scDrag = null; fotoTap = null; nordTap = null; ndDrag = null; ui.scGhost = null; pan = null; pinch = null; drag = null; apDrag = null; boxTap = null; ui.ghost = null; draw(); });
+  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); inkS = null; clearTimeout(inkT); gom = null; inkLive(null); bgTap = null; bgDrag = null; win = null; winShow(null); dimTap = null; dmDrag = null; stroke = null; ui.trk = null; scDrag = null; fotoTap = null; nordTap = null; ndDrag = null; ui.scGhost = null; pan = null; pinch = null; drag = null; apDrag = null; boxTap = null; ui.ghost = null; draw(); });
   svg.addEventListener('click', e => { const el = $('#inl'); if (el && document.activeElement !== el) { e.preventDefault(); el.focus(); } });
   svg.addEventListener('pointerleave', e => { if (ui.place && !ptrs.size && ui.ghost) { ui.ghost = null; draw(); } if (ui.dimHover && !ptrs.size) { ui.dimHover = null; draw(); } });
   svg.addEventListener('wheel', e => { e.preventDefault(); const p = pos(e); zoomAt(e.deltaY < 0 ? 1.15 : 1 / 1.15, p[0], p[1]); }, {passive:false});

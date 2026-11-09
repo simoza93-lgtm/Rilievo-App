@@ -1,0 +1,2 @@
+{"casi":192,"Xti":[],"X":{"glue":0,"left":0.02,"top":0.15,"misSopra":4,"sotto":4,"err":0}}
+errors []

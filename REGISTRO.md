@@ -3,6 +3,17 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 9 novembre 2026 — tramezzi che partono da un incrocio
+
+- Correzione: un tramezzo che parte (o finisce) vicino a un incrocio di muri, per esempio dallo spigolo dove il
+  perimetrale gira e prosegue un tramezzo, ora si attacca sempre al nodo dell'incrocio. Prima poteva restare
+  «a filo con lo spigolo» con l'estremità libera a pochi cm: il lato della stanza accanto saltava il tramezzo e
+  arrivava a quello dopo, e la misura lungo il tramezzo partiva 10 cm dentro il muro (es. 4,00 sopra e 3,90 sotto).
+- Il «muro a filo con lo spigolo» resta solo fuori dall'edificio (parapetti, muretti che proseguono la facciata).
+- Anche un tramezzo che si ferma pochi cm prima di un incrocio (fino a 20 cm dalla faccia) si attacca al nodo.
+- I rilievi già fatti con questo difetto si sistemano da soli all'apertura; le misure già scritte restano.
+  Prova `incrocio`.
+
 ## 9 novembre 2026 — linee dritte a mano
 
 - Note a mano: finisci la linea e **tieni ferma la penna mezzo secondo**: la linea diventa dritta (piccola
