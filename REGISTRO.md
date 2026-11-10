@@ -3,6 +3,22 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 10 novembre 2026 — finestre incassate (palazzi antichi)
+
+- Nel pannello della finestra, «Incassata»: No / A scalino / Strombata. La finestra ha due larghezze: la **luce**
+  (parte stretta, dove sta l'infisso: è la larghezza che conta per il rapporto aeroilluminante) e la **parte larga**.
+- La parte stretta è profonda 0,15 m dalla sua faccia (Impostazioni → «Finestre incassate: profondità della luce
+  stretta»); il resto dello spessore è la parte larga. A scalino: due rettangoli. Strombata: i fianchi vanno in
+  obliquo dal bordo largo al bordo della luce (anche nei contorni dei muri dello script).
+- La parte larga sta di partenza verso la stanza; si gira con «⇅ Parte larga dall'altro lato» nel pannello o col
+  tasto tondo accanto alla finestra selezionata.
+- Misure: in pianta la casella della luce sta dalla sua faccia e quella della parte larga dall'altra (proposta
+  20 cm per lato finché non la misuri). Le parziali sulla faccia larga arrivano al bordo largo. La **risega**
+  (dal bordo largo al bordo della luce, a sinistra o in basso) si scrive nel pannello o con «Prossima»; senza
+  risega la luce resta centrata.
+- Simbolo: fili e vetri nella parte stretta, filo della faccia larga lungo la parte larga. Nello script la
+  larghezza del vano si scrive «luce / parte larga» (es. 1.00 / 1.50). Prova `incassata`.
+
 ## 10 novembre 2026 — cambio di spessore di un muro
 
 - Correzione: scegliendo «Altro spessore» nel pannello del muro, il muro poteva saltare da solo sull'incrocio di un
