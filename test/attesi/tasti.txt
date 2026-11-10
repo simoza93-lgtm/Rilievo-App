@@ -1,0 +1,2 @@
+{"prima":[0.1,0.1],"tastiSotto":[{"v":"-","on":false},{"v":"","on":false},{"v":"+","on":true}],"asse":[0,0],"selDopo":"w","Xa":[-0.1,-0.1],"destra":[0.1,0.1],"tastiAccesi":["+"],"senza":0,"X":[-0.1,-0.1]}
+errors []

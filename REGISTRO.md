@@ -3,6 +3,16 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 10 novembre 2026 — cambio di spessore di un muro
+
+- Correzione: scegliendo «Altro spessore» nel pannello del muro, il muro poteva saltare da solo sull'incrocio di un
+  altro muro (anche lontano) e restarci incollato; potevano rovinarsi anche gli incroci dei perimetrali. Succedeva
+  perché la casella dello spessore partiva vuota e per un attimo il muro non aveva spessore.
+- Ora la casella parte con lo spessore che il muro aveva (0,10 per un tramezzo, 0,30 per un perimetrale) e finché
+  non c'è un numero valido il muro vale come tramezzo.
+- Gli incroci doppi a pochi cm si uniscono solo quando li disegni. Se dopo rendi un muro più spesso, gli incroci
+  restano dove sono: decidi tu con le misure. Prova `spessore`.
+
 ## 10 novembre 2026 — muri dritti allineati
 
 - Un tramezzo dritto diviso da un incrocio (per esempio quello che prosegue lo spigolo del perimetrale e attraversa

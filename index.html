@@ -218,7 +218,7 @@ const P_ = () => num(R.P), T_ = () => num(R.T);
 /* ================= topologia ================= */
 const nd = (pl, id) => pl.nodes.find(n => n.id === id);
 const isH = (a, b) => Math.abs(b.x - a.x) >= Math.abs(b.y - a.y);
-const thick = w => w.tipo === 'P' ? P_() : w.tipo === 'T' ? T_() : num(w.sp);
+const thick = w => { if (w.tipo === 'P') return P_(); if (w.tipo === 'T') return T_(); const s = num(w.sp); return s > 0.02 ? s : T_(); };   // «Altro spessore» ancora vuoto o a metà (0, 0,…): vale come tramezzo
 const layerOf = w => (w.tipo === 'P' || (w.tipo === 'X' && thick(w) >= P_() - EPS)) ? 'P' : 'I';
 const tipoNome = w => w.tipo === 'P' ? 'perimetrale' : w.tipo === 'T' ? 'tramezzo' : 'muro da ' + f2(thick(w)) + ' m';
 
@@ -551,9 +551,9 @@ function mergeNearNodes(pl) {
     const dirOf = (w, id) => { const a = nd(pl, w.a), b = nd(pl, w.b), H = isH(a, b), me = nd(pl, id), o = nd(pl, w.a === id ? w.b : w.a); return {H, s:Math.sign(H ? o.x - me.x : o.y - me.y), o}; };
     let act = null;
     for (const m of pl.nodes) { const wm = at.get(m.id) || []; if (wm.length < 2) continue;
-      for (const h of pl.nodes) { if (h === m) continue; const wh = at.get(h.id) || []; if (wh.length < 2 || h.glue) continue;
+      for (const h of pl.nodes) { if (h === m || (m.mk && h.mk)) continue; const wh = at.get(h.id) || []; if (wh.length < 2 || h.glue) continue;
         const tm = Math.max(...wm.map(thick)), th = Math.max(...wh.map(thick)); if (tm > th + 1e-6 || (Math.abs(tm - th) < 1e-6 && wm.length > wh.length)) continue;
-        const lim = Math.min(0.25, Math.max(tm, th) / 2 + 0.06), dx = h.x - m.x, dy = h.y - m.y; if (Math.abs(dx) > lim || Math.abs(dy) > lim || Math.hypot(dx, dy) < 1e-6) continue;
+        const lim = Math.min(0.25, Math.max(tm, th) / 2 + 0.06), dx = h.x - m.x, dy = h.y - m.y; if (!(lim > 0) || Math.abs(dx) > lim || Math.abs(dy) > lim || Math.hypot(dx, dy) < 1e-6) continue;
         const direct = wm.filter(w => w.a === h.id || w.b === h.id); if (direct.some(w => (w.ap || []).length)) continue;
         let ok = true;
         for (const w of wm) { if (direct.includes(w)) continue; const d = dirOf(w, m.id);
@@ -569,6 +569,9 @@ function mergeNearNodes(pl) {
     delete m.glue; pl.walls = pl.walls.filter(w => !direct.includes(w)); pl.nodes = pl.nodes.filter(x => x !== m);
     pl.nodes.forEach(q => { if (q.glue && q.glue.n === m.id) q.glue.n = h.id; }); rekeyNode(pl, m.id, h.id); n++;
   }
+  // incroci già controllati: un muro reso più spesso dopo non li unisce più (deciderebbe l'app al posto tuo)
+  const deg = new Map(); pl.walls.forEach(w => [w.a, w.b].forEach(id => deg.set(id, (deg.get(id) || 0) + 1)));
+  pl.nodes.forEach(q => { if ((deg.get(q.id) || 0) >= 2) q.mk = 1; });
   if (n) toast(n === 1 ? 'Incrocio sistemato: i muri ora si uniscono in un punto solo.' : n + ' incroci sistemati.');
 }
 /* ---- tratti minuscoli (sotto 5 cm, residui del disegno): eliminati, i loro nodi fusi ---- */
@@ -2851,7 +2854,7 @@ function renderMsgs() {
   el.innerHTML = `<div class="cardh">Controlli</div>` + (piano().walls.length ? (list.map(m).join('') || '<div class="msg o">Nessuna incongruenza evidente.</div>') : '<div class="mut">Ancora nessun muro.</div>');
 }
 function setW(w, path, v) { const ps = path.split('.'); if (ps[0] === 'ap') { const x = w.ap.find(y => y.id === ps[1]); if (x) { x[ps[2]] = v;
-  if (ps[2] === 'd') { delete x.pos; if (String(v).trim()) delete x.dp; } if (ps[2] === 'l' && String(v).trim()) delete x.lp; } } else w[ps[0]] = v; }
+  if (ps[2] === 'd') { delete x.pos; if (String(v).trim()) delete x.dp; } if (ps[2] === 'l' && String(v).trim()) delete x.lp; } } else { if (ps[0] === 'tipo' && v === 'X' && !(num(w.sp) > 0.02)) w.sp = f2(thick(w)); w[ps[0]] = v; } }
 
 /* ---- calcoli ---- */
 function renderCalc() {

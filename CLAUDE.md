@@ -46,7 +46,7 @@ finiscono in `test/out/` (non va nel repository).
 - Per ogni funzione nuova o bug corretto aggiungi una prova nuova (copia lo schema di `split.js` o `apfit.js`).
 - Le prove `shot35`–`shot41` riguardano le scale, `p1`–`p5` le parziali, `ang*` gli angoli disegnati in due
   tratti, `balc*` i balconi e i parapetti a filo, `rot` la rotazione della vista, `mano` le note a mano, `orto` le linee a mano raddrizzate,
-  `scp` le parziali delle scale, `split*` i muri divisi, `incrocio` i tramezzi attaccati a un incrocio, `nodi` gli incroci doppi, `linea` la posizione dei muri dritti, `apfit` le aperture che non entrano nel muro.
+  `scp` le parziali delle scale, `split*` i muri divisi, `incrocio` i tramezzi attaccati a un incrocio, `nodi` gli incroci doppi, `linea` la posizione dei muri dritti, `spessore` i muri resi di un altro spessore, `apfit` le aperture che non entrano nel muro.
 
 ## Regole del rilievo (non cambiarle senza chiedere)
 
