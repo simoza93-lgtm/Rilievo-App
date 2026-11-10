@@ -505,7 +505,10 @@ function fixCapGlue(pl) {
   pl.nodes.slice().forEach(q => { if (!q.glue || deg.get(q.id) !== 1) return; const h = nd(pl, q.glue.n); if (!h || deg.get(h.id) !== 1) return;
     const wq = pl.walls.find(w => w.a === q.id || w.b === q.id), wh = pl.walls.find(w => w.a === h.id || w.b === h.id); if (!wq || !wh || wq === wh) return;
     if (isH(nd(pl, wq.a), nd(pl, wq.b)) === isH(nd(pl, wh.a), nd(pl, wh.b))) return;
-    const far = nd(pl, wq.a === q.id ? wq.b : wq.a); if (isH(nd(pl, wq.a), nd(pl, wq.b))) far.y = h.y; else far.x = h.x;
+    const far = nd(pl, wq.a === q.id ? wq.b : wq.a), Hq = isH(nd(pl, wq.a), nd(pl, wq.b));
+    // il muro spostato non deve finire sopra un altro muro che parte dallo stesso estremo nella stessa direzione
+    const sgo = Math.sign(Hq ? h.x - far.x : h.y - far.y); if (pl.walls.some(x => x !== wq && (x.a === far.id || x.b === far.id) && isH(nd(pl, x.a), nd(pl, x.b)) === Hq && (() => { const o = nd(pl, x.a === far.id ? x.b : x.a); return Math.sign(Hq ? o.x - far.x : o.y - far.y) === sgo; })())) return;
+    if (Hq) far.y = h.y; else far.x = h.x;
     if (wq.a === q.id) wq.a = h.id; else wq.b = h.id; delete q.glue; pl.nodes = pl.nodes.filter(x => x !== q); n++;
     const a = nd(pl, wq.a), b = nd(pl, wq.b); if ((isH(a, b) && b.x < a.x) || (!isH(a, b) && b.y < a.y)) { const t = wq.a; wq.a = wq.b; wq.b = t; } });
   if (n) toast(n === 1 ? 'Angolo sistemato: i due muri ora si uniscono nello spigolo.' : n + ' angoli sistemati.');
@@ -537,6 +540,36 @@ function fixJuncGlue(pl) {
     if (wq.a === q.id) wq.a = h.id; else wq.b = h.id; delete q.glue; pl.nodes = pl.nodes.filter(x => x !== q); rekeyNode(pl, q.id, h.id); n++;
     const a = nd(pl, wq.a), b = nd(pl, wq.b); if ((H && b.x < a.x) || (!H && b.y < a.y)) { const t = wq.a; wq.a = wq.b; wq.b = t; } });
   if (n) toast(n === 1 ? 'Tramezzo sistemato: ora si attacca all\'incrocio dei muri.' : n + ' tramezzi sistemati: ora si attaccano agli incroci.');
+}
+/* ---- due incroci a pochi cm (dentro lo spessore dei muri): sono lo stesso incrocio disegnato due volte, si uniscono.
+   Si sposta l'incrocio dei muri più sottili su quello dei muri più spessi; gli altri estremi dei muri spostati scorrono
+   lungo i muri di traverso, così tutto resta dritto. Le misure scritte restano. ---- */
+function mergeNearNodes(pl) {
+  let n = 0;
+  for (let guard = 0; guard < 40; guard++) {
+    const at = new Map(); pl.walls.forEach(w => [w.a, w.b].forEach(id => { if (!at.has(id)) at.set(id, []); at.get(id).push(w); }));
+    const dirOf = (w, id) => { const a = nd(pl, w.a), b = nd(pl, w.b), H = isH(a, b), me = nd(pl, id), o = nd(pl, w.a === id ? w.b : w.a); return {H, s:Math.sign(H ? o.x - me.x : o.y - me.y), o}; };
+    let act = null;
+    for (const m of pl.nodes) { const wm = at.get(m.id) || []; if (wm.length < 2) continue;
+      for (const h of pl.nodes) { if (h === m) continue; const wh = at.get(h.id) || []; if (wh.length < 2 || h.glue) continue;
+        const tm = Math.max(...wm.map(thick)), th = Math.max(...wh.map(thick)); if (tm > th + 1e-6 || (Math.abs(tm - th) < 1e-6 && wm.length > wh.length)) continue;
+        const lim = Math.min(0.25, Math.max(tm, th) / 2 + 0.06), dx = h.x - m.x, dy = h.y - m.y; if (Math.abs(dx) > lim || Math.abs(dy) > lim || Math.hypot(dx, dy) < 1e-6) continue;
+        const direct = wm.filter(w => w.a === h.id || w.b === h.id); if (direct.some(w => (w.ap || []).length)) continue;
+        let ok = true;
+        for (const w of wm) { if (direct.includes(w)) continue; const d = dirOf(w, m.id);
+          if (wh.some(x => !direct.includes(x) && (() => { const e = dirOf(x, h.id); return e.H === d.H && e.s === d.s; })())) { ok = false; break; }   // si sovrapporrebbero
+          const sh = d.H ? dy : dx; if (Math.abs(sh) > 1e-6) { if (d.o === h || (at.get(d.o.id) || []).some(x => x !== w && isH(nd(pl, x.a), nd(pl, x.b)) === d.H) || d.o.glue) { ok = false; break; } }
+          const len = d.H ? (d.o.x - h.x) * d.s : (d.o.y - h.y) * d.s; if (!(len > 0.05)) { ok = false; break; } }
+        if (ok) { act = {m, h, wm, direct}; break; } }
+      if (act) break; }
+    if (!act) break;
+    const {m, h, wm, direct} = act;
+    wm.forEach(w => { if (direct.includes(w)) return; const H = isH(nd(pl, w.a), nd(pl, w.b)), o = nd(pl, w.a === m.id ? w.b : w.a); if (H) o.y = h.y; else o.x = h.x;
+      if (w.a === m.id) w.a = h.id; else w.b = h.id; const a = nd(pl, w.a), b = nd(pl, w.b); if ((H && b.x < a.x) || (!H && b.y < a.y)) { const t = w.a; w.a = w.b; w.b = t; } });
+    delete m.glue; pl.walls = pl.walls.filter(w => !direct.includes(w)); pl.nodes = pl.nodes.filter(x => x !== m);
+    pl.nodes.forEach(q => { if (q.glue && q.glue.n === m.id) q.glue.n = h.id; }); rekeyNode(pl, m.id, h.id); n++;
+  }
+  if (n) toast(n === 1 ? 'Incrocio sistemato: i muri ora si uniscono in un punto solo.' : n + ' incroci sistemati.');
 }
 /* ---- tratti minuscoli (sotto 5 cm, residui del disegno): eliminati, i loro nodi fusi ---- */
 function cleanTiny(pl) {
@@ -1669,7 +1702,7 @@ function toast(t) { const el = $('#toast'); if (!el) return; el.textContent = t;
 
 /* ================= ciclo di aggiornamento ================= */
 function recompute() {
-  const pl = piano(); fixCapGlue(pl); fixJuncGlue(pl); joinEnds(pl); cleanTiny(pl); trimStubs(pl); attachEnds(pl); fixJuncGlue(pl); trimStubs(pl); mergeCollinear(pl); migrate(pl);
+  const pl = piano(); fixCapGlue(pl); fixJuncGlue(pl); joinEnds(pl); cleanTiny(pl); trimStubs(pl); attachEnds(pl); fixJuncGlue(pl); mergeNearNodes(pl); trimStubs(pl); mergeCollinear(pl); migrate(pl);
   // quali facce sono esterne si sa solo dopo il disegno: si ricalcola finché l'elenco non cambia più
   let ext = new Set(((G && G.runs) || []).filter(r => r.ext).map(r => r.key));
   for (let k = 0; k < 3; k++) {
@@ -2213,7 +2246,7 @@ function finishStroke(sp) {
   const flushOK = (c, from) => { const v = (from ? raw : raw.slice().reverse()).find(q => Math.hypot(q.x - c[0], q.y - c[1]) >= minLen); if (!v) return true;
     const H = Math.abs(v.x - c[0]) >= Math.abs(v.y - c[1]), dir = H ? [Math.sign(v.x - c[0]), 0] : [0, Math.sign(v.y - c[1])], pp = H ? [0, 1] : [1, 0], e = 0.03;
     let sg = 0; for (const s2 of [1, -1]) if (inW(c[0] + pp[0] * s2 * e - dir[0] * e, c[1] + pp[1] * s2 * e - dir[1] * e)) { sg = s2; break; }
-    if (!sg) return true;
+    if (!sg) return false;   // dietro lo spigolo non c'è muro: non è una faccia da proseguire
     if (inW(c[0] - pp[0] * sg * e - dir[0] * e, c[1] - pp[1] * sg * e - dir[1] * e)) return false;   // dietro non c'è una faccia
     const A = [c[0] + pp[0] * sg * tN0 / 2, c[1] + pp[1] * sg * tN0 / 2]; if (inW(A[0] + dir[0] * 0.04, A[1] + dir[1] * 0.04)) return false;
     // il muro a filo serve fuori dall'edificio (parapetti, muretti che proseguono la facciata); dentro un ambiente si attacca al nodo
@@ -2265,13 +2298,23 @@ function finishStroke(sp) {
   glues.forEach(g => { const n = findNode(pl, g.A.x, g.A.y); if (n && n !== g.host) n.glue = {n:g.host.id, dx:r4(n.x - g.host.x), dy:r4(n.y - g.host.y)}; });
   if (glues.length) toast('Muro a filo con lo spigolo.');
   update(true);
-  if (autoFilo(pl, pl.walls.filter(w => drawn.has(w.id)))) { update(true); toast('Muro a filo con il lato esterno del muro che prosegue (per esempio il parapetto di un balcone). Si cambia nel pannello del muro, «Posizione».'); }
+  if (autoFilo(pl, pl.walls.filter(w => drawn.has(w.id)))) { update(true); toast('Muro a filo con la faccia del muro più spesso che prosegue in linea. Si cambia nel pannello del muro, «Posizione».'); }
   let filled = 0;
   (pl.rooms || []).forEach(r => { if (!r._new) return; const c = G.comps[r._c]; if (c && c.area < 0.30 && closedByShortWalls(pl, c)) { r.pieno = true; r.nome = 'Pilastro'; r.dest = 'Altro'; filled++; } });
   if (filled) { update(true); toast(filled === 1 ? 'Dente chiuso: riempito.' : filled + ' denti chiusi: riempiti.'); }
 }
 // muro più sottile che prosegue in linea un muro più spesso, con un muro d'angolo da un lato solo (parapetto di un balcone, muretto
 // che continua la facciata): si mette a filo con la faccia libera, quella dalla parte opposta al muro d'angolo
+// tutti i tratti dello stesso muro dritto: muri in linea con lo stesso spessore, anche oltre gli incroci
+function lineOf(pl, w) {
+  const H = isH(nd(pl, w.a), nd(pl, w.b)), t = thick(w), out = [w], seen = new Set([w]);
+  for (let i = 0; i < out.length; i++) { const x = out[i];
+    [x.a, x.b].forEach(id => pl.walls.forEach(y => { if (seen.has(y) || (y.a !== id && y.b !== id)) return; if (isH(nd(pl, y.a), nd(pl, y.b)) !== H || Math.abs(thick(y) - t) > 1e-6) return;
+      const o1 = nd(pl, x.a === id ? x.b : x.a), o2 = nd(pl, y.a === id ? y.b : y.a), me = nd(pl, id);
+      if (Math.sign(H ? o1.x - me.x : o1.y - me.y) === Math.sign(H ? o2.x - me.x : o2.y - me.y)) return;   // stessa direzione: non prosegue
+      seen.add(y); out.push(y); })); }
+  return out;
+}
 function autoFilo(pl, ws) {
   let n = 0; const T = topo(pl);
   ws.forEach(w => { if (w.filo) return; const I = T.info.get(w.id); if (!I) return; const want = new Set();
@@ -2280,6 +2323,9 @@ function autoFilo(pl, ws) {
       const sides = new Set(at.map(x => { const J = T.info.get(x.id); if (!J || J.H === I.H) return 0; const o = x.a === id ? J.b : J.a; return Math.sign(I.H ? o.y - node.y : o.x - node.x); }).filter(Boolean));
       if (sides.size === 1) want.add([...sides][0] > 0 ? '-' : '+'); });
     if (want.size === 1) { w.filo = [...want][0]; n++; } });
+  // un muro dritto resta dritto: i tratti dello stesso muro (anche disegnati a parte, oltre un incrocio) prendono la stessa posizione
+  ws.forEach(w => { const L = lineOf(pl, w), fs = new Set(L.map(x => x.filo || '').filter(Boolean)); if (fs.size !== 1) return; const f = [...fs][0];
+    L.forEach(x => { if (!x.filo) { x.filo = f; n++; } }); });
   return n;
 }
 /* ---- aggancio mentre si disegna: allineamenti con spigoli e muri (come il puntamento di AutoCAD) ---- */
@@ -2736,7 +2782,7 @@ function renderSide() {
       <div class="grid">
         <div><label class="l">Tipo</label><select data-w="tipo" data-re>${opt({P:`Perimetrale ${f2(P_())}`, T:`Tramezzo ${f2(T_())}`, X:'Altro spessore'}, w.tipo)}</select></div>
         ${w.tipo === 'X' ? inp('sp', w.sp, 'Spessore (m)') : '<div></div>'}
-        <div class="c2"><label class="l">Posizione rispetto al muro accanto più spesso</label><select data-w="filo">${opt(I.H ? {'':'Centrato', '+':'A filo sopra', '-':'A filo sotto'} : {'':'Centrato', '-':'A filo a sinistra', '+':'A filo a destra'}, w.filo || '')}</select></div>
+        <div class="c2"><label class="l">Posizione rispetto al muro accanto più spesso (vale per tutto il muro dritto)</label><select data-w="filo">${opt(I.H ? {'':'Centrato', '+':'A filo sopra', '-':'A filo sotto'} : {'':'Centrato', '-':'A filo a sinistra', '+':'A filo a destra'}, w.filo || '')}</select></div>
       </div>
       <h3>Misure laser, lato per lato</h3>
       ${G.runs.filter(r => r.walls.includes(w)).sort((a, b) => b.sg - a.sg).map(r => {
@@ -2955,7 +3001,7 @@ document.addEventListener('input', e => {
   const t = e.target, pl = piano();
   if (t.id === 'iNord') { const a = num(t.value); if (isFinite(a)) { undemo(); R.nordAng = String(((a % 360) + 360) % 360).replace('.', ','); draw(); save(); } return; }
   if (t.id === 'fvCap') { const f = ui.fview && (ui.fotos || []).find(x => x.id === ui.fview.id); if (!f) return; f.nome = t.value; clearTimeout(ui.tCap); ui.tCap = setTimeout(() => fPut(f).catch(() => {}), 400); return; }
-  if (t.dataset.w) { const w = ui.sel && pl.walls.find(x => x.id === ui.sel.id); if (!w) return; setW(w, t.dataset.w, t.type === 'checkbox' ? t.checked : t.value); update(t.hasAttribute('data-re')); }
+  if (t.dataset.w) { const w = ui.sel && pl.walls.find(x => x.id === ui.sel.id); if (!w) return; if (t.dataset.w === 'filo') lineOf(pl, w).forEach(x => { x.filo = t.value; }); else setW(w, t.dataset.w, t.type === 'checkbox' ? t.checked : t.value); update(t.hasAttribute('data-re')); }
   else if (t.dataset.r) { const r = (pl.rooms || []).find(x => x.id === ui.sel.id); if (!r) return; undemo();
     if (t.dataset.r === 'pieno') { r.pieno = t.checked; update(true); } else { r[t.dataset.r] = t.value; draw(); save(); } }
   else if (t.dataset.run) { setMeasure(pl, 'r', t.dataset.run, t.value); undemo(); update(false); }

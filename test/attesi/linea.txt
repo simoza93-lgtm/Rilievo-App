@@ -1,0 +1,2 @@
+{"uno":[0.1,0.1],"due":[0.1,0.1],"dueInv":[0.1,0.1],"primaV":[0.1,0.1],"dalBasso":[0.1,0.1],"Xo":[0,0],"Xa":[-0.1,-0.1],"destra":[0.1,0.1],"Xta":"PXe Xo al muro X più spesso (vale per tutto il muro dritto)"}
+errors []

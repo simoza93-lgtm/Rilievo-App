@@ -1,3 +1,3 @@
-{"par":[{"filo":"-","H":false},{"filo":"-","H":true}],"faces":[["P","V",0,0.3],["P","H",9,9.3],["P","V",10,10.3],["P","H",0,0.3],["P","V",6,6.3],["P","H",5,5.3],["T","V",0,0.1],["T","H",0,0.1]],"tiny":0,"comps":[28.91,54.39],"toast":"Muro a filo con il lato X del muro che Xe (per X il Xto di un X). Si cambia nel Xo del muro, «PXe»."}
+{"par":[{"filo":"-","H":false},{"filo":"-","H":true}],"faces":[["P","V",0,0.3],["P","H",9,9.3],["P","V",10,10.3],["P","H",0,0.3],["P","V",6,6.3],["P","H",5,5.3],["T","V",0,0.1],["T","H",0,0.1]],"tiny":0,"comps":[28.91,54.39],"toast":"Muro a filo con la faccia del muro più spesso che Xe in linea. Si cambia nel Xo del muro, «PXe»."}
 {"v":[{"w":"T","id":"X","tipo":"varco","d":"2,2","l":"1","h":"","dav":"","inv":false,"dp":true,"lp":true,"sc":"X"}],"ops":[["varco",2.35,3.35]],"warns":[],"after":{"ap":{"d":"1,8","l":"1,10"},"stair":[2.15,-0.6],"cx":2.65,"vc":2.65},"dopoTolta":[["varco",true]]}
 errors []

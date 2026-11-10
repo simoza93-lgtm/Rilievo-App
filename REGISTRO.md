@@ -3,6 +3,26 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 10 novembre 2026 — muri dritti allineati
+
+- Un tramezzo dritto diviso da un incrocio (per esempio quello che prosegue lo spigolo del perimetrale e attraversa
+  un altro tramezzo) ora ha tutti i tratti nella stessa posizione: prima il tratto attaccato al perimetrale andava
+  a filo con la sua faccia e quello oltre l'incrocio restava centrato, con uno scalino di 10 cm.
+- «Posizione» nel pannello del muro (Centrato / A filo a sinistra / A filo a destra) ora vale per tutto il muro
+  dritto, non solo per il tratto toccato.
+- Attesi aggiornati: `balc`, `balc2` (cambia solo il testo dell'avviso), `ext2`, `ext3` (il tramezzo che prosegue
+  il parapetto oltre l'incrocio ora è allineato al parapetto, quindi cambiano le parziali di quel lato). Prova `linea`.
+
+## 10 novembre 2026 — incroci doppi
+
+- Correzione: quando un tramezzo a L girava accanto allo spigolo del perimetrale (a 5–15 cm), nascevano due
+  incroci vicini invece di uno: il lato della stanza saltava il tramezzo. Ora due incroci dentro lo spessore dei muri
+  diventano uno solo (si sposta quello dei muri più sottili). Vale anche per due tramezzi sfalsati di pochi cm
+  sopra e sotto un altro tramezzo; da 15 cm in su restano due incroci separati.
+- Correzione: il «muro a filo con lo spigolo» non parte più da uno spigolo che non ha muro dietro (prima poteva
+  nascere un pezzetto di 5 cm e un muro sovrapposto a un altro).
+- I rilievi già fatti si sistemano da soli all'apertura; le misure scritte restano. Prova `nodi`.
+
 ## 9 novembre 2026 — tramezzi che partono da un incrocio
 
 - Correzione: un tramezzo che parte (o finisce) vicino a un incrocio di muri, per esempio dallo spigolo dove il
