@@ -3,6 +3,13 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 11 novembre 2026 — strumenti per disegnare, tappa 2: Parallela
+
+- Menu Note → **Parallela**: tocchi una linea (si colora di blu), poi tocchi dal lato dove va la parallela e scrivi
+  la distanza. La nuova linea ha la stessa lunghezza ed è dello stesso tipo (Linea o Costruzione). La linea d'origine
+  resta scelta: puoi farne altre (es. 3,10 e 6,20 dalla linea di terra) senza ritoccarla. Le distanze sono sempre
+  dalla linea d'origine. «Annulla» toglie l'ultima. Prova `paral`. Prossima tappa: taglia ed estendi.
+
 ## 11 novembre 2026 — strumenti per disegnare (prospetto sulla pianta), tappa 1
 
 - Menu Note: **Linea** e **Costruzione**, più «Nascondi/Mostra costr.».
@@ -14,7 +21,7 @@ rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact
 - Costruzione: stesse regole, tratteggiata grigia, serve solo per agganciarsi (proiezioni dalla pianta); non va
   nello script e si nasconde col tasto.
 - Script: le Linee vanno sempre, sul layer delle note a mano; le note a mano libere solo con l'opzione di sempre.
-- Prova `linee`. Prossime tappe: parallela a distanza, taglia ed estendi.
+- Prova `linee`.
 
 ## 11 novembre 2026 — «Incassata» tra le aperture
 
