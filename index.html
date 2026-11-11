@@ -184,6 +184,33 @@ ol.help li{margin-bottom:4px}
 <main id="main"></main>
 <dialog id="dArch"></dialog>
 
+<script>/* polygon-clipping 0.15.7 — Mike Fogel, licenza MIT (https://github.com/mfogel/polygon-clipping); include splaytree (MIT). Serve per i muri obliqui. */
+!function(t,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define(e):(t="undefined"!=typeof globalThis?globalThis:t||self).polygonClipping=e()}(this,(function(){"use strict";
+/**
+     * splaytree v3.1.2
+     * Fast Splay tree for Node and browser
+     *
+     * @author Alexander Milevski <info@w8r.name>
+     * @license MIT
+     * @preserve
+     */
+/*! *****************************************************************************
+    Copyright (c) Microsoft Corporation. All rights reserved.
+    Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+    this file except in compliance with the License. You may obtain a copy of the
+    License at http://www.apache.org/licenses/LICENSE-2.0
+
+    THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+    WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+    MERCHANTABLITY OR NON-INFRINGEMENT.
+
+    See the Apache Version 2.0 License for specific language governing permissions
+    and limitations under the License.
+    ***************************************************************************** */function t(t,e){var n,r,i,o,s={label:0,sent:function(){if(1&i[0])throw i[1];return i[1]},trys:[],ops:[]};return o={next:l(0),throw:l(1),return:l(2)},"function"==typeof Symbol&&(o[Symbol.iterator]=function(){return this}),o;function l(o){return function(l){return function(o){if(n)throw new TypeError("Generator is already executing.");for(;s;)try{if(n=1,r&&(i=2&o[0]?r.return:o[0]?r.throw||((i=r.return)&&i.call(r),0):r.next)&&!(i=i.call(r,o[1])).done)return i;switch(r=0,i&&(o=[2&o[0],i.value]),o[0]){case 0:case 1:i=o;break;case 4:return s.label++,{value:o[1],done:!1};case 5:s.label++,r=o[1],o=[0];continue;case 7:o=s.ops.pop(),s.trys.pop();continue;default:if(!(i=s.trys,(i=i.length>0&&i[i.length-1])||6!==o[0]&&2!==o[0])){s=0;continue}if(3===o[0]&&(!i||o[1]>i[0]&&o[1]<i[3])){s.label=o[1];break}if(6===o[0]&&s.label<i[1]){s.label=i[1],i=o;break}if(i&&s.label<i[2]){s.label=i[2],s.ops.push(o);break}i[2]&&s.ops.pop(),s.trys.pop();continue}o=e.call(t,s)}catch(t){o=[6,t],r=0}finally{n=i=0}if(5&o[0])throw o[1];return{value:o[0]?o[1]:void 0,done:!0}}([o,l])}}}var e=function(t,e){this.next=null,this.key=t,this.data=e,this.left=null,this.right=null};function n(t,e){return t>e?1:t<e?-1:0}function r(t,n,r){for(var i=new e(null,null),o=i,s=i;;){var l=r(t,n.key);if(l<0){if(null===n.left)break;if(r(t,n.left.key)<0){var h=n.left;if(n.left=h.right,h.right=n,null===(n=h).left)break}s.left=n,s=n,n=n.left}else{if(!(l>0))break;if(null===n.right)break;if(r(t,n.right.key)>0){h=n.right;if(n.right=h.left,h.left=n,null===(n=h).right)break}o.right=n,o=n,n=n.right}}return o.right=n.left,s.left=n.right,n.left=i.right,n.right=i.left,n}function i(t,n,i,o){var s=new e(t,n);if(null===i)return s.left=s.right=null,s;var l=o(t,(i=r(t,i,o)).key);return l<0?(s.left=i.left,s.right=i,i.left=null):l>=0&&(s.right=i.right,s.left=i,i.right=null),s}function o(t,e,n){var i=null,o=null;if(e){var s=n((e=r(t,e,n)).key,t);0===s?(i=e.left,o=e.right):s<0?(o=e.right,e.right=null,i=e):(i=e.left,e.left=null,o=e)}return{left:i,right:o}}function s(t,e,n,r,i){if(t){r(e+(n?"└── ":"├── ")+i(t)+"\n");var o=e+(n?"    ":"│   ");t.left&&s(t.left,o,!1,r,i),t.right&&s(t.right,o,!0,r,i)}}var l=function(){function l(t){void 0===t&&(t=n),this._root=null,this._size=0,this._comparator=t}return l.prototype.insert=function(t,e){return this._size++,this._root=i(t,e,this._root,this._comparator)},l.prototype.add=function(t,n){var i=new e(t,n);null===this._root&&(i.left=i.right=null,this._size++,this._root=i);var o=this._comparator,s=r(t,this._root,o),l=o(t,s.key);return 0===l?this._root=s:(l<0?(i.left=s.left,i.right=s,s.left=null):l>0&&(i.right=s.right,i.left=s,s.right=null),this._size++,this._root=i),this._root},l.prototype.remove=function(t){this._root=this._remove(t,this._root,this._comparator)},l.prototype._remove=function(t,e,n){var i;return null===e?null:0===n(t,(e=r(t,e,n)).key)?(null===e.left?i=e.right:(i=r(t,e.left,n)).right=e.right,this._size--,i):e},l.prototype.pop=function(){var t=this._root;if(t){for(;t.left;)t=t.left;return this._root=r(t.key,this._root,this._comparator),this._root=this._remove(t.key,this._root,this._comparator),{key:t.key,data:t.data}}return null},l.prototype.findStatic=function(t){for(var e=this._root,n=this._comparator;e;){var r=n(t,e.key);if(0===r)return e;e=r<0?e.left:e.right}return null},l.prototype.find=function(t){return this._root&&(this._root=r(t,this._root,this._comparator),0!==this._comparator(t,this._root.key))?null:this._root},l.prototype.contains=function(t){for(var e=this._root,n=this._comparator;e;){var r=n(t,e.key);if(0===r)return!0;e=r<0?e.left:e.right}return!1},l.prototype.forEach=function(t,e){for(var n=this._root,r=[],i=!1;!i;)null!==n?(r.push(n),n=n.left):0!==r.length?(n=r.pop(),t.call(e,n),n=n.right):i=!0;return this},l.prototype.range=function(t,e,n,r){for(var i=[],o=this._comparator,s=this._root;0!==i.length||s;)if(s)i.push(s),s=s.left;else{if(o((s=i.pop()).key,e)>0)break;if(o(s.key,t)>=0&&n.call(r,s))return this;s=s.right}return this},l.prototype.keys=function(){var t=[];return this.forEach((function(e){var n=e.key;return t.push(n)})),t},l.prototype.values=function(){var t=[];return this.forEach((function(e){var n=e.data;return t.push(n)})),t},l.prototype.min=function(){return this._root?this.minNode(this._root).key:null},l.prototype.max=function(){return this._root?this.maxNode(this._root).key:null},l.prototype.minNode=function(t){if(void 0===t&&(t=this._root),t)for(;t.left;)t=t.left;return t},l.prototype.maxNode=function(t){if(void 0===t&&(t=this._root),t)for(;t.right;)t=t.right;return t},l.prototype.at=function(t){for(var e=this._root,n=!1,r=0,i=[];!n;)if(e)i.push(e),e=e.left;else if(i.length>0){if(e=i.pop(),r===t)return e;r++,e=e.right}else n=!0;return null},l.prototype.next=function(t){var e=this._root,n=null;if(t.right){for(n=t.right;n.left;)n=n.left;return n}for(var r=this._comparator;e;){var i=r(t.key,e.key);if(0===i)break;i<0?(n=e,e=e.left):e=e.right}return n},l.prototype.prev=function(t){var e=this._root,n=null;if(null!==t.left){for(n=t.left;n.right;)n=n.right;return n}for(var r=this._comparator;e;){var i=r(t.key,e.key);if(0===i)break;i<0?e=e.left:(n=e,e=e.right)}return n},l.prototype.clear=function(){return this._root=null,this._size=0,this},l.prototype.toList=function(){return function(t){var n=t,r=[],i=!1,o=new e(null,null),s=o;for(;!i;)n?(r.push(n),n=n.left):r.length>0?n=(n=s=s.next=r.pop()).right:i=!0;return s.next=null,o.next}(this._root)},l.prototype.load=function(t,n,r){void 0===n&&(n=[]),void 0===r&&(r=!1);var i=t.length,o=this._comparator;if(r&&f(t,n,0,i-1,o),null===this._root)this._root=h(t,n,0,i),this._size=i;else{var s=function(t,n,r){var i=new e(null,null),o=i,s=t,l=n;for(;null!==s&&null!==l;)r(s.key,l.key)<0?(o.next=s,s=s.next):(o.next=l,l=l.next),o=o.next;null!==s?o.next=s:null!==l&&(o.next=l);return i.next}(this.toList(),function(t,n){for(var r=new e(null,null),i=r,o=0;o<t.length;o++)i=i.next=new e(t[o],n[o]);return i.next=null,r.next}(t,n),o);i=this._size+i,this._root=u({head:s},0,i)}return this},l.prototype.isEmpty=function(){return null===this._root},Object.defineProperty(l.prototype,"size",{get:function(){return this._size},enumerable:!0,configurable:!0}),Object.defineProperty(l.prototype,"root",{get:function(){return this._root},enumerable:!0,configurable:!0}),l.prototype.toString=function(t){void 0===t&&(t=function(t){return String(t.key)});var e=[];return s(this._root,"",!0,(function(t){return e.push(t)}),t),e.join("")},l.prototype.update=function(t,e,n){var s=this._comparator,l=o(t,this._root,s),h=l.left,u=l.right;s(t,e)<0?u=i(e,n,u,s):h=i(e,n,h,s),this._root=function(t,e,n){return null===e?t:(null===t||((e=r(t.key,e,n)).left=t),e)}(h,u,s)},l.prototype.split=function(t){return o(t,this._root,this._comparator)},l.prototype[Symbol.iterator]=function(){var e,n,r;return t(this,(function(t){switch(t.label){case 0:e=this._root,n=[],r=!1,t.label=1;case 1:return r?[3,6]:null===e?[3,2]:(n.push(e),e=e.left,[3,5]);case 2:return 0===n.length?[3,4]:[4,e=n.pop()];case 3:return t.sent(),e=e.right,[3,5];case 4:r=!0,t.label=5;case 5:return[3,1];case 6:return[2]}}))},l}();function h(t,n,r,i){var o=i-r;if(o>0){var s=r+Math.floor(o/2),l=t[s],u=n[s],f=new e(l,u);return f.left=h(t,n,r,s),f.right=h(t,n,s+1,i),f}return null}function u(t,e,n){var r=n-e;if(r>0){var i=e+Math.floor(r/2),o=u(t,e,i),s=t.head;return s.left=o,t.head=t.head.next,s.right=u(t,i+1,n),s}return null}function f(t,e,n,r,i){if(!(n>=r)){for(var o=t[n+r>>1],s=n-1,l=r+1;;){do{s++}while(i(t[s],o)<0);do{l--}while(i(t[l],o)>0);if(s>=l)break;var h=t[s];t[s]=t[l],t[l]=h,h=e[s],e[s]=e[l],e[l]=h}f(t,e,n,l,i),f(t,e,l+1,r,i)}}const c=(t,e)=>t.ll.x<=e.x&&e.x<=t.ur.x&&t.ll.y<=e.y&&e.y<=t.ur.y,p=(t,e)=>{if(e.ur.x<t.ll.x||t.ur.x<e.ll.x||e.ur.y<t.ll.y||t.ur.y<e.ll.y)return null;const n=t.ll.x<e.ll.x?e.ll.x:t.ll.x,r=t.ur.x<e.ur.x?t.ur.x:e.ur.x;return{ll:{x:n,y:t.ll.y<e.ll.y?e.ll.y:t.ll.y},ur:{x:r,y:t.ur.y<e.ur.y?t.ur.y:e.ur.y}}};let g=Number.EPSILON;void 0===g&&(g=Math.pow(2,-52));const a=g*g,y=(t,e)=>{if(-g<t&&t<g&&-g<e&&e<g)return 0;const n=t-e;return n*n<a*t*e?0:t<e?-1:1};class x{constructor(){this.tree=new l,this.round(0)}round(t){const e=this.tree.add(t),n=this.tree.prev(e);if(null!==n&&0===y(e.key,n.key))return this.tree.remove(t),n.key;const r=this.tree.next(e);return null!==r&&0===y(e.key,r.key)?(this.tree.remove(t),r.key):t}}const b=new class{constructor(){this.reset()}reset(){this.xRounder=new x,this.yRounder=new x}round(t,e){return{x:this.xRounder.round(t),y:this.yRounder.round(e)}}},v=11102230246251565e-32,d=134217729,m=(3+8*v)*v;function E(t,e,n,r,i){let o,s,l,h,u=e[0],f=r[0],c=0,p=0;f>u==f>-u?(o=u,u=e[++c]):(o=f,f=r[++p]);let g=0;if(c<t&&p<n)for(f>u==f>-u?(s=u+o,l=o-(s-u),u=e[++c]):(s=f+o,l=o-(s-f),f=r[++p]),o=s,0!==l&&(i[g++]=l);c<t&&p<n;)f>u==f>-u?(s=o+u,h=s-o,l=o-(s-h)+(u-h),u=e[++c]):(s=o+f,h=s-o,l=o-(s-h)+(f-h),f=r[++p]),o=s,0!==l&&(i[g++]=l);for(;c<t;)s=o+u,h=s-o,l=o-(s-h)+(u-h),u=e[++c],o=s,0!==l&&(i[g++]=l);for(;p<n;)s=o+f,h=s-o,l=o-(s-h)+(f-h),f=r[++p],o=s,0!==l&&(i[g++]=l);return 0===o&&0!==g||(i[g++]=o),g}function S(t){return new Float64Array(t)}const _=22204460492503146e-32,w=11093356479670487e-47,k=S(4),R=S(8),I=S(12),P=S(16),N=S(4);function A(t,e,n,r,i,o){const s=(e-o)*(n-i),l=(t-i)*(r-o),h=s-l,u=Math.abs(s+l);return Math.abs(h)>=33306690738754716e-32*u?h:-function(t,e,n,r,i,o,s){let l,h,u,f,c,p,g,a,y,x,b,v,S,A,O,L,$,M;const z=t-i,B=n-i,G=e-o,T=r-o;A=z*T,p=d*z,g=p-(p-z),a=z-g,p=d*T,y=p-(p-T),x=T-y,O=a*x-(A-g*y-a*y-g*x),L=G*B,p=d*G,g=p-(p-G),a=G-g,p=d*B,y=p-(p-B),x=B-y,$=a*x-(L-g*y-a*y-g*x),b=O-$,c=O-b,k[0]=O-(b+c)+(c-$),v=A+b,c=v-A,S=A-(v-c)+(b-c),b=S-L,c=S-b,k[1]=S-(b+c)+(c-L),M=v+b,c=M-v,k[2]=v-(M-c)+(b-c),k[3]=M;let q=function(t,e){let n=e[0];for(let r=1;r<t;r++)n+=e[r];return n}(4,k),C=_*s;if(q>=C||-q>=C)return q;if(c=t-z,l=t-(z+c)+(c-i),c=n-B,u=n-(B+c)+(c-i),c=e-G,h=e-(G+c)+(c-o),c=r-T,f=r-(T+c)+(c-o),0===l&&0===h&&0===u&&0===f)return q;if(C=w*s+m*Math.abs(q),q+=z*f+T*l-(G*u+B*h),q>=C||-q>=C)return q;A=l*T,p=d*l,g=p-(p-l),a=l-g,p=d*T,y=p-(p-T),x=T-y,O=a*x-(A-g*y-a*y-g*x),L=h*B,p=d*h,g=p-(p-h),a=h-g,p=d*B,y=p-(p-B),x=B-y,$=a*x-(L-g*y-a*y-g*x),b=O-$,c=O-b,N[0]=O-(b+c)+(c-$),v=A+b,c=v-A,S=A-(v-c)+(b-c),b=S-L,c=S-b,N[1]=S-(b+c)+(c-L),M=v+b,c=M-v,N[2]=v-(M-c)+(b-c),N[3]=M;const F=E(4,k,4,N,R);A=z*f,p=d*z,g=p-(p-z),a=z-g,p=d*f,y=p-(p-f),x=f-y,O=a*x-(A-g*y-a*y-g*x),L=G*u,p=d*G,g=p-(p-G),a=G-g,p=d*u,y=p-(p-u),x=u-y,$=a*x-(L-g*y-a*y-g*x),b=O-$,c=O-b,N[0]=O-(b+c)+(c-$),v=A+b,c=v-A,S=A-(v-c)+(b-c),b=S-L,c=S-b,N[1]=S-(b+c)+(c-L),M=v+b,c=M-v,N[2]=v-(M-c)+(b-c),N[3]=M;const j=E(F,R,4,N,I);A=l*f,p=d*l,g=p-(p-l),a=l-g,p=d*f,y=p-(p-f),x=f-y,O=a*x-(A-g*y-a*y-g*x),L=h*u,p=d*h,g=p-(p-h),a=h-g,p=d*u,y=p-(p-u),x=u-y,$=a*x-(L-g*y-a*y-g*x),b=O-$,c=O-b,N[0]=O-(b+c)+(c-$),v=A+b,c=v-A,S=A-(v-c)+(b-c),b=S-L,c=S-b,N[1]=S-(b+c)+(c-L),M=v+b,c=M-v,N[2]=v-(M-c)+(b-c),N[3]=M;const U=E(j,I,4,N,P);return P[U-1]}(t,e,n,r,i,o,u)}const O=(t,e)=>t.x*e.y-t.y*e.x,L=(t,e)=>t.x*e.x+t.y*e.y,$=(t,e,n)=>{const r=A(t.x,t.y,e.x,e.y,n.x,n.y);return r>0?-1:r<0?1:0},M=t=>Math.sqrt(L(t,t)),z=(t,e,n)=>{const r={x:e.x-t.x,y:e.y-t.y},i={x:n.x-t.x,y:n.y-t.y};return O(i,r)/M(i)/M(r)},B=(t,e,n)=>{const r={x:e.x-t.x,y:e.y-t.y},i={x:n.x-t.x,y:n.y-t.y};return L(i,r)/M(i)/M(r)},G=(t,e,n)=>0===e.y?null:{x:t.x+e.x/e.y*(n-t.y),y:n},T=(t,e,n)=>0===e.x?null:{x:n,y:t.y+e.y/e.x*(n-t.x)};class q{static compare(t,e){const n=q.comparePoints(t.point,e.point);return 0!==n?n:(t.point!==e.point&&t.link(e),t.isLeft!==e.isLeft?t.isLeft?1:-1:F.compare(t.segment,e.segment))}static comparePoints(t,e){return t.x<e.x?-1:t.x>e.x?1:t.y<e.y?-1:t.y>e.y?1:0}constructor(t,e){void 0===t.events?t.events=[this]:t.events.push(this),this.point=t,this.isLeft=e}link(t){if(t.point===this.point)throw new Error("Tried to link already linked events");const e=t.point.events;for(let t=0,n=e.length;t<n;t++){const n=e[t];this.point.events.push(n),n.point=this.point}this.checkForConsuming()}checkForConsuming(){const t=this.point.events.length;for(let e=0;e<t;e++){const n=this.point.events[e];if(void 0===n.segment.consumedBy)for(let r=e+1;r<t;r++){const t=this.point.events[r];void 0===t.consumedBy&&(n.otherSE.point.events===t.otherSE.point.events&&n.segment.consume(t.segment))}}}getAvailableLinkedEvents(){const t=[];for(let e=0,n=this.point.events.length;e<n;e++){const n=this.point.events[e];n!==this&&!n.segment.ringOut&&n.segment.isInResult()&&t.push(n)}return t}getLeftmostComparator(t){const e=new Map,n=n=>{const r=n.otherSE;e.set(n,{sine:z(this.point,t.point,r.point),cosine:B(this.point,t.point,r.point)})};return(t,r)=>{e.has(t)||n(t),e.has(r)||n(r);const{sine:i,cosine:o}=e.get(t),{sine:s,cosine:l}=e.get(r);return i>=0&&s>=0?o<l?1:o>l?-1:0:i<0&&s<0?o<l?-1:o>l?1:0:s<i?-1:s>i?1:0}}}let C=0;class F{static compare(t,e){const n=t.leftSE.point.x,r=e.leftSE.point.x,i=t.rightSE.point.x,o=e.rightSE.point.x;if(o<n)return 1;if(i<r)return-1;const s=t.leftSE.point.y,l=e.leftSE.point.y,h=t.rightSE.point.y,u=e.rightSE.point.y;if(n<r){if(l<s&&l<h)return 1;if(l>s&&l>h)return-1;const n=t.comparePoint(e.leftSE.point);if(n<0)return 1;if(n>0)return-1;const r=e.comparePoint(t.rightSE.point);return 0!==r?r:-1}if(n>r){if(s<l&&s<u)return-1;if(s>l&&s>u)return 1;const n=e.comparePoint(t.leftSE.point);if(0!==n)return n;const r=t.comparePoint(e.rightSE.point);return r<0?1:r>0?-1:1}if(s<l)return-1;if(s>l)return 1;if(i<o){const n=e.comparePoint(t.rightSE.point);if(0!==n)return n}if(i>o){const n=t.comparePoint(e.rightSE.point);if(n<0)return 1;if(n>0)return-1}if(i!==o){const t=h-s,e=i-n,f=u-l,c=o-r;if(t>e&&f<c)return 1;if(t<e&&f>c)return-1}return i>o?1:i<o||h<u?-1:h>u?1:t.id<e.id?-1:t.id>e.id?1:0}constructor(t,e,n,r){this.id=++C,this.leftSE=t,t.segment=this,t.otherSE=e,this.rightSE=e,e.segment=this,e.otherSE=t,this.rings=n,this.windings=r}static fromRing(t,e,n){let r,i,o;const s=q.comparePoints(t,e);if(s<0)r=t,i=e,o=1;else{if(!(s>0))throw new Error(`Tried to create degenerate segment at [${t.x}, ${t.y}]`);r=e,i=t,o=-1}const l=new q(r,!0),h=new q(i,!1);return new F(l,h,[n],[o])}replaceRightSE(t){this.rightSE=t,this.rightSE.segment=this,this.rightSE.otherSE=this.leftSE,this.leftSE.otherSE=this.rightSE}bbox(){const t=this.leftSE.point.y,e=this.rightSE.point.y;return{ll:{x:this.leftSE.point.x,y:t<e?t:e},ur:{x:this.rightSE.point.x,y:t>e?t:e}}}vector(){return{x:this.rightSE.point.x-this.leftSE.point.x,y:this.rightSE.point.y-this.leftSE.point.y}}isAnEndpoint(t){return t.x===this.leftSE.point.x&&t.y===this.leftSE.point.y||t.x===this.rightSE.point.x&&t.y===this.rightSE.point.y}comparePoint(t){if(this.isAnEndpoint(t))return 0;const e=this.leftSE.point,n=this.rightSE.point,r=this.vector();if(e.x===n.x)return t.x===e.x?0:t.x<e.x?1:-1;const i=(t.y-e.y)/r.y,o=e.x+i*r.x;if(t.x===o)return 0;const s=(t.x-e.x)/r.x,l=e.y+s*r.y;return t.y===l?0:t.y<l?-1:1}getIntersection(t){const e=this.bbox(),n=t.bbox(),r=p(e,n);if(null===r)return null;const i=this.leftSE.point,o=this.rightSE.point,s=t.leftSE.point,l=t.rightSE.point,h=c(e,s)&&0===this.comparePoint(s),u=c(n,i)&&0===t.comparePoint(i),f=c(e,l)&&0===this.comparePoint(l),g=c(n,o)&&0===t.comparePoint(o);if(u&&h)return g&&!f?o:!g&&f?l:null;if(u)return f&&i.x===l.x&&i.y===l.y?null:i;if(h)return g&&o.x===s.x&&o.y===s.y?null:s;if(g&&f)return null;if(g)return o;if(f)return l;const a=((t,e,n,r)=>{if(0===e.x)return T(n,r,t.x);if(0===r.x)return T(t,e,n.x);if(0===e.y)return G(n,r,t.y);if(0===r.y)return G(t,e,n.y);const i=O(e,r);if(0==i)return null;const o={x:n.x-t.x,y:n.y-t.y},s=O(o,e)/i,l=O(o,r)/i;return{x:(t.x+l*e.x+(n.x+s*r.x))/2,y:(t.y+l*e.y+(n.y+s*r.y))/2}})(i,this.vector(),s,t.vector());return null===a?null:c(r,a)?b.round(a.x,a.y):null}split(t){const e=[],n=void 0!==t.events,r=new q(t,!0),i=new q(t,!1),o=this.rightSE;this.replaceRightSE(i),e.push(i),e.push(r);const s=new F(r,o,this.rings.slice(),this.windings.slice());return q.comparePoints(s.leftSE.point,s.rightSE.point)>0&&s.swapEvents(),q.comparePoints(this.leftSE.point,this.rightSE.point)>0&&this.swapEvents(),n&&(r.checkForConsuming(),i.checkForConsuming()),e}swapEvents(){const t=this.rightSE;this.rightSE=this.leftSE,this.leftSE=t,this.leftSE.isLeft=!0,this.rightSE.isLeft=!1;for(let t=0,e=this.windings.length;t<e;t++)this.windings[t]*=-1}consume(t){let e=this,n=t;for(;e.consumedBy;)e=e.consumedBy;for(;n.consumedBy;)n=n.consumedBy;const r=F.compare(e,n);if(0!==r){if(r>0){const t=e;e=n,n=t}if(e.prev===n){const t=e;e=n,n=t}for(let t=0,r=n.rings.length;t<r;t++){const r=n.rings[t],i=n.windings[t],o=e.rings.indexOf(r);-1===o?(e.rings.push(r),e.windings.push(i)):e.windings[o]+=i}n.rings=null,n.windings=null,n.consumedBy=e,n.leftSE.consumedBy=e.leftSE,n.rightSE.consumedBy=e.rightSE}}prevInResult(){return void 0!==this._prevInResult||(this.prev?this.prev.isInResult()?this._prevInResult=this.prev:this._prevInResult=this.prev.prevInResult():this._prevInResult=null),this._prevInResult}beforeState(){if(void 0!==this._beforeState)return this._beforeState;if(this.prev){const t=this.prev.consumedBy||this.prev;this._beforeState=t.afterState()}else this._beforeState={rings:[],windings:[],multiPolys:[]};return this._beforeState}afterState(){if(void 0!==this._afterState)return this._afterState;const t=this.beforeState();this._afterState={rings:t.rings.slice(0),windings:t.windings.slice(0),multiPolys:[]};const e=this._afterState.rings,n=this._afterState.windings,r=this._afterState.multiPolys;for(let t=0,r=this.rings.length;t<r;t++){const r=this.rings[t],i=this.windings[t],o=e.indexOf(r);-1===o?(e.push(r),n.push(i)):n[o]+=i}const i=[],o=[];for(let t=0,r=e.length;t<r;t++){if(0===n[t])continue;const r=e[t],s=r.poly;if(-1===o.indexOf(s))if(r.isExterior)i.push(s);else{-1===o.indexOf(s)&&o.push(s);const t=i.indexOf(r.poly);-1!==t&&i.splice(t,1)}}for(let t=0,e=i.length;t<e;t++){const e=i[t].multiPoly;-1===r.indexOf(e)&&r.push(e)}return this._afterState}isInResult(){if(this.consumedBy)return!1;if(void 0!==this._isInResult)return this._isInResult;const t=this.beforeState().multiPolys,e=this.afterState().multiPolys;switch(H.type){case"union":{const n=0===t.length,r=0===e.length;this._isInResult=n!==r;break}case"intersection":{let n,r;t.length<e.length?(n=t.length,r=e.length):(n=e.length,r=t.length),this._isInResult=r===H.numMultiPolys&&n<r;break}case"xor":{const n=Math.abs(t.length-e.length);this._isInResult=n%2==1;break}case"difference":{const n=t=>1===t.length&&t[0].isSubject;this._isInResult=n(t)!==n(e);break}default:throw new Error(`Unrecognized operation type found ${H.type}`)}return this._isInResult}}class j{constructor(t,e,n){if(!Array.isArray(t)||0===t.length)throw new Error("Input geometry is not a valid Polygon or MultiPolygon");if(this.poly=e,this.isExterior=n,this.segments=[],"number"!=typeof t[0][0]||"number"!=typeof t[0][1])throw new Error("Input geometry is not a valid Polygon or MultiPolygon");const r=b.round(t[0][0],t[0][1]);this.bbox={ll:{x:r.x,y:r.y},ur:{x:r.x,y:r.y}};let i=r;for(let e=1,n=t.length;e<n;e++){if("number"!=typeof t[e][0]||"number"!=typeof t[e][1])throw new Error("Input geometry is not a valid Polygon or MultiPolygon");let n=b.round(t[e][0],t[e][1]);n.x===i.x&&n.y===i.y||(this.segments.push(F.fromRing(i,n,this)),n.x<this.bbox.ll.x&&(this.bbox.ll.x=n.x),n.y<this.bbox.ll.y&&(this.bbox.ll.y=n.y),n.x>this.bbox.ur.x&&(this.bbox.ur.x=n.x),n.y>this.bbox.ur.y&&(this.bbox.ur.y=n.y),i=n)}r.x===i.x&&r.y===i.y||this.segments.push(F.fromRing(i,r,this))}getSweepEvents(){const t=[];for(let e=0,n=this.segments.length;e<n;e++){const n=this.segments[e];t.push(n.leftSE),t.push(n.rightSE)}return t}}class U{constructor(t,e){if(!Array.isArray(t))throw new Error("Input geometry is not a valid Polygon or MultiPolygon");this.exteriorRing=new j(t[0],this,!0),this.bbox={ll:{x:this.exteriorRing.bbox.ll.x,y:this.exteriorRing.bbox.ll.y},ur:{x:this.exteriorRing.bbox.ur.x,y:this.exteriorRing.bbox.ur.y}},this.interiorRings=[];for(let e=1,n=t.length;e<n;e++){const n=new j(t[e],this,!1);n.bbox.ll.x<this.bbox.ll.x&&(this.bbox.ll.x=n.bbox.ll.x),n.bbox.ll.y<this.bbox.ll.y&&(this.bbox.ll.y=n.bbox.ll.y),n.bbox.ur.x>this.bbox.ur.x&&(this.bbox.ur.x=n.bbox.ur.x),n.bbox.ur.y>this.bbox.ur.y&&(this.bbox.ur.y=n.bbox.ur.y),this.interiorRings.push(n)}this.multiPoly=e}getSweepEvents(){const t=this.exteriorRing.getSweepEvents();for(let e=0,n=this.interiorRings.length;e<n;e++){const n=this.interiorRings[e].getSweepEvents();for(let e=0,r=n.length;e<r;e++)t.push(n[e])}return t}}class Y{constructor(t,e){if(!Array.isArray(t))throw new Error("Input geometry is not a valid Polygon or MultiPolygon");try{"number"==typeof t[0][0][0]&&(t=[t])}catch(t){}this.polys=[],this.bbox={ll:{x:Number.POSITIVE_INFINITY,y:Number.POSITIVE_INFINITY},ur:{x:Number.NEGATIVE_INFINITY,y:Number.NEGATIVE_INFINITY}};for(let e=0,n=t.length;e<n;e++){const n=new U(t[e],this);n.bbox.ll.x<this.bbox.ll.x&&(this.bbox.ll.x=n.bbox.ll.x),n.bbox.ll.y<this.bbox.ll.y&&(this.bbox.ll.y=n.bbox.ll.y),n.bbox.ur.x>this.bbox.ur.x&&(this.bbox.ur.x=n.bbox.ur.x),n.bbox.ur.y>this.bbox.ur.y&&(this.bbox.ur.y=n.bbox.ur.y),this.polys.push(n)}this.isSubject=e}getSweepEvents(){const t=[];for(let e=0,n=this.polys.length;e<n;e++){const n=this.polys[e].getSweepEvents();for(let e=0,r=n.length;e<r;e++)t.push(n[e])}return t}}class V{static factory(t){const e=[];for(let n=0,r=t.length;n<r;n++){const r=t[n];if(!r.isInResult()||r.ringOut)continue;let i=null,o=r.leftSE,s=r.rightSE;const l=[o],h=o.point,u=[];for(;i=o,o=s,l.push(o),o.point!==h;)for(;;){const t=o.getAvailableLinkedEvents();if(0===t.length){const t=l[0].point,e=l[l.length-1].point;throw new Error(`Unable to complete output ring starting at [${t.x}, ${t.y}]. Last matching segment found ends at [${e.x}, ${e.y}].`)}if(1===t.length){s=t[0].otherSE;break}let n=null;for(let t=0,e=u.length;t<e;t++)if(u[t].point===o.point){n=t;break}if(null!==n){const t=u.splice(n)[0],r=l.splice(t.index);r.unshift(r[0].otherSE),e.push(new V(r.reverse()));continue}u.push({index:l.length,point:o.point});const r=o.getLeftmostComparator(i);s=t.sort(r)[0].otherSE;break}e.push(new V(l))}return e}constructor(t){this.events=t;for(let e=0,n=t.length;e<n;e++)t[e].segment.ringOut=this;this.poly=null}getGeom(){let t=this.events[0].point;const e=[t];for(let n=1,r=this.events.length-1;n<r;n++){const r=this.events[n].point,i=this.events[n+1].point;0!==$(r,t,i)&&(e.push(r),t=r)}if(1===e.length)return null;const n=e[0],r=e[1];0===$(n,t,r)&&e.shift(),e.push(e[0]);const i=this.isExteriorRing()?1:-1,o=this.isExteriorRing()?0:e.length-1,s=this.isExteriorRing()?e.length:-1,l=[];for(let t=o;t!=s;t+=i)l.push([e[t].x,e[t].y]);return l}isExteriorRing(){if(void 0===this._isExteriorRing){const t=this.enclosingRing();this._isExteriorRing=!t||!t.isExteriorRing()}return this._isExteriorRing}enclosingRing(){return void 0===this._enclosingRing&&(this._enclosingRing=this._calcEnclosingRing()),this._enclosingRing}_calcEnclosingRing(){let t=this.events[0];for(let e=1,n=this.events.length;e<n;e++){const n=this.events[e];q.compare(t,n)>0&&(t=n)}let e=t.segment.prevInResult(),n=e?e.prevInResult():null;for(;;){if(!e)return null;if(!n)return e.ringOut;if(n.ringOut!==e.ringOut)return n.ringOut.enclosingRing()!==e.ringOut?e.ringOut:e.ringOut.enclosingRing();e=n.prevInResult(),n=e?e.prevInResult():null}}}class X{constructor(t){this.exteriorRing=t,t.poly=this,this.interiorRings=[]}addInterior(t){this.interiorRings.push(t),t.poly=this}getGeom(){const t=[this.exteriorRing.getGeom()];if(null===t[0])return null;for(let e=0,n=this.interiorRings.length;e<n;e++){const n=this.interiorRings[e].getGeom();null!==n&&t.push(n)}return t}}class Q{constructor(t){this.rings=t,this.polys=this._composePolys(t)}getGeom(){const t=[];for(let e=0,n=this.polys.length;e<n;e++){const n=this.polys[e].getGeom();null!==n&&t.push(n)}return t}_composePolys(t){const e=[];for(let n=0,r=t.length;n<r;n++){const r=t[n];if(!r.poly)if(r.isExteriorRing())e.push(new X(r));else{const t=r.enclosingRing();t.poly||e.push(new X(t)),t.poly.addInterior(r)}}return e}}class W{constructor(t){let e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:F.compare;this.queue=t,this.tree=new l(e),this.segments=[]}process(t){const e=t.segment,n=[];if(t.consumedBy)return t.isLeft?this.queue.remove(t.otherSE):this.tree.remove(e),n;const r=t.isLeft?this.tree.add(e):this.tree.find(e);if(!r)throw new Error(`Unable to find segment #${e.id} [${e.leftSE.point.x}, ${e.leftSE.point.y}] -> [${e.rightSE.point.x}, ${e.rightSE.point.y}] in SweepLine tree.`);let i,o,s=r,l=r;for(;void 0===i;)s=this.tree.prev(s),null===s?i=null:void 0===s.key.consumedBy&&(i=s.key);for(;void 0===o;)l=this.tree.next(l),null===l?o=null:void 0===l.key.consumedBy&&(o=l.key);if(t.isLeft){let r=null;if(i){const t=i.getIntersection(e);if(null!==t&&(e.isAnEndpoint(t)||(r=t),!i.isAnEndpoint(t))){const e=this._splitSafely(i,t);for(let t=0,r=e.length;t<r;t++)n.push(e[t])}}let s=null;if(o){const t=o.getIntersection(e);if(null!==t&&(e.isAnEndpoint(t)||(s=t),!o.isAnEndpoint(t))){const e=this._splitSafely(o,t);for(let t=0,r=e.length;t<r;t++)n.push(e[t])}}if(null!==r||null!==s){let t=null;if(null===r)t=s;else if(null===s)t=r;else{t=q.comparePoints(r,s)<=0?r:s}this.queue.remove(e.rightSE),n.push(e.rightSE);const i=e.split(t);for(let t=0,e=i.length;t<e;t++)n.push(i[t])}n.length>0?(this.tree.remove(e),n.push(t)):(this.segments.push(e),e.prev=i)}else{if(i&&o){const t=i.getIntersection(o);if(null!==t){if(!i.isAnEndpoint(t)){const e=this._splitSafely(i,t);for(let t=0,r=e.length;t<r;t++)n.push(e[t])}if(!o.isAnEndpoint(t)){const e=this._splitSafely(o,t);for(let t=0,r=e.length;t<r;t++)n.push(e[t])}}}this.tree.remove(e)}return n}_splitSafely(t,e){this.tree.remove(t);const n=t.rightSE;this.queue.remove(n);const r=t.split(e);return r.push(n),void 0===t.consumedBy&&this.tree.add(t),r}}const Z="undefined"!=typeof process&&process.env.POLYGON_CLIPPING_MAX_QUEUE_SIZE||1e6,D="undefined"!=typeof process&&process.env.POLYGON_CLIPPING_MAX_SWEEPLINE_SEGMENTS||1e6;const H=new class{run(t,e,n){H.type=t,b.reset();const r=[new Y(e,!0)];for(let t=0,e=n.length;t<e;t++)r.push(new Y(n[t],!1));if(H.numMultiPolys=r.length,"difference"===H.type){const t=r[0];let e=1;for(;e<r.length;)null!==p(r[e].bbox,t.bbox)?e++:r.splice(e,1)}if("intersection"===H.type)for(let t=0,e=r.length;t<e;t++){const e=r[t];for(let n=t+1,i=r.length;n<i;n++)if(null===p(e.bbox,r[n].bbox))return[]}const i=new l(q.compare);for(let t=0,e=r.length;t<e;t++){const e=r[t].getSweepEvents();for(let t=0,n=e.length;t<n;t++)if(i.insert(e[t]),i.size>Z)throw new Error("Infinite loop when putting segment endpoints in a priority queue (queue size too big).")}const o=new W(i);let s=i.size,h=i.pop();for(;h;){const t=h.key;if(i.size===s){const e=t.segment;throw new Error(`Unable to pop() ${t.isLeft?"left":"right"} SweepEvent [${t.point.x}, ${t.point.y}] from segment #${e.id} [${e.leftSE.point.x}, ${e.leftSE.point.y}] -> [${e.rightSE.point.x}, ${e.rightSE.point.y}] from queue.`)}if(i.size>Z)throw new Error("Infinite loop when passing sweep line over endpoints (queue size too big).");if(o.segments.length>D)throw new Error("Infinite loop when passing sweep line over endpoints (too many sweep line segments).");const e=o.process(t);for(let t=0,n=e.length;t<n;t++){const n=e[t];void 0===n.consumedBy&&i.insert(n)}s=i.size,h=i.pop()}b.reset();const u=V.factory(o.segments);return new Q(u).getGeom()}};var J={union:function(t){for(var e=arguments.length,n=new Array(e>1?e-1:0),r=1;r<e;r++)n[r-1]=arguments[r];return H.run("union",t,n)},intersection:function(t){for(var e=arguments.length,n=new Array(e>1?e-1:0),r=1;r<e;r++)n[r-1]=arguments[r];return H.run("intersection",t,n)},xor:function(t){for(var e=arguments.length,n=new Array(e>1?e-1:0),r=1;r<e;r++)n[r-1]=arguments[r];return H.run("xor",t,n)},difference:function(t){for(var e=arguments.length,n=new Array(e>1?e-1:0),r=1;r<e;r++)n[r-1]=arguments[r];return H.run("difference",t,n)}};return J}));
+
+
+</script>
 <script>
 "use strict";
 /* ================= utilità ================= */
@@ -231,16 +258,21 @@ const apFace = (ap, t, sg) => incOk(ap, t) && ap.lw === sg ? {d0:-risOf(ap), w:n
 /* ================= topologia ================= */
 const nd = (pl, id) => pl.nodes.find(n => n.id === id);
 const isH = (a, b) => Math.abs(b.x - a.x) >= Math.abs(b.y - a.y);
+// muro obliquo (w.obl): né orizzontale né verticale. Il motore dei muri dritti (topo, lati, vani, griglia) non lo vede:
+// ha un suo calcolo (T.oinfo) e, se nel piano ce n'è almeno uno, gli ambienti e i contorni si calcolano a poligoni.
+const isObl = w => !!(w && w.obl);
 const thick = w => { if (w.tipo === 'P') return P_(); if (w.tipo === 'T') return T_(); const s = num(w.sp); return s > 0.02 ? s : T_(); };   // «Altro spessore» ancora vuoto o a metà (0, 0,…): vale come tramezzo
 const layerOf = w => (w.tipo === 'P' || (w.tipo === 'X' && thick(w) >= P_() - EPS)) ? 'P' : 'I';
 const tipoNome = w => w.tipo === 'P' ? 'perimetrale' : w.tipo === 'T' ? 'tramezzo' : 'muro da ' + f2(thick(w)) + ' m';
 
 function topo(pl) {
-  const N = new Map(pl.nodes.map(n => [n.id, n])), at = new Map();
-  pl.walls.forEach(w => { [w.a, w.b].forEach(id => { if (!at.has(id)) at.set(id, []); at.get(id).push(w); }); });
+  const N = new Map(pl.nodes.map(n => [n.id, n])), at = new Map(), atO = new Map(), oinfo = new Map();
+  pl.walls.forEach(w => { const m = isObl(w) ? atO : at; [w.a, w.b].forEach(id => { if (!m.has(id)) m.set(id, []); m.get(id).push(w); }); });
+  pl.walls.forEach(w => { if (!isObl(w)) return; const a = N.get(w.a), b = N.get(w.b); if (!a || !b) return; const len = Math.hypot(b.x - a.x, b.y - a.y) || 1e-9, u = [(b.x - a.x) / len, (b.y - a.y) / len];
+    oinfo.set(w.id, {w, a, b, t:thick(w), len, u, n:[-u[1], u[0]], o:0, obl:true}); });
   const info = new Map(), offs = new Map();
   pl.walls.forEach(w => {
-    const a = N.get(w.a), b = N.get(w.b); if (!a || !b) return;
+    const a = N.get(w.a), b = N.get(w.b); if (!a || !b || isObl(w)) return;
     const H = isH(a, b), t = thick(w); let o = 0;
     if (w.filo === '+' || w.filo === '-') {
       // muro più spesso in linea: si cerca anche oltre i tratti dello stesso muro (stesso spessore e stesso filo), così un muro diviso da un tramezzo resta allineato
@@ -253,7 +285,7 @@ function topo(pl) {
     offs.set(w.id, o);
   });
   pl.walls.forEach(w => {
-    const a = N.get(w.a), b = N.get(w.b); if (!a || !b) return;
+    const a = N.get(w.a), b = N.get(w.b); if (!a || !b || isObl(w)) return;
     const H = isH(a, b), t = thick(w);
     // estensione oltre il nodo fino alla faccia lontana dei muri perpendicolari (tiene conto di quelli a filo)
     const ded = (id, start) => { let m = -Infinity; (at.get(id) || []).forEach(x => { if (x === w) return; const xa = N.get(x.a), xb = N.get(x.b); if (xa && xb && isH(xa, xb) !== H) { const ox = offs.get(x.id) || 0, tx = thick(x) || 0; m = Math.max(m, start ? tx / 2 - ox : tx / 2 + ox); } }); return isFinite(m) ? m : 0; };   // può essere negativo: il muro perpendicolare a filo sta tutto oltre il nodo
@@ -265,8 +297,13 @@ function topo(pl) {
     const o = offs.get(w.id) || 0;
     info.set(w.id, {w, a, b, H, t, o, da:ded(w.a, true), db:ded(w.b, false), ta:endType(w.a), tb:endType(w.b), len:H ? b.x - a.x : b.y - a.y});
   });
-  return {N, at, info};
+  return {N, at, info, atO, oinfo};
 }
+// facce di un muro obliquo che passano per il nodo id: [{p, d}] (punto e direzione), lato + e lato −
+function oblFaces(T, w, id) { const J = T.oinfo.get(w.id), node = T.N.get(id); if (!J || !node) return []; const h = J.t / 2;
+  return [1, -1].map(s => ({p:[node.x + J.n[0] * s * h, node.y + J.n[1] * s * h], d:J.u, s})); }
+// incrocio di due rette (punto + direzione): parametro lungo la prima, o null se parallele
+function lineX(p1, d1, p2, d2) { const den = d1[0] * d2[1] - d1[1] * d2[0]; if (Math.abs(den) < 1e-9) return null; return ((p2[0] - p1[0]) * d2[1] - (p2[1] - p1[1]) * d2[0]) / den; }
 // lato esterno: allo spigolo si aggiunge mezzo spessore del muro d'angolo, contro un muro passante si toglie (sporgenza dalla sua faccia)
 const adj = (tp, d) => tp === 'thru' ? -d : tp === 'corner' ? d : 0;
 const extLen = I => I.len + adj(I.ta, I.da) + adj(I.tb, I.db);
@@ -280,6 +317,8 @@ const luce = I => I.len - I.da - I.db;
 function runsOf(pl, T) {
   const done = new Set(), runs = [];
   const perp = (nid, H, sg) => { let m = 0; const node = T.N.get(nid); (T.at.get(nid) || []).forEach(o => { const I = T.info.get(o.id); if (!I || I.H === H) return; const other = o.a === nid ? I.b : I.a, d = H ? other.y - node.y : other.x - node.x; if (Math.sign(d) === sg) m = Math.max(m, I.t); }); return m; };
+  // un muro obliquo attaccato al nodo dal lato sg divide il lato in due
+  const oblSide = (nid, H, sg) => { const node = T.N.get(nid); return ((T.atO && T.atO.get(nid)) || []).some(o => { const J = T.oinfo.get(o.id); if (!J) return false; const other = o.a === nid ? J.b : J.a, d = H ? other.y - node.y : other.x - node.x; return Math.sign(d) === sg; }); };
   // un lato prosegue nel muro allineato se la faccia di quel lato è la stessa (stesso spessore, o muro a filo da quel lato)
   const fc = (I, sg) => (I.o || 0) + sg * I.t / 2;
   const cont = (w, nid, sg) => { const I = T.info.get(w.id); return (T.at.get(nid) || []).find(o => { if (o === w) return false; const J = T.info.get(o.id); return J && J.H === I.H && Math.abs(fc(J, sg) - fc(I, sg)) < 1e-6; }); };
@@ -293,13 +332,19 @@ function runsOf(pl, T) {
     {
       // start = inizio del lato (estremo a): la faccia comincia dopo il muro perpendicolare; fine = estremo b
       const pw = (id, side) => { const node = T.N.get(id), out = []; (T.at.get(id) || []).forEach(o => { const I = T.info.get(o.id); if (!I || I.H === H) return; const other = o.a === id ? I.b : I.a, d = H ? other.y - node.y : other.x - node.x; if (Math.sign(d) === side) out.push(I); }); return out; };
+      // muro obliquo all'estremo: la faccia del lato si ferma dove incontra la faccia dell'obliquo (anche oltre il nodo)
+      const oblE = (id, start) => { const ws = (T.atO && T.atO.get(id)) || []; if (!ws.length) return null; const node = T.N.get(id), ad = H ? [1, 0] : [0, 1], dir = start ? ad : [-ad[0], -ad[1]], pp = H ? [0, 1] : [1, 0], off = (I0.o || 0) + sg * t / 2;
+        const p0 = [node.x + pp[0] * off, node.y + pp[1] * off]; let e = null;
+        ws.forEach(o => { const ss = oblFaces(T, o, id).map(f => lineX(p0, dir, f.p, f.d)).filter(v => v != null && Math.abs(v) < 5); if (ss.length === 2) { const m = Math.max(...ss); e = e == null ? m : Math.max(e, m); } }); return e; };
       const endE = (id, isEnd, start) => {
-        const on = pw(id, sg); if (on.length) return Math.max(...on.map(I => start ? I.t / 2 + (I.o || 0) : I.t / 2 - (I.o || 0)));
+        const eo = oblE(id, start);
+        const on = pw(id, sg); if (on.length) return Math.max(...on.map(I => start ? I.t / 2 + (I.o || 0) : I.t / 2 - (I.o || 0)), eo == null ? -Infinity : eo);
+        if (eo != null) return eo;
         if (!isEnd) return 0;
         const ot = pw(id, -sg); return ot.length ? -Math.max(...ot.map(I => start ? I.t / 2 - (I.o || 0) : I.t / 2 + (I.o || 0))) : 0; };
       let start = 0;
       for (let k = 1; k < nodes.length; k++) {
-        const last = k === nodes.length - 1; if (!last && perp(nodes[k], H, sg) === 0) continue;
+        const last = k === nodes.length - 1; if (!last && perp(nodes[k], H, sg) === 0 && !oblSide(nodes[k], H, sg)) continue;
         const p = nodes[start], q = nodes[k];
         runs.push({key:(sg > 0 ? '+' : '-') + ':' + p + ':' + q, sg, H, t, o:I0.o || 0, p, q, walls:chain.slice(start, k), eA:endE(p, start === 0, true), eB:endE(q, last, false)});
         start = k;
@@ -425,12 +470,18 @@ function facades(pl, T) {
 function findNode(pl, x, y, eps = 1e-3) { return pl.nodes.find(n => Math.abs(n.x - x) < eps && Math.abs(n.y - y) < eps); }
 function getNode(pl, x, y, tNew) {
   let n = findNode(pl, x, y); if (n) return n;
-  const w = pl.walls.find(w => { const a = nd(pl, w.a), b = nd(pl, w.b); return isH(a, b) ? Math.abs(y - a.y) < 1e-3 && x > a.x + 1e-3 && x < b.x - 1e-3 : Math.abs(x - a.x) < 1e-3 && y > a.y + 1e-3 && y < b.y - 1e-3; });
+  const wo = pl.walls.find(w => { if (!isObl(w)) return false; const a = nd(pl, w.a), b = nd(pl, w.b), dx = b.x - a.x, dy = b.y - a.y, L2 = dx * dx + dy * dy, t = ((x - a.x) * dx + (y - a.y) * dy) / (L2 || 1e-12);
+    return t > 1e-3 && t < 1 - 1e-3 && Math.hypot(x - a.x - t * dx, y - a.y - t * dy) < 1e-3; });
+  if (wo) { n = {id:uid(), x:r4(x), y:r4(y)}; pl.nodes.push(n); splitObl(pl, wo, n); return n; }
+  const w = pl.walls.find(w => { if (isObl(w)) return false; const a = nd(pl, w.a), b = nd(pl, w.b); return isH(a, b) ? Math.abs(y - a.y) < 1e-3 && x > a.x + 1e-3 && x < b.x - 1e-3 : Math.abs(x - a.x) < 1e-3 && y > a.y + 1e-3 && y < b.y - 1e-3; });
   n = {id:uid(), x:r4(x), y:r4(y)}; pl.nodes.push(n);
   if (w) splitWall(pl, w, n, tNew);
   return n;
 }
-function splitWall(pl, w, n, tNew) {
+function splitObl(pl, w, n) {
+  if (String(w.mis).trim()) toast('Il muro obliquo è stato diviso in due: misura i due tratti.');
+  const w2 = {id:uid(), a:n.id, b:w.b, tipo:w.tipo, sp:w.sp, filo:'', mis:'', rif:w.rif, ap:[], obl:true}; w.b = n.id; w.mis = ''; pl.walls.push(w2); }
+function splitWall(pl, w, n, tNew) { if (isObl(w)) return splitObl(pl, w, n);
   const T = topo(pl), I = T.info.get(w.id), Ls = I.H ? n.x - I.a.x : n.y - I.a.y;
   const w2 = {id:uid(), a:n.id, b:w.b, tipo:w.tipo, sp:w.sp, filo:w.filo || '', mis:'', rif:w.rif, ap:[]};
   if (String(w.mis).trim()) {
@@ -443,13 +494,27 @@ function splitWall(pl, w, n, tNew) {
   (w.ap || []).forEach(ap => { const s0 = I.da + num(ap.d); if (s0 + num(ap.l) / 2 >= Ls) { ap.d = fN(Math.max(0, s0 - Ls - tNew / 2)); w2.ap.push(ap); } else keep.push(ap); });
   w.ap = keep; pl.walls.push(w2);
 }
+// incroci (interni) tra il tratto p-q e i muri obliqui esistenti (o tutti i muri se all = true)
+function segCuts(pl, p, q, all) { const out = [], dx = q.x - p.x, dy = q.y - p.y;
+  pl.walls.forEach(w => { if (!all && !isObl(w)) return; const a = nd(pl, w.a), b = nd(pl, w.b), ex = b.x - a.x, ey = b.y - a.y, den = dx * ey - dy * ex; if (Math.abs(den) < 1e-12) return;
+    const t = ((a.x - p.x) * ey - (a.y - p.y) * ex) / den, u = ((a.x - p.x) * dy - (a.y - p.y) * dx) / den;
+    if (t > 1e-4 && t < 1 - 1e-4 && u > 1e-4 && u < 1 - 1e-4) out.push([p.x + t * dx, p.y + t * dy, t]); });
+  return out; }
 function addSegment(pl, p, q, tipo) {
   if (Math.hypot(q.x - p.x, q.y - p.y) < 0.05) return;
+  if (q.obl) {   // muro obliquo: si divide dove incrocia altri muri o passa su nodi esistenti
+    const dx = q.x - p.x, dy = q.y - p.y, L2 = dx * dx + dy * dy, cuts = segCuts(pl, p, q, true);
+    pl.nodes.forEach(n => { const t = ((n.x - p.x) * dx + (n.y - p.y) * dy) / L2; if (t > 1e-3 && t < 1 - 1e-3 && Math.hypot(n.x - p.x - t * dx, n.y - p.y - t * dy) < 1e-3) cuts.push([n.x, n.y, t]); });
+    cuts.sort((u, v) => u[2] - v[2]); const tNew = tipo === 'P' ? P_() : T_(), ns = [[p.x, p.y], ...cuts, [q.x, q.y]].map(pt => getNode(pl, pt[0], pt[1], tNew));
+    for (let i = 0; i < ns.length - 1; i++) { const a = ns[i], b = ns[i + 1]; if (a === b || pl.walls.some(w => (w.a === a.id && w.b === b.id) || (w.a === b.id && w.b === a.id))) continue;
+      pl.walls.push({id:uid(), a:a.id, b:b.id, tipo, sp:'', mis:'', rif:'int', ap:[], obl:true}); }
+    return; }
   const H = isH(p, q);
   if (H) { q = {x:q.x, y:p.y}; if (q.x < p.x) [p, q] = [q, p]; } else { q = {x:p.x, y:q.y}; if (q.y < p.y) [p, q] = [q, p]; }
   const cuts = [];
+  segCuts(pl, p, H ? {x:q.x, y:p.y} : {x:p.x, y:q.y}).forEach(c => cuts.push([c[0], c[1]]));   // incroci con gli obliqui
   pl.walls.forEach(w => {
-    const a = nd(pl, w.a), b = nd(pl, w.b); if (isH(a, b) === H) return;
+    const a = nd(pl, w.a), b = nd(pl, w.b); if (isObl(w) || isH(a, b) === H) return;
     if (H) { const x = a.x, y = p.y; if (x > p.x + 1e-3 && x < q.x - 1e-3 && y > a.y + 1e-3 && y < b.y - 1e-3) cuts.push([x, y]); }
     else { const y = a.y, x = p.x; if (y > p.y + 1e-3 && y < q.y - 1e-3 && x > a.x + 1e-3 && x < b.x - 1e-3) cuts.push([x, y]); }
   });
@@ -471,7 +536,7 @@ function deleteWall(pl, w) {
   pl.nodes = pl.nodes.filter(n => used.has(n.id));
 }
 function mergeAt(pl, id) {
-  const ws = pl.walls.filter(w => w.a === id || w.b === id); if (ws.length !== 2) return;
+  const ws = pl.walls.filter(w => w.a === id || w.b === id); if (ws.length !== 2 || ws.some(isObl)) return;
   let [w1, w2] = ws; const n = nd(pl, id);
   const H1 = isH(nd(pl, w1.a), nd(pl, w1.b)), H2 = isH(nd(pl, w2.a), nd(pl, w2.b));
   if (H1 !== H2 || w1.tipo !== w2.tipo || (w1.tipo === 'X' && num(w1.sp) !== num(w2.sp))) return;
@@ -745,7 +810,8 @@ const detSet = ids => { const fx = ids.map(i => DETX.get(i)), fy = ids.map(i => 
 function measureOrder(pl) {
   const ord = (pl.mord || []).slice(), have = new Set(ord);
   const all = [...Object.keys(pl.fm || {}).map(k => 'r:' + k), ...Object.keys(pl.faci || {}).map(k => 'f:' + k),
-    ...Object.keys(pl.fl || {}).map(k => 'l:' + k), ...(pl.dims || []).filter(d => String(d.v || '').trim()).map(d => 'q:' + d.id)];
+    ...Object.keys(pl.fl || {}).map(k => 'l:' + k), ...(pl.dims || []).filter(d => String(d.v || '').trim()).map(d => 'q:' + d.id),
+    ...pl.walls.filter(w => isObl(w) && String(w.mis || '').trim()).map(w => 'o:' + w.id)];
   const missing = all.filter(k => !have.has(k));   // misure di versioni precedenti: valgono come più vecchie
   const out = missing.concat(ord).filter(k => all.includes(k));
   pl.mord = out; return out;
@@ -753,6 +819,7 @@ function measureOrder(pl) {
 function setMeasure(pl, kind, key, v) {
   const k = kind + ':' + key, on = !!String(v).trim(); measureOrder(pl);
   if (kind === 'q') { const d = (pl.dims || []).find(x => x.id === key); if (!d) return; d.v = on ? v : ''; }
+  else if (kind === 'o') { const w = pl.walls.find(x => x.id === key); if (!w) return; w.mis = on ? v : ''; }
   else { const box = {r:'fm', f:'faci', l:'fl'}[kind]; if (!pl[box]) pl[box] = {}; if (on) pl[box][key] = v; else delete pl[box][key]; }
   if (on) { if (!pl.mord.includes(k)) pl.mord.push(k); } else pl.mord = pl.mord.filter(x => x !== k);
 }
@@ -767,6 +834,10 @@ function gauss(A, b) {
   for (let c = n - 1; c >= 0; c--) { let s = M[c][n]; for (let k = c + 1; k < n; k++) s -= M[c][k] * x[k]; x[c] = Math.abs(M[c][c]) < 1e-12 ? 0 : s / M[c][c]; }
   return x;
 }
+// lunghezza d'asse che un obliquo misurato deve avere: misura + differenza tra asse e faccia misurata (dall'ultimo disegno)
+let OBLBAD = new Set();
+function oblTarget(w) { const m = num(w.mis); if (!(m > 0)) return null; if (w.rif === 'asse') return m;
+  const c = G && G.oblCorr && G.oblCorr.get(w.id + ':' + (w.rif === 'est' ? 'est' : 'int')); return m + (c || 0); }
 function solve(pl, extKeys) {
   const n = pl.nodes.length; if (!n) return;
   const T = topo(pl), idx = new Map(pl.nodes.map((nn, i) => [nn.id, i]));
@@ -778,10 +849,15 @@ function solve(pl, extKeys) {
   // base: muri dritti, nodi incollati, ancoraggi e lunghezze dello schizzo (solo segnaposto, pesano quasi nulla).
   // pert = lunghezze dello schizzo stravolte: serve a capire quali quote dipendono solo dalle misure.
   const hsh = k => { const v = Math.sin((k + 1) * 12.9898) * 43758.5453; return v - Math.floor(v); };
+  const oblDer = new Set();   // obliqui la cui lunghezza è già diventata un cateto (vincolo vero)
   const base = pert => {
     const X = mk(), Y = mk();
     pl.walls.forEach((w, k) => {
-      const I = T.info.get(w.id); if (!I) return;
+      const I = T.info.get(w.id);
+      if (!I) { const J = T.oinfo.get(w.id); if (!J) return;   // obliquo: niente vincolo dritto, solo lo schizzo (scalato alla lunghezza misurata)
+        const i = idx.get(w.a), j = idx.get(w.b), L = oblTarget(w), sc = (L ? L / J.len : 1) * (pert ? 1.5 + hsh(k) : 1);
+        const wo = L && !pert && !oblDer.has(w.id) ? 1e-3 : 1e-6;   // misurato: pesa più dello schizzo degli altri muri (ma niente rispetto alle misure vere)
+        eq(X, i, j, (J.b.x - J.a.x) * sc, wo); eq(Y, i, j, (J.b.y - J.a.y) * sc, wo); return; }
       const i = idx.get(w.a), j = idx.get(w.b), L = lax(w, I);
       const val = L ?? (pert ? I.len * (1.5 + hsh(k)) + 0.6 + hsh(k + 99) : I.len), wt = L != null ? 1 : 1e-6;
       if (I.H) { eq(X, i, j, val, wt); eq(Y, i, j, 0, 1e3); } else { eq(Y, i, j, val, wt); eq(X, i, j, 0, 1e3); }
@@ -790,7 +866,7 @@ function solve(pl, extKeys) {
     const roots = new Set(); pl.nodes.forEach((nn, i) => { const r = f(i); if (!roots.has(r)) { roots.add(r); X.A[i][i] += 1e3; X.r[i] += 1e3 * nn.x; Y.A[i][i] += 1e3; Y.r[i] += 1e3 * nn.y; } });
     return {X, Y};
   };
-  const B0 = base(false);
+  let B0 = base(false);
 
   // misure: prima le interne nell'ordine in cui sono state inserite, poi le esterne (comandano le interne)
   const runs = runsOf(pl, T), byKey = new Map(runs.map(r => [r.key, r])), cons = [], AN = apAnchors(pl, T, runs);
@@ -825,7 +901,35 @@ function solve(pl, extKeys) {
     });
     return {sol, acc};
   };
-  const ax = axis(B0.X, true), ay = axis(B0.Y, false), xs = ax.sol, ys = ay.sol;
+  let ax, ay;
+  // muri obliqui misurati: la lunghezza fissa il cateto che le misure prese prima lasciano libero (Pitagora); se sono già fissati
+  // tutti e due è un controllo. Si va in ordine di misura: quando un cateto diventa noto, la lunghezza obliqua (se è più vecchia)
+  // entra subito come vincolo e le misure prese dopo che non tornano restano NON APPLICATE, come per gli altri muri.
+  const obls = pl.walls.filter(w => isObl(w) && oblTarget(w) != null && idx.has(w.a) && idx.has(w.b)); OBLBAD = new Set();
+  if (!obls.length) { ax = axis(B0.X, true); ay = axis(B0.Y, false); }
+  else {
+    const oPos = new Map(measureOrder(pl).map((k, n) => [k, n])), seq = [], firstExt = ordered.findIndex(c => c.ext), cut = firstExt < 0 ? ordered.length : firstExt;
+    const marks = obls.map(w => ({k:'o:' + w.id, w, mark:true, p:oPos.has('o:' + w.id) ? oPos.get('o:' + w.id) : -1}));
+    ordered.slice(0, cut).forEach(c => { marks.filter(m => !m.done && m.p < (oPos.has(c.k) ? oPos.get(c.k) : -1)).forEach(m => { m.done = true; seq.push(m); }); seq.push(c); });
+    marks.filter(m => !m.done).forEach(m => seq.push(m)); ordered.slice(cut).forEach(c => seq.push(c));
+    let accX = [], accY = [], pend = [];
+    const fits = (B, list) => { const s2 = solveWith(B, list); return list.every(q => Math.abs(s2[q.j] - s2[q.i] - q.val) <= 0.005); };
+    const tryObl = () => { for (let again = true; again && pend.length;) { again = false;
+      const Bn = base(false), Bp = base(true), xs0 = solveWith(Bn.X, accX), ys0 = solveWith(Bn.Y, accY), x1 = solveWith(Bp.X, accX), y1 = solveWith(Bp.Y, accY);
+      for (const w of pend.slice()) { const key = 'o:' + w.id, i = idx.get(w.a), j = idx.get(w.b), L = oblTarget(w);
+        const dx = xs0[j] - xs0[i], dy = ys0[j] - ys0[i], fX = Math.abs((x1[j] - x1[i]) - dx) < 1e-4, fY = Math.abs((y1[j] - y1[i]) - dy) < 1e-4;
+        if (fX === fY) continue;   // nessun cateto noto (si aspetta) o tutti e due (controllo)
+        pend = pend.filter(x => x !== w); const d = fX ? dx : dy, e = fX ? dy : dx;
+        if (!(L > Math.abs(d) + 1e-4)) { OBLBAD.add(w.id); continue; }
+        const c = {k:key, X:!fX, i, j, val:(Math.sign(e) || 1) * Math.sqrt(L * L - d * d), ext:false}; oblDer.add(w.id);
+        const B = base(false), cand = (c.X ? accX : accY).concat([c]);
+        if (fits(c.X ? B.X : B.Y, cand)) { if (c.X) accX = cand; else accY = cand; again = true; break; } else rejected.add(key); } } };
+    seq.forEach(c => { if (c.mark) { pend.push(c.w); tryObl(); return; }
+      const B = base(false), cand = (c.X ? accX : accY).concat([c]);
+      if (fits(c.X ? B.X : B.Y, cand)) { if (c.X) accX = cand; else accY = cand; tryObl(); } else rejected.add(c.k); });
+    B0 = base(false); ax = {sol:solveWith(B0.X, accX), acc:accX}; ay = {sol:solveWith(B0.Y, accY), acc:accY};
+  }
+  const xs = ax.sol, ys = ay.sol;
   REJ = rejected;
   // quote ricavate dalle sole misure: non cambiano se si stravolge lo schizzo
   const B1 = base(true), x1 = solveWith(B1.X, ax.acc), y1 = solveWith(B1.Y, ay.acc);
@@ -843,6 +947,85 @@ function solve(pl, extKeys) {
     if (pl.bg) { pl.bg.ox = r4(pl.bg.ox - mx); pl.bg.oy = r4(pl.bg.oy - my); }   // la planimetria di sfondo segue lo spostamento del punto base
     if (pl === piano()) { ui.view.x -= mx; ui.view.y -= my; }
   }
+}
+
+/* ---- geometria a poligoni (c'è almeno un muro obliquo) ----
+   bande dei muri (rettangoli dei muri dritti come nella griglia, quadrilateri per gli obliqui) + giunti ai nodi con obliqui
+   (spigoli delle bande e punti d'incontro delle facce vicine), unione con polygon-clipping: i buchi sono gli ambienti. */
+function geoPoly(pl, T, rects, ops, warns) {
+  try { return geoPoly1(pl, T, rects, ops, warns, 1e5); } catch (e) {
+    try { return geoPoly1(pl, T, rects, ops, warns, 1e3); } catch (e2) { warns.push({t:'Calcolo dei muri obliqui non riuscito in un punto: controlla incroci molto vicini tra muri obliqui.'}); console.warn(e2);
+      return {walls:[], fills:[], bb:null, comps:[], compAt:() => -1, wedges:[], fpolys:[], oblCorr:new Map(), oblFace:new Map()}; } } }
+// prec = arrotondamento delle coordinate (1e5 = centesimo di millimetro): punti quasi coincidenti mandano in crisi l'unione dei poligoni
+function geoPoly1(pl, T, rects, ops, warns, prec) {
+  const PC0 = window.polygonClipping, rd = v => Math.round(v * prec) / prec, clean = g0 => { const g = g0.length && g0[0].length && typeof g0[0][0][0] === 'number' ? [g0] : g0; return g.map(poly => poly.map(r => { const o = []; r.forEach(q => { const z = [rd(q[0]), rd(q[1])]; const l = o[o.length - 1]; if (!l || l[0] !== z[0] || l[1] !== z[1]) o.push(z); }); return o; }).filter(r => r.length >= 4)).filter(poly => poly.length); };
+  const PC = {union:(...a) => clean(PC0.union(...a.map(clean))), difference:(a, b) => clean(PC0.difference(clean(a), clean(b)))}, R = b => [[[b[0], b[1]], [b[2], b[1]], [b[2], b[3]], [b[0], b[3]], [b[0], b[1]]]];
+  const ring = pts => { const r = pts.map(q => [q[0], q[1]]); r.push([pts[0][0], pts[0][1]]); return [r]; };
+  const grp = new Map(), put = (lay, poly) => { if (!grp.has(lay)) grp.set(lay, []); grp.get(lay).push(poly); };
+  rects.forEach(x => put(x.lay, R(x.r)));
+  T.oinfo.forEach(J => { const h = J.t / 2, n = J.n, A = J.a, B = J.b; put(layerOf(J.w), ring([[A.x + n[0] * h, A.y + n[1] * h], [B.x + n[0] * h, B.y + n[1] * h], [B.x - n[0] * h, B.y - n[1] * h], [A.x - n[0] * h, A.y - n[1] * h]])); });
+  // giunti: per ogni nodo con un obliquo, i bracci in ordine d'angolo; tra due bracci vicini le facce che si guardano si incontrano (spigolo vivo)
+  const ends = new Map();   // obliquo:nodo → arretramento della faccia sinistra/destra lungo il muro (per la lunghezza delle facce)
+  const onodes = new Set(); T.oinfo.forEach(J => { onodes.add(J.w.a); onodes.add(J.w.b); });
+  onodes.forEach(id => { const node = T.N.get(id); if (!node) return; const ws = [...(T.at.get(id) || []), ...(T.atO.get(id) || [])];
+    const arms = ws.map(w => { const I = T.info.get(w.id) || T.oinfo.get(w.id); if (!I) return null; const other = w.a === id ? I.b : I.a; let d = [other.x - node.x, other.y - node.y]; const L = Math.hypot(d[0], d[1]) || 1; d = [d[0] / L, d[1] / L];
+      const nrm = [-d[1], d[0]], pn = I.obl ? null : (I.H ? [0, 1] : [1, 0]), on = pn ? (I.o || 0) * (pn[0] * nrm[0] + pn[1] * nrm[1]) : 0;
+      return {w, d, nrm, t:I.t, on, ang:Math.atan2(d[1], d[0]), lay:layerOf(w), obl:!!I.obl}; }).filter(Boolean).sort((a, b) => a.ang - b.ang);
+    if (arms.length < 2) { arms.forEach(A => { if (A.obl) ends.set(A.w.id + ':' + id, {l:0, r:0}); }); return; }
+    const F = (A, sd) => [node.x + A.nrm[0] * (A.on + sd * A.t / 2), node.y + A.nrm[1] * (A.on + sd * A.t / 2)], pts = [], Ms = [];
+    arms.forEach((A, k) => { const B = arms[(k + 1) % arms.length], L0 = F(A, 1), R0 = F(B, -1); pts.push(F(A, -1), L0);
+      const sA = lineX(L0, A.d, R0, B.d); let M = null; if (sA != null) { const q = [L0[0] + A.d[0] * sA, L0[1] + A.d[1] * sA]; if (Math.hypot(q[0] - node.x, q[1] - node.y) < 3 * Math.max(A.t, B.t)) M = q; }
+      Ms.push(M); if (M) pts.push(M); });
+    arms.forEach((A, k) => { if (!A.obl) return; const prev = Ms[(k - 1 + arms.length) % arms.length], next = Ms[k], pr = q => q ? (q[0] - node.x) * A.d[0] + (q[1] - node.y) * A.d[1] : 0;
+      ends.set(A.w.id + ':' + id, {l:pr(next), r:pr(prev)}); });   // faccia sinistra (verso il braccio dopo) e destra (verso quello prima)
+    put(arms.some(a => a.lay === 'P') ? 'P' : arms[0].lay, ring(pts)); });
+  const U0 = list => list.length ? PC.union(...list) : [];
+  const all = [...grp.values()].flat(), U = U0(all);
+  // ambienti = buchi dell'unione
+  const area = r => { let a = 0; for (let i = 0; i < r.length - 1; i++) a += r[i][0] * r[i + 1][1] - r[i + 1][0] * r[i][1]; return a / 2; };
+  const inR = (x, y, r) => { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const [xi, yi] = r[i], [xj, yj] = r[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+  const comps = [], outers = [];
+  U.forEach(poly => { outers.push(poly[0]); poly.slice(1).forEach(h => { const ar = Math.abs(area(h)); if (ar < 1e-4) return;
+    const xs = h.map(q => q[0]), ys = h.map(q => q[1]), bb = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+    let per = 0; for (let i = 0; i < h.length - 1; i++) per += Math.hypot(h[i + 1][0] - h[i][0], h[i + 1][1] - h[i][1]);
+    comps.push({id:comps.length, ring:h, area:ar, bbox:bb, label:null, isRect:false, room:ar >= 0.25, Af:0, per, poly:true}); }); });
+  const holeAt = (x, y) => comps.findIndex(c => x >= c.bbox[0] && x <= c.bbox[2] && y >= c.bbox[1] && y <= c.bbox[3] && inR(x, y, c.ring));
+  const compAt = (x, y) => { const h = holeAt(x, y); if (h >= 0) return h; return outers.some(r => inR(x, y, r)) ? -2 : -1; };
+  // etichetta: centro dell'ingombro se è dentro, altrimenti il punto più "interno" su una griglia di prova
+  comps.forEach(c => { const m = [(c.bbox[0] + c.bbox[2]) / 2, (c.bbox[1] + c.bbox[3]) / 2]; if (compAt(m[0], m[1]) === c.id) { c.label = m; return; }
+    let best = null, bd = -1; for (let i = 1; i < 12; i++) for (let j = 1; j < 12; j++) { const x = c.bbox[0] + (c.bbox[2] - c.bbox[0]) * i / 12, y = c.bbox[1] + (c.bbox[3] - c.bbox[1]) * j / 12; if (compAt(x, y) !== c.id) continue;
+      let dm = Infinity; for (let k = 0; k < c.ring.length - 1; k++) { const a = c.ring[k], b = c.ring[k + 1], dx = b[0] - a[0], dy = b[1] - a[1], L = dx * dx + dy * dy || 1e-9, t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / L)); dm = Math.min(dm, Math.hypot(x - a[0] - t * dx, y - a[1] - t * dy)); }
+      if (dm > bd) { bd = dm; best = [x, y]; } } c.label = best || m; });
+  // pieni (pilastri, denti): diventano muro perimetrale
+  const recs = pl.rooms || []; comps.forEach(c => { const rec = recs.find(r => holeAt(r.px, r.py) === c.id); c.pieno = !!(rec && rec.pieno === true); c.room = !c.pieno && c.area >= 0.25; if (c.pieno) put('P', [c.ring]); });
+  // materiale dei muri meno le aperture; i cunei delle strombate tornano muro
+  const holes = ops.flatMap(o => o.c2 ? [R(o.c), R(o.c2)] : [R(o.c)]), HO = U0(holes);
+  const wedges = []; ops.forEach(o => { if (!o.inc || !o.inc.strom) return; const {I} = o, {lw, p, w0, w1} = o.inc, h = I.t / 2, oo = I.o || 0;
+    const P = (al, ac) => I.H ? [I.a.x + al, I.a.y + oo + ac] : [I.a.x + oo + ac, I.a.y + al], fw = lw * h, fd = lw * (p - h);
+    [[w0, o.s0], [w1, o.s1]].forEach(([wa, la]) => { if (Math.abs(la - wa) >= 0.005) wedges.push({lay:layerOf(o.w), r:ring([P(wa, fw), P(wa, fd), P(la, fd)])}); }); });
+  const diff = (a, b) => a.length && b.length ? PC.difference(a, b) : a;
+  const Puni = U0(grp.get('P') || []), mats = [], walls = [], fpolys = [];
+  let Pm = diff(Puni, HO); const wP = wedges.filter(x => x.lay === 'P').map(x => x.r); if (wP.length) Pm = PC.union(Pm, ...wP);
+  mats.push({l:'P', m:Pm});
+  [...grp.keys()].filter(k => k !== 'P').forEach(k => { let m = diff(diff(U0(grp.get(k)), Puni), HO); const wk = wedges.filter(x => x.lay === k).map(x => x.r); if (wk.length) m = PC.union(m, ...wk); mats.push({l:k, m}); });
+  const Pedges = []; Pm.forEach(poly => poly.forEach(r => { for (let i = 0; i < r.length - 1; i++) Pedges.push([r[i], r[i + 1]]); }));
+  const onP = (a, b) => { const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2; return Pedges.some(([p, q]) => { const dx = q[0] - p[0], dy = q[1] - p[1], L = dx * dx + dy * dy || 1e-12, t = ((mx - p[0]) * dx + (my - p[1]) * dy) / L; if (t < -1e-6 || t > 1 + 1e-6) return false; return Math.hypot(mx - p[0] - t * dx, my - p[1] - t * dy) < 1e-5; }); };
+  mats.forEach(({l, m}) => { m.forEach(poly => { fpolys.push(poly); poly.forEach(r => {
+    if (l === 'P') { walls.push({l, closed:true, pts:r.slice(0, -1)}); return; }
+    const keep = []; for (let i = 0; i < r.length - 1; i++) keep.push(!onP(r[i], r[i + 1]));
+    if (keep.every(Boolean)) { walls.push({l, closed:true, pts:r.slice(0, -1)}); return; }
+    const n = r.length - 1; let st = keep.findIndex((k, i) => k && !keep[(i - 1 + n) % n]); if (st < 0) return; let cur = null;
+    for (let c = 0; c < n; c++) { const i = (st + c) % n; if (keep[i]) { if (!cur) { cur = {l, closed:false, pts:[r[i]]}; walls.push(cur); } cur.pts.push(r[i + 1]); } else cur = null; } }); }); });
+  let bb = null; U.forEach(poly => poly[0].forEach(q => { bb = bb ? [Math.min(bb[0], q[0]), Math.min(bb[1], q[1]), Math.max(bb[2], q[0]), Math.max(bb[3], q[1])] : [q[0], q[1], q[0], q[1]]; }));
+  // facce degli obliqui: lunghezza interna (verso l'ambiente; tra due ambienti la più corta) ed esterna; differenza con l'asse per la misura
+  const oblCorr = new Map(), oblFace = new Map();
+  T.oinfo.forEach(J => { const ea = ends.get(J.w.id + ':' + J.w.a) || {l:0, r:0}, eb = ends.get(J.w.id + ':' + J.w.b) || {l:0, r:0};
+    // dal nodo a il muro va verso b (sinistra = +n); dal nodo b va verso a (sinistra = −n)
+    const fPlus = J.len - ea.l - eb.r, fMinus = J.len - ea.r - eb.l, m = [(J.a.x + J.b.x) / 2, (J.a.y + J.b.y) / 2], pr = sd => compAt(m[0] + J.n[0] * sd * (J.t / 2 + 0.03), m[1] + J.n[1] * sd * (J.t / 2 + 0.03));
+    const cP = pr(1), cM = pr(-1); let fi, fe, side;
+    if (cP >= 0 && cM < 0) { fi = fPlus; fe = fMinus; side = 1; } else if (cM >= 0 && cP < 0) { fi = fMinus; fe = fPlus; side = -1; } else { fi = Math.min(fPlus, fMinus); fe = Math.max(fPlus, fMinus); side = fPlus <= fMinus ? 1 : -1; }
+    oblCorr.set(J.w.id + ':int', J.len - fi); oblCorr.set(J.w.id + ':est', J.len - fe); oblFace.set(J.w.id, {int:fi, est:fe, asse:J.len, side, sides:[cP, cM]}); });
+  return {walls, fills:[], bb, comps, compAt, wedges:[], fpolys, oblCorr, oblFace};
 }
 
 /* ================= geometria del disegno ================= */
@@ -884,111 +1067,124 @@ function geometry(pl) {
   [...resid].forEach(([id, d]) => { if (Math.abs(d) <= TOL) resid.delete(id); });
   resid.forEach((d, id) => { const w = pl.walls.find(x => x.id === id); warns.push({w:id, t:`Misura ${w.mis} m (${tipoNome(w)}): nel disegno risolto viene ${f2(num(w.mis) + d)} m, differenza ${d > 0 ? '+' : ''}${Math.round(d * 100)} cm. Le misure non tornano.`}); });
 
-  /* ---- griglia ---- */
-  const rnd = v => Math.round(v * 10000) / 10000;
-  const all = [...rects.map(x => x.r), ...ops.map(o => o.c), ...ops.filter(o => o.c2).map(o => o.c2)];
-  const xs = [...new Set(all.flatMap(b => [rnd(b[0]), rnd(b[2])]))].sort((a, b) => a - b);
-  const ys = [...new Set(all.flatMap(b => [rnd(b[1]), rnd(b[3])]))].sort((a, b) => a - b);
-  const xi = new Map(xs.map((v, i) => [v, i])), yi = new Map(ys.map((v, i) => [v, i]));
-  const nx = xs.length - 1, ny = ys.length - 1, idx = (i, j) => j * nx + i;
-  const own = new Int32Array(nx * ny).fill(-1), cut = new Int32Array(nx * ny).fill(-1);
-  const fillR = (b, arr, v) => { const i0 = xi.get(rnd(b[0])), i1 = xi.get(rnd(b[2])), j0 = yi.get(rnd(b[1])), j1 = yi.get(rnd(b[3])); for (let j = j0; j < j1; j++) for (let i = i0; i < i1; i++) arr[idx(i, j)] = v; };
-  rects.map((x, k) => [x, k]).sort((a, b) => a[0].I.t - b[0].I.t || (a[0].lay === 'P') - (b[0].lay === 'P')).forEach(([x, k]) => fillR(x.r, own, k));
-  ops.forEach((o, k) => { fillR(o.c, cut, k); if (o.c2) fillR(o.c2, cut, k); });
-  const st = new Int8Array(nx * ny); // 0 vuoto, 1 muro, 3 apertura
-  for (let k = 0; k < nx * ny; k++) st[k] = cut[k] >= 0 ? 3 : own[k] >= 0 ? 1 : 0;
-  const S = (i, j) => (i < 0 || j < 0 || i >= nx || j >= ny) ? 0 : st[idx(i, j)];
-
-  // ambienti = zone vuote chiuse
-  const comp = new Int32Array(nx * ny).fill(-2); // -2 non vuoto, -1 esterno, >=0 ambiente
-  for (let k = 0; k < nx * ny; k++) if (st[k] === 0) comp[k] = -3;
-  const flood = (i0, j0, id) => { const q = [[i0, j0]]; comp[idx(i0, j0)] = id; const cells = [];
-    while (q.length) { const [i, j] = q.pop(); cells.push([i, j]); [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([di, dj]) => { const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= nx || jj >= ny) return; const k = idx(ii, jj); if (comp[k] === -3) { comp[k] = id; q.push([ii, jj]); } }); }
-    return cells; };
-  for (let i = 0; i < nx; i++) for (const j of [0, ny - 1]) if (comp[idx(i, j)] === -3) flood(i, j, -1);
-  for (let j = 0; j < ny; j++) for (const i of [0, nx - 1]) if (comp[idx(i, j)] === -3) flood(i, j, -1);
-  const comps = [];
-  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) if (comp[idx(i, j)] === -3) {
-    const id = comps.length, cells = flood(i, j, id);
-    let area = 0, bb = [Infinity, Infinity, -Infinity, -Infinity], best = null, ba = -1, per = 0;
-    cells.forEach(([a, b]) => { const w = xs[a + 1] - xs[a], h = ys[b + 1] - ys[b], ar = w * h; area += ar; bb = [Math.min(bb[0], xs[a]), Math.min(bb[1], ys[b]), Math.max(bb[2], xs[a + 1]), Math.max(bb[3], ys[b + 1])]; if (Math.min(w, h) * Math.sqrt(ar) > ba) { ba = Math.min(w, h) * Math.sqrt(ar); best = [(xs[a] + xs[a + 1]) / 2, (ys[b] + ys[b + 1]) / 2]; } });
-    comps.push({id, cells, area, bbox:bb, label:best, isRect:Math.abs(area - (bb[2] - bb[0]) * (bb[3] - bb[1])) < 0.005, room:area >= 0.25, Af:0});
-  }
-  // perimetro degli ambienti
-  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
-    const c = comp[idx(i, j)]; if (c < 0) continue;
-    const o = (ii, jj) => (ii < 0 || jj < 0 || ii >= nx || jj >= ny) ? -9 : comp[idx(ii, jj)];
-    const w = xs[i + 1] - xs[i], h = ys[j + 1] - ys[j]; let p = 0;
-    if (o(i + 1, j) !== c) p += h; if (o(i - 1, j) !== c) p += h; if (o(i, j + 1) !== c) p += w; if (o(i, j - 1) !== c) p += w;
-    comps[c].per = (comps[c].per || 0) + p;
-  }
-  comps.forEach(c => { c.rects = c.cells.map(([a, b]) => [xs[a], ys[b], xs[a + 1], ys[b + 1]]); });
-  const bs = (arr, v) => { let lo = 0, hi = arr.length - 2; if (v < arr[0] || v > arr[arr.length - 1]) return -1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (arr[m] <= v) lo = m; else hi = m - 1; } return lo; };
-  const compAt = (x, y) => { const i = bs(xs, x), j = bs(ys, y); if (i < 0 || j < 0 || i >= nx || j >= ny) return -1; return comp[idx(i, j)]; };
-  comps.forEach(c => { const m = [(c.bbox[0] + c.bbox[2]) / 2, (c.bbox[1] + c.bbox[3]) / 2]; if (compAt(m[0], m[1]) === c.id) c.label = m; });
-  // spazi chiusi pieni (pilastri, denti): diventano muro
-  const recs = pl.rooms || [];
-  comps.forEach(c => {
-    const rec = recs.find(r => compAt(r.px, r.py) === c.id);
-    c.pieno = !!(rec && rec.pieno === true);
-    c.room = !c.pieno && c.area >= 0.25;
-    if (c.pieno) c.cells.forEach(([i, j]) => { st[idx(i, j)] = 1; });
-  });
-
-  // classificazione dei bordi: layer del muro che possiede la cella
-  const K = v => Math.round(v * 10000), edges = [], smap = new Map();
-  const edge = (x0, y0, x1, y1, l) => { const e = {a:[x0, y0], b:[x1, y1], l, u:false}; edges.push(e); const k = K(x0) + ',' + K(y0); if (!smap.has(k)) smap.set(k, []); smap.get(k).push(e); };
-  const lay = (i, j) => own[idx(i, j)] >= 0 ? rects[own[idx(i, j)]].lay : 'P';
-  for (let j = 0; j < ny; j++) for (let i = 0; i <= nx; i++) {
-    const a = S(i - 1, j), b = S(i, j);
-    if (a === 1 && b !== 1) edge(xs[i], ys[j], xs[i], ys[j + 1], lay(i - 1, j));
-    else if (b === 1 && a !== 1) edge(xs[i], ys[j + 1], xs[i], ys[j], lay(i, j));
-    // perimetrale contro tramezzo: la linea del perimetrale resta chiusa (il tramezzo si ferma sulla sua faccia)
-    else if (a === 1 && b === 1 && lay(i - 1, j) !== lay(i, j)) { if (lay(i - 1, j) === 'P') edge(xs[i], ys[j], xs[i], ys[j + 1], 'P'); else edge(xs[i], ys[j + 1], xs[i], ys[j], 'P'); }
-  }
-  for (let j = 0; j <= ny; j++) for (let i = 0; i < nx; i++) {
-    const a = S(i, j - 1), b = S(i, j);
-    if (b === 1 && a !== 1) edge(xs[i], ys[j], xs[i + 1], ys[j], lay(i, j));
-    else if (a === 1 && b !== 1) edge(xs[i + 1], ys[j], xs[i], ys[j], lay(i, j - 1));
-    else if (a === 1 && b === 1 && lay(i, j - 1) !== lay(i, j)) { if (lay(i, j) === 'P') edge(xs[i], ys[j], xs[i + 1], ys[j], 'P'); else edge(xs[i + 1], ys[j], xs[i], ys[j], 'P'); }
-  }
-  const loops = [];
-  for (const e0 of edges) {
-    if (e0.u) continue;
-    const loop = []; let e = e0;
-    while (e && !e.u) {
-      e.u = true; loop.push(e);
-      const c = (smap.get(K(e.b[0]) + ',' + K(e.b[1])) || []).filter(x => !x.u);
-      if (!c.length) break;
-      const dx = e.b[0] - e.a[0], dy = e.b[1] - e.a[1];
-      const score = x => { const cr = dx * (x.b[1] - x.a[1]) - dy * (x.b[0] - x.a[0]); return cr > 1e-9 ? 2 : cr < -1e-9 ? 0 : 1; };
-      c.sort((p, q) => score(q) - score(p)); e = c[0];
+  /* ---- griglia (solo muri dritti) ---- */
+  const gridGeo = () => {
+    const rnd = v => Math.round(v * 10000) / 10000;
+    const all = [...rects.map(x => x.r), ...ops.map(o => o.c), ...ops.filter(o => o.c2).map(o => o.c2)];
+    const xs = [...new Set(all.flatMap(b => [rnd(b[0]), rnd(b[2])]))].sort((a, b) => a - b);
+    const ys = [...new Set(all.flatMap(b => [rnd(b[1]), rnd(b[3])]))].sort((a, b) => a - b);
+    const xi = new Map(xs.map((v, i) => [v, i])), yi = new Map(ys.map((v, i) => [v, i]));
+    const nx = xs.length - 1, ny = ys.length - 1, idx = (i, j) => j * nx + i;
+    const own = new Int32Array(nx * ny).fill(-1), cut = new Int32Array(nx * ny).fill(-1);
+    const fillR = (b, arr, v) => { const i0 = xi.get(rnd(b[0])), i1 = xi.get(rnd(b[2])), j0 = yi.get(rnd(b[1])), j1 = yi.get(rnd(b[3])); for (let j = j0; j < j1; j++) for (let i = i0; i < i1; i++) arr[idx(i, j)] = v; };
+    rects.map((x, k) => [x, k]).sort((a, b) => a[0].I.t - b[0].I.t || (a[0].lay === 'P') - (b[0].lay === 'P')).forEach(([x, k]) => fillR(x.r, own, k));
+    ops.forEach((o, k) => { fillR(o.c, cut, k); if (o.c2) fillR(o.c2, cut, k); });
+    const st = new Int8Array(nx * ny); // 0 vuoto, 1 muro, 3 apertura
+    for (let k = 0; k < nx * ny; k++) st[k] = cut[k] >= 0 ? 3 : own[k] >= 0 ? 1 : 0;
+    const S = (i, j) => (i < 0 || j < 0 || i >= nx || j >= ny) ? 0 : st[idx(i, j)];
+  
+    // ambienti = zone vuote chiuse
+    const comp = new Int32Array(nx * ny).fill(-2); // -2 non vuoto, -1 esterno, >=0 ambiente
+    for (let k = 0; k < nx * ny; k++) if (st[k] === 0) comp[k] = -3;
+    const flood = (i0, j0, id) => { const q = [[i0, j0]]; comp[idx(i0, j0)] = id; const cells = [];
+      while (q.length) { const [i, j] = q.pop(); cells.push([i, j]); [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([di, dj]) => { const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= nx || jj >= ny) return; const k = idx(ii, jj); if (comp[k] === -3) { comp[k] = id; q.push([ii, jj]); } }); }
+      return cells; };
+    for (let i = 0; i < nx; i++) for (const j of [0, ny - 1]) if (comp[idx(i, j)] === -3) flood(i, j, -1);
+    for (let j = 0; j < ny; j++) for (const i of [0, nx - 1]) if (comp[idx(i, j)] === -3) flood(i, j, -1);
+    const comps = [];
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) if (comp[idx(i, j)] === -3) {
+      const id = comps.length, cells = flood(i, j, id);
+      let area = 0, bb = [Infinity, Infinity, -Infinity, -Infinity], best = null, ba = -1, per = 0;
+      cells.forEach(([a, b]) => { const w = xs[a + 1] - xs[a], h = ys[b + 1] - ys[b], ar = w * h; area += ar; bb = [Math.min(bb[0], xs[a]), Math.min(bb[1], ys[b]), Math.max(bb[2], xs[a + 1]), Math.max(bb[3], ys[b + 1])]; if (Math.min(w, h) * Math.sqrt(ar) > ba) { ba = Math.min(w, h) * Math.sqrt(ar); best = [(xs[a] + xs[a + 1]) / 2, (ys[b] + ys[b + 1]) / 2]; } });
+      comps.push({id, cells, area, bbox:bb, label:best, isRect:Math.abs(area - (bb[2] - bb[0]) * (bb[3] - bb[1])) < 0.005, room:area >= 0.25, Af:0});
     }
-    loops.push(loop);
-  }
-  const dirOf = s => [Math.sign(rnd(s.b[0] - s.a[0])), Math.sign(rnd(s.b[1] - s.a[1]))].join();
-  const same = (a, b) => K(a[0]) === K(b[0]) && K(a[1]) === K(b[1]);
-  const walls = [];
-  loops.forEach(loop => {
-    const closed = same(loop[loop.length - 1].b, loop[0].a), segs = [];
-    loop.forEach(e => { const last = segs[segs.length - 1]; if (last && last.l === e.l && dirOf(last) === dirOf(e)) last.b = e.b; else segs.push({a:e.a, b:e.b, l:e.l}); });
-    if (closed && segs.length > 1) { const f = segs[0], l = segs[segs.length - 1]; if (l.l === f.l && dirOf(l) === dirOf(f)) { f.a = l.a; segs.pop(); } }
-    if (closed && segs.every(s => s.l === segs[0].l)) { walls.push({l:segs[0].l, closed:true, pts:segs.map(s => s.a)}); return; }
-    let start = 0;
-    if (closed) { start = segs.findIndex((s, i) => s.l !== segs[(i - 1 + segs.length) % segs.length].l); if (start < 0) start = 0; }
-    let cur = null;
-    segs.slice(start).concat(segs.slice(0, start)).forEach(s => { if (!cur || cur.l !== s.l) { cur = {l:s.l, closed:false, pts:[s.a]}; walls.push(cur); } cur.pts.push(s.b); });
-  });
-
-  // finestra strombata: si toglie lo spigolo interno della nicchia, il fianco va in obliquo dal bordo largo al bordo della luce
-  const wedges = [], drop = new Set();
-  ops.forEach(o => { if (!o.inc || !o.inc.strom) return; const {I} = o, {lw, p, w0, w1} = o.inc, h = I.t / 2, oo = I.o || 0;
-    const P = (al, ac) => I.H ? [I.a.x + al, I.a.y + oo + ac] : [I.a.x + oo + ac, I.a.y + al], fw = lw * h, fd = lw * (p - h);
-    [[w0, o.s0], [w1, o.s1]].forEach(([wa, la]) => { if (Math.abs(la - wa) < 0.005) return; const q = P(wa, fd); drop.add(K(q[0]) + ',' + K(q[1])); wedges.push([P(wa, fw), q, P(la, fd)]); }); });
-  if (drop.size) walls.forEach(wl => { const n0 = wl.pts.length; wl.pts = wl.pts.filter((q, i) => !drop.has(K(q[0]) + ',' + K(q[1])) || (!wl.closed && (i === 0 || i === n0 - 1))); });
-  const fills = []; let bb = [Infinity, Infinity, -Infinity, -Infinity];
-  for (let j = 0; j < ny; j++) { let i = 0; while (i < nx) { if (S(i, j) !== 1) { i++; continue; } let k = i; while (k < nx && S(k, j) === 1) k++; fills.push([xs[i], ys[j], xs[k], ys[j + 1]]); bb = [Math.min(bb[0], xs[i]), Math.min(bb[1], ys[j]), Math.max(bb[2], xs[k]), Math.max(bb[3], ys[j + 1])]; i = k; } }
-  if (!isFinite(bb[0])) bb = null;
+    // perimetro degli ambienti
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+      const c = comp[idx(i, j)]; if (c < 0) continue;
+      const o = (ii, jj) => (ii < 0 || jj < 0 || ii >= nx || jj >= ny) ? -9 : comp[idx(ii, jj)];
+      const w = xs[i + 1] - xs[i], h = ys[j + 1] - ys[j]; let p = 0;
+      if (o(i + 1, j) !== c) p += h; if (o(i - 1, j) !== c) p += h; if (o(i, j + 1) !== c) p += w; if (o(i, j - 1) !== c) p += w;
+      comps[c].per = (comps[c].per || 0) + p;
+    }
+    comps.forEach(c => { c.rects = c.cells.map(([a, b]) => [xs[a], ys[b], xs[a + 1], ys[b + 1]]); });
+    const bs = (arr, v) => { let lo = 0, hi = arr.length - 2; if (v < arr[0] || v > arr[arr.length - 1]) return -1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (arr[m] <= v) lo = m; else hi = m - 1; } return lo; };
+    const compAt = (x, y) => { const i = bs(xs, x), j = bs(ys, y); if (i < 0 || j < 0 || i >= nx || j >= ny) return -1; return comp[idx(i, j)]; };
+    comps.forEach(c => { const m = [(c.bbox[0] + c.bbox[2]) / 2, (c.bbox[1] + c.bbox[3]) / 2]; if (compAt(m[0], m[1]) === c.id) c.label = m; });
+    // spazi chiusi pieni (pilastri, denti): diventano muro
+    const recs = pl.rooms || [];
+    comps.forEach(c => {
+      const rec = recs.find(r => compAt(r.px, r.py) === c.id);
+      c.pieno = !!(rec && rec.pieno === true);
+      c.room = !c.pieno && c.area >= 0.25;
+      if (c.pieno) c.cells.forEach(([i, j]) => { st[idx(i, j)] = 1; });
+    });
+  
+    // classificazione dei bordi: layer del muro che possiede la cella
+    const K = v => Math.round(v * 10000), edges = [], smap = new Map();
+    const edge = (x0, y0, x1, y1, l) => { const e = {a:[x0, y0], b:[x1, y1], l, u:false}; edges.push(e); const k = K(x0) + ',' + K(y0); if (!smap.has(k)) smap.set(k, []); smap.get(k).push(e); };
+    const lay = (i, j) => own[idx(i, j)] >= 0 ? rects[own[idx(i, j)]].lay : 'P';
+    for (let j = 0; j < ny; j++) for (let i = 0; i <= nx; i++) {
+      const a = S(i - 1, j), b = S(i, j);
+      if (a === 1 && b !== 1) edge(xs[i], ys[j], xs[i], ys[j + 1], lay(i - 1, j));
+      else if (b === 1 && a !== 1) edge(xs[i], ys[j + 1], xs[i], ys[j], lay(i, j));
+      // perimetrale contro tramezzo: la linea del perimetrale resta chiusa (il tramezzo si ferma sulla sua faccia)
+      else if (a === 1 && b === 1 && lay(i - 1, j) !== lay(i, j)) { if (lay(i - 1, j) === 'P') edge(xs[i], ys[j], xs[i], ys[j + 1], 'P'); else edge(xs[i], ys[j + 1], xs[i], ys[j], 'P'); }
+    }
+    for (let j = 0; j <= ny; j++) for (let i = 0; i < nx; i++) {
+      const a = S(i, j - 1), b = S(i, j);
+      if (b === 1 && a !== 1) edge(xs[i], ys[j], xs[i + 1], ys[j], lay(i, j));
+      else if (a === 1 && b !== 1) edge(xs[i + 1], ys[j], xs[i], ys[j], lay(i, j - 1));
+      else if (a === 1 && b === 1 && lay(i, j - 1) !== lay(i, j)) { if (lay(i, j) === 'P') edge(xs[i], ys[j], xs[i + 1], ys[j], 'P'); else edge(xs[i + 1], ys[j], xs[i], ys[j], 'P'); }
+    }
+    const loops = [];
+    for (const e0 of edges) {
+      if (e0.u) continue;
+      const loop = []; let e = e0;
+      while (e && !e.u) {
+        e.u = true; loop.push(e);
+        const c = (smap.get(K(e.b[0]) + ',' + K(e.b[1])) || []).filter(x => !x.u);
+        if (!c.length) break;
+        const dx = e.b[0] - e.a[0], dy = e.b[1] - e.a[1];
+        const score = x => { const cr = dx * (x.b[1] - x.a[1]) - dy * (x.b[0] - x.a[0]); return cr > 1e-9 ? 2 : cr < -1e-9 ? 0 : 1; };
+        c.sort((p, q) => score(q) - score(p)); e = c[0];
+      }
+      loops.push(loop);
+    }
+    const dirOf = s => [Math.sign(rnd(s.b[0] - s.a[0])), Math.sign(rnd(s.b[1] - s.a[1]))].join();
+    const same = (a, b) => K(a[0]) === K(b[0]) && K(a[1]) === K(b[1]);
+    const walls = [];
+    loops.forEach(loop => {
+      const closed = same(loop[loop.length - 1].b, loop[0].a), segs = [];
+      loop.forEach(e => { const last = segs[segs.length - 1]; if (last && last.l === e.l && dirOf(last) === dirOf(e)) last.b = e.b; else segs.push({a:e.a, b:e.b, l:e.l}); });
+      if (closed && segs.length > 1) { const f = segs[0], l = segs[segs.length - 1]; if (l.l === f.l && dirOf(l) === dirOf(f)) { f.a = l.a; segs.pop(); } }
+      if (closed && segs.every(s => s.l === segs[0].l)) { walls.push({l:segs[0].l, closed:true, pts:segs.map(s => s.a)}); return; }
+      let start = 0;
+      if (closed) { start = segs.findIndex((s, i) => s.l !== segs[(i - 1 + segs.length) % segs.length].l); if (start < 0) start = 0; }
+      let cur = null;
+      segs.slice(start).concat(segs.slice(0, start)).forEach(s => { if (!cur || cur.l !== s.l) { cur = {l:s.l, closed:false, pts:[s.a]}; walls.push(cur); } cur.pts.push(s.b); });
+    });
+  
+    // finestra strombata: si toglie lo spigolo interno della nicchia, il fianco va in obliquo dal bordo largo al bordo della luce
+    const wedges = [], drop = new Set();
+    ops.forEach(o => { if (!o.inc || !o.inc.strom) return; const {I} = o, {lw, p, w0, w1} = o.inc, h = I.t / 2, oo = I.o || 0;
+      const P = (al, ac) => I.H ? [I.a.x + al, I.a.y + oo + ac] : [I.a.x + oo + ac, I.a.y + al], fw = lw * h, fd = lw * (p - h);
+      [[w0, o.s0], [w1, o.s1]].forEach(([wa, la]) => { if (Math.abs(la - wa) < 0.005) return; const q = P(wa, fd); drop.add(K(q[0]) + ',' + K(q[1])); wedges.push([P(wa, fw), q, P(la, fd)]); }); });
+    if (drop.size) walls.forEach(wl => { const n0 = wl.pts.length; wl.pts = wl.pts.filter((q, i) => !drop.has(K(q[0]) + ',' + K(q[1])) || (!wl.closed && (i === 0 || i === n0 - 1))); });
+    const fills = []; let bb = [Infinity, Infinity, -Infinity, -Infinity];
+    for (let j = 0; j < ny; j++) { let i = 0; while (i < nx) { if (S(i, j) !== 1) { i++; continue; } let k = i; while (k < nx && S(k, j) === 1) k++; fills.push([xs[i], ys[j], xs[k], ys[j + 1]]); bb = [Math.min(bb[0], xs[i]), Math.min(bb[1], ys[j]), Math.max(bb[2], xs[k]), Math.max(bb[3], ys[j + 1])]; i = k; } }
+    if (!isFinite(bb[0])) bb = null;
+    return {walls, fills, bb, comps, compAt, wedges, fpolys:null};
+  };
+  // con almeno un muro obliquo: ambienti e contorni a poligoni; altrimenti la griglia di sempre
+  const GG = T.oinfo.size ? geoPoly(pl, T, rects, ops, warns) : gridGeo();
+  const {walls, fills, comps, compAt, wedges, fpolys} = GG; let bb = GG.bb;
+  // muri obliqui misurati: controllo della lunghezza
+  const oblBad = new Set();
+  if (GG.oblFace) T.oinfo.forEach(J => { const w = J.w, m = num(w.mis); if (!(m > 0)) return; const F = GG.oblFace.get(w.id); if (!F) return;
+    const rif = w.rif === 'est' || w.rif === 'asse' ? w.rif : 'int', got = F[rif], nm = 'Muro obliquo (' + tipoNome(w).toLowerCase() + ')';
+    if (REJ.has('o:' + w.id)) { oblBad.add(w.id); warns.push({w:w.id, t:`${nm}: lunghezza ${f2(m)} m NON APPLICATA: non torna con le misure inserite prima, che restano bloccate (da quelle viene ${f2(got)} m). Controlla questa misura o quelle già prese.`}); }
+    else if (OBLBAD.has(w.id)) { oblBad.add(w.id); warns.push({w:w.id, t:`${nm}: la lunghezza ${f2(m)} m è più corta del tratto che le altre misure fissano già. Controlla la misura.`}); }
+    else if (Math.abs(got - m) > TOL) { oblBad.add(w.id); warns.push({w:w.id, t:`${nm}: misurato ${f2(m)} m, nel disegno risolto viene ${f2(got)} m (${got - m > 0 ? '+' : ''}${Math.round((got - m) * 100)} cm). Le misure non tornano.`}); } });
 
   /* ---- infissi ---- */
   const lines = [], tris = [];
@@ -1021,7 +1217,9 @@ function geometry(pl) {
     const mid = r.H ? [(r.P.x + r.Q.x) / 2, r.P.y + r.o] : [r.P.x + r.o, (r.P.y + r.Q.y) / 2], o = r.t / 2 + 0.03;
     r.comp0 = r.H ? compAt(mid[0], mid[1] + r.sg * o) : compAt(mid[0] + r.sg * o, mid[1]); });
   // un ambiente ha la superficie certa solo se tutti i muri attorno sono fissati dalle misure
-  comps.forEach(c => { const ids = new Set(); runs.forEach(r => { if (r.comp0 === c.id) { ids.add(r.p); ids.add(r.q); r.walls.forEach(w => { ids.add(w.a); ids.add(w.b); }); } }); c.det = detSet([...ids]); });
+  comps.forEach(c => { const ids = new Set(); runs.forEach(r => { if (r.comp0 === c.id) { ids.add(r.p); ids.add(r.q); r.walls.forEach(w => { ids.add(w.a); ids.add(w.b); }); } });
+    if (GG.oblFace) GG.oblFace.forEach((F, id) => { if (F.sides.includes(c.id)) { const J = T.oinfo.get(id); ids.add(J.w.a); ids.add(J.w.b); } });
+    c.det = detSet([...ids]); });
   comps.forEach(c => { if (!c.pieno && c.area < 0.25 && c.det) warns.push({t:`Spazio chiuso molto piccolo (${f2(c.bbox[2] - c.bbox[0])} × ${f2(c.bbox[3] - c.bbox[1])} m): un muro troppo vicino a un altro? Se è un dente o un pilastro, toccalo e spunta «Pieno».`}); });
   runs.forEach(r => {
     const mid = r.H ? [(r.P.x + r.Q.x) / 2, r.P.y + r.o] : [r.P.x + r.o, (r.P.y + r.Q.y) / 2], o = r.t / 2 + 0.03;
@@ -1098,7 +1296,7 @@ function geometry(pl) {
       /* la verifica esterna è segnalata dalla faccia esterna (vedi sopra) */ }
   });
   const nonMis = pl.walls.filter(w => !covered.has(w.id) && !(num(w.mis) > 0)).length;
-  return {errs, warns, T, walls, lines, tris, fills, wedges, ops, comps, bbox:bb, compAt, resid, facs, wOut, runs, nonMis, dims};
+  return {errs, warns, T, walls, lines, tris, fills, wedges, fpolys, oblCorr:GG.oblCorr || new Map(), oblFace:GG.oblFace || new Map(), ops, comps, bbox:bb, compAt, resid, facs, wOut, runs, nonMis, dims, oblBad};
 }
 
 /* ---- abbinamento dei nomi agli ambienti ---- */
@@ -1743,10 +1941,11 @@ function recompute() {
   const pl = piano(); fixCapGlue(pl); fixJuncGlue(pl); joinEnds(pl); cleanTiny(pl); trimStubs(pl); attachEnds(pl); fixJuncGlue(pl); mergeNearNodes(pl); trimStubs(pl); mergeCollinear(pl); migrate(pl);
   // quali facce sono esterne si sa solo dopo il disegno: si ricalcola finché l'elenco non cambia più
   let ext = new Set(((G && G.runs) || []).filter(r => r.ext).map(r => r.key));
-  for (let k = 0; k < 3; k++) {
-    solve(pl, ext); placeAps(pl); G = geometry(pl);
-    const ne = new Set(G.runs.filter(r => r.ext).map(r => r.key));
-    if (ne.size === ext.size && [...ne].every(x => ext.has(x))) break;
+  const oc = () => [...((G && G.oblCorr) || new Map())].map(([k, v]) => k + v.toFixed(4)).join();
+  for (let k = 0; k < 4; k++) {
+    const oc0 = oc(); solve(pl, ext); placeAps(pl); G = geometry(pl);
+    const ne = new Set(G.runs.filter(r => r.ext).map(r => r.key)), oblOk = !pl.walls.some(w => isObl(w) && num(w.mis) > 0) || oc() === oc0;
+    if (ne.size === ext.size && [...ne].every(x => ext.has(x)) && oblOk) break;
     ext = ne;
   }
   const RK = new Map((G.runs || []).map(r => [r.key, r])), st0 = JSON.stringify((pl.stairs || []).map(st => [st.x, st.y]));
@@ -1857,6 +2056,9 @@ function measItems() { const out = [], seenAp = new Set();
         else one('w', {a:op.s, b:op.e, hb:{kind:'w', ap:op.ap.id}, st:op.ap.lp ? 'x' : 'm', val:num(op.ap.l), w:true, ap:op.ap}); });
     } else { const m = r.mis > 0;
       out.push(Object.assign({}, base, {a:axC(r.P, r.H) + r.eA, b:axC(r.Q, r.H) - r.eB, hb:{kind:'r', key:r.key}, st:m ? 'm' : r.det ? 'd' : 'x', val:m ? r.mis : r.det ? r.face : NaN, bad:m && Math.abs(r.diff || 0) > TOL})); } });
+  // muri obliquí: la lunghezza (si chiede dal lato della faccia misurata)
+  if (G && G.T && G.T.oinfo) G.T.oinfo.forEach(J => { const F = G.oblFace.get(J.w.id); if (!F) return; const c = F.sides[F.side > 0 ? 0 : 1], m = [(J.a.x + J.b.x) / 2, (J.a.y + J.b.y) / 2], mis = num(J.w.mis) > 0;
+    out.push({o:true, H:true, face:m[1], a:m[0], b:m[0], sg:1, comp:c, wid:J.w.id, hb:{kind:'ob', id:J.w.id}, st:mis ? 'm' : 'x', val:mis ? num(J.w.mis) : F.int}); });
   out.forEach(it => { it.k = it.hb ? hbKey(it.hb) : ''; });
   return out; }
 // stanze «aperte»: si vedono anche le misure ricavate e le caselle di quelle da prendere
@@ -2033,7 +2235,8 @@ function draw() {
   if (selRoom && G.comps[selRoom._c]) { /* evidenzia l'ambiente */ const cc = G.comps[selRoom._c]; s += `<g fill="var(--accbg)">` + roomRects(cc) + '</g>'; }
   const selPieno = selRoom && G.comps[selRoom._c] && !G.comps[selRoom._c].room;
   s += '<g fill="var(--wall)">' + G.fills.map(b => `<rect x="${X(b[0])}" y="${Y(b[3])}" width="${(b[2] - b[0]) * v.s + 0.3}" height="${(b[3] - b[1]) * v.s + 0.3}"/>`).join('')
-    + (G.wedges || []).map(q => `<path d="M${q.map(p => X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' L')} Z"/>`).join('') + '</g>';
+    + (G.wedges || []).map(q => `<path d="M${q.map(p => X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' L')} Z"/>`).join('')
+    + (G.fpolys || []).map(poly => `<path fill-rule="evenodd" d="${poly.map(r => 'M' + r.map(p => X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' L') + ' Z').join(' ')}"/>`).join('') + '</g>';
   if (selPieno) s += `<g fill="var(--acc)" fill-opacity=".35">` + roomRects(G.comps[selRoom._c]) + '</g>';
   (G.ops || []).filter(o => o.bad && o.at).forEach(o => { const d = o.I.t, q = [o.at(o.s0, -0.03), o.at(o.s1, -0.03), o.at(o.s1, d + 0.03), o.at(o.s0, d + 0.03)];
     s += `<path d="M${q.map(v => X(v[0]).toFixed(1) + ' ' + Y(v[1]).toFixed(1)).join(' L')} Z" fill="var(--bad)" fill-opacity=".3" stroke="var(--bad)" stroke-width="2" stroke-dasharray="5 3"/>`; });
@@ -2052,6 +2255,7 @@ function draw() {
   // muri della selezione a finestra
   if (ui.sel && ui.sel.k === 'm') ui.sel.w.forEach(id => { const I = G.T.info.get(id); if (I) s += `<line x1="${X(I.a.x + (I.H ? 0 : I.o))}" y1="${Y(I.a.y + (I.H ? I.o : 0))}" x2="${X(I.b.x + (I.H ? 0 : I.o))}" y2="${Y(I.b.y + (I.H ? I.o : 0))}" stroke="var(--acc)" stroke-width="${Math.max(8, I.t * v.s)}" stroke-opacity=".35" stroke-linecap="butt"/>`; });
   // muro selezionato
+  if (ui.sel && ui.sel.k === 'w') { const J = G.T.oinfo && G.T.oinfo.get(ui.sel.id); if (J) s += `<line x1="${X(J.a.x)}" y1="${Y(J.a.y)}" x2="${X(J.b.x)}" y2="${Y(J.b.y)}" stroke="var(--acc)" stroke-width="${Math.max(8, J.t * v.s)}" stroke-opacity=".35" stroke-linecap="butt"/>`; }
   if (ui.sel && ui.sel.k === 'w') { const I = G.T.info.get(ui.sel.id); if (I) s += `<line x1="${X(I.a.x + (I.H ? 0 : I.o))}" y1="${Y(I.a.y + (I.H ? I.o : 0))}" x2="${X(I.b.x + (I.H ? 0 : I.o))}" y2="${Y(I.b.y + (I.H ? I.o : 0))}" stroke="var(--acc)" stroke-width="${Math.max(8, I.t * v.s)}" stroke-opacity=".35" stroke-linecap="butt"/>`; }
   // nodi
   if (ui.mode === 'draw') s += pl.nodes.map(n => `<circle cx="${X(n.x)}" cy="${Y(n.y)}" r="3" fill="var(--acc)"/>`).join('');
@@ -2065,7 +2269,7 @@ function draw() {
   // grafica nuova: i nomi delle stanze si piazzano per primi (le quote si scostano da loro) e nelle stanze strette si rimpiccioliscono
   if (ui.mnew && ui.labels) (pl.rooms || []).forEach(r => { const cc = G.comps[r._c]; if (!cc || !cc.room) return; const fs = labFs(r, cc), w = Math.max(String(r.nome || '').length * fs * 0.62, 30);
     placed.push([X(cc.label[0]) - w / 2, Y(cc.label[1]) - 2 - fs, w, fs * 2.2]); });
-  if (ui.mnew && v.s >= 18) measItems().forEach(it => { if (it.w) { apComp.set(it.ap.id, it.comp); return; }
+  if (ui.mnew && v.s >= 18) measItems().forEach(it => { if (it.o) return; if (it.w) { apComp.set(it.ap.id, it.comp); return; }
     const H = it.H, sg = it.sg, foc = FOC.has(it.comp), cur = ui.guide && ui.guide.cur === it.k, ed = ui.inl && it.k && ui.inl.key === it.k, sel = ui.sel && ui.sel.k === 'w' && it.r.walls.some(x => x.id === ui.sel.id);
     const d0 = 12 * K, P = (al, d) => H ? [X(al), Y(it.face) - sg * d] : [X(it.face) + sg * d, Y(al)];
     const A = P(it.a, d0), B = P(it.b, d0), M = P((it.a + it.b) / 2, d0);
@@ -2106,6 +2310,11 @@ function draw() {
   if (!ui.mnew && ui.labels) (pl.rooms || []).forEach(r => { const cc = G.comps[r._c]; if (!cc || !cc.room) return; const fs = Math.max(6, Math.min(15, v.s * 0.22)), w = Math.max(String(r.nome || '').length * fs * 0.62, 60);
     placed.push([X(cc.label[0]) - w / 2, Y(cc.label[1]) - 2 - fs, w, fs * 2.2]); });
   // larghezza dei vani: linea perpendicolare al muro verso l'ambiente e numero lungo la linea (come nel disegno)
+  if (v.s >= 18 && G.T.oinfo) G.T.oinfo.forEach(J => { const w = J.w, F = G.oblFace.get(w.id); if (!F) return; const rif = w.rif === 'est' || w.rif === 'asse' ? w.rif : 'int';
+    const sd = rif === 'est' ? -F.side : F.side, off = rif === 'asse' ? 0 : J.t / 2 + 24 * K / v.s, m = [(J.a.x + J.b.x) / 2 + J.n[0] * sd * off, (J.a.y + J.b.y) / 2 + J.n[1] * sd * off];
+    const hb = {kind:'ob', id:w.id}, ed = ui.inl && ui.inl.key === hbKey(hb), mis = num(w.mis) > 0, bad = OBLBAD.has(w.id) || (G.oblBad && G.oblBad.has(w.id));
+    const b = mbox(X(m[0]), Y(m[1]), true, mis ? num(w.mis) : F[rif], mis, bad, ed || (ui.guide && ui.guide.cur === hbKey(hb)), ui.sel && ui.sel.k === 'w' && ui.sel.id === w.id, {prop:!mis});
+    s += b.s; ui.pbb.push({box:b.box, hb}); });
   if (v.s >= 18) G.ops.forEach(o => { const I = o.I; if (!(I.t > 0)) return;
     // finestra incassata: la luce si scrive dalla sua faccia, la parte larga dall'altra
     const parts = o.inc ? [{prop:!!o.ap.l2p, val:num(o.ap.l2), hb:{kind:'w2', ap:o.ap.id}, sg:o.inc.lw, m:(o.inc.w0 + o.inc.w1) / 2}, {prop:!!o.ap.lp, val:num(o.ap.l), hb:{kind:'w', ap:o.ap.id}, sg:-o.inc.lw, m:(o.s0 + o.s1) / 2}]
@@ -2206,9 +2415,10 @@ function mbox(tx, ty, H, val, m, bad, edit, sel, o = {}) {
   if (txt) s += `<text x="${tx}" y="${ty}" font-size="${(11 * K).toFixed(1)}" text-anchor="middle" dominant-baseline="central" fill="${bad ? 'var(--bad)' : m && !o.prop ? 'var(--ink)' : 'var(--mut)'}" font-weight="${bad || sel ? 700 : m && !o.prop ? 600 : 400}" ${o.prop ? 'font-style="italic"' : ''} ${H ? '' : `transform="rotate(-90 ${tx} ${ty})"`}>${esc(txt)}</text>`;
   return {s, box};
 }
-const hbKey = hb => hb.kind === 'par' ? 'par:' + hb.id + ':' + hb.sd : hb.kind === 'il' ? 'il:' + hb.id : hb.kind === 'w2' ? 'w2:' + hb.ap : hb.kind === 'ris' ? 'ris:' + hb.ap : hb.kind === 'sp' ? 'sp:' + hb.rk + ':' + hb.side : hb.kind === 'p' ? 'p:' + hb.rk + ':' + (hb.nx || 'fine') : hb.kind === 'w' ? 'w:' + hb.ap : hb.kind === 'q' ? 'q:' + hb.id : hb.key;
+const hbKey = hb => hb.kind === 'ob' ? 'ob:' + hb.id : hb.kind === 'par' ? 'par:' + hb.id + ':' + hb.sd : hb.kind === 'il' ? 'il:' + hb.id : hb.kind === 'w2' ? 'w2:' + hb.ap : hb.kind === 'ris' ? 'ris:' + hb.ap : hb.kind === 'sp' ? 'sp:' + hb.rk + ':' + hb.side : hb.kind === 'p' ? 'p:' + hb.rk + ':' + (hb.nx || 'fine') : hb.kind === 'w' ? 'w:' + hb.ap : hb.kind === 'q' ? 'q:' + hb.id : hb.key;
 function roomRects(cc) {
-  const v = ui.view; if (cc.isRect) { const b = cc.bbox; return `<rect x="${SX(b[0])}" y="${SY(b[3])}" width="${(b[2] - b[0]) * v.s}" height="${(b[3] - b[1]) * v.s}"/>`; }
+  const v = ui.view; if (cc.ring) return `<path d="M${cc.ring.map(p => SX(p[0]).toFixed(1) + ' ' + SY(p[1]).toFixed(1)).join(' L')} Z"/>`;
+  if (cc.isRect) { const b = cc.bbox; return `<rect x="${SX(b[0])}" y="${SY(b[3])}" width="${(b[2] - b[0]) * v.s}" height="${(b[3] - b[1]) * v.s}"/>`; }
   return cc.rects.map(b => `<rect x="${SX(b[0])}" y="${SY(b[3])}" width="${(b[2] - b[0]) * v.s + 0.3}" height="${(b[3] - b[1]) * v.s + 0.3}"/>`).join('');
 }
 
@@ -2348,6 +2558,7 @@ function snapPoint(pl, x, y, tol) {
   let best = null, bd = tol; pl.nodes.forEach(n => { const d = Math.hypot(n.x - x, n.y - y); if (d < bd) { bd = d; best = {x:n.x, y:n.y}; } });
   if (best) return best;
   for (const w of pl.walls) { const a = nd(pl, w.a), b = nd(pl, w.b);
+    if (isObl(w)) { const dx = b.x - a.x, dy = b.y - a.y, t = ((x - a.x) * dx + (y - a.y) * dy) / (dx * dx + dy * dy || 1e-12); if (t > 0 && t < 1 && Math.hypot(x - a.x - t * dx, y - a.y - t * dy) < tol) return {x:a.x + t * dx, y:a.y + t * dy}; continue; }
     if (isH(a, b)) { if (Math.abs(y - a.y) < tol && x > a.x && x < b.x) return {x:snapCoord(pl, x, 'x', tol), y:a.y}; }
     else if (Math.abs(x - a.x) < tol && y > a.y && y < b.y) return {x:a.x, y:snapCoord(pl, y, 'y', tol)}; }
   return {x:snapCoord(pl, x, 'x', tol), y:snapCoord(pl, y, 'y', tol)};
@@ -2391,13 +2602,15 @@ function finishStroke(sp) {
     const v = raw[k], dx = v.x - cur.x, dy = v.y - cur.y; if (Math.max(Math.abs(dx), Math.abs(dy)) < minLen) continue;
     const last = k === raw.length - 1 && chain.length >= 3; // la chiusura sul punto di partenza vale solo per un contorno
     let np;
-    if (Math.abs(dx) >= Math.abs(dy)) np = {x:last && Math.hypot(v.x - start.x, v.y - start.y) < tol * 1.5 && Math.abs(start.y - cur.y) < 1e-6 ? start.x : snapCoord(pl, v.x, 'x', tol), y:cur.y};
+    const ang = Math.atan2(Math.abs(dy), Math.abs(dx)) * 180 / Math.PI;
+    if (ang > 10 && ang < 80) { np = snapPoint(pl, v.x, v.y, tol); np = {x:np.x, y:np.y, obl:true}; }   // più di 10° dagli assi: muro obliquo
+    else if (Math.abs(dx) >= Math.abs(dy)) np = {x:last && Math.hypot(v.x - start.x, v.y - start.y) < tol * 1.5 && Math.abs(start.y - cur.y) < 1e-6 ? start.x : snapCoord(pl, v.x, 'x', tol), y:cur.y};
     else np = {x:cur.x, y:last && Math.hypot(v.x - start.x, v.y - start.y) < tol * 1.5 && Math.abs(start.x - cur.x) < 1e-6 ? start.y : snapCoord(pl, v.y, 'y', tol)};
     // allinea con l'inizio del tratto per chiudere i contorni
     if (chain.length >= 2) { if (Math.abs(np.x - start.x) < tol) np.x = start.x; if (Math.abs(np.y - start.y) < tol) np.y = start.y; }
     if (Math.abs(np.x - cur.x) < 1e-6 && Math.abs(np.y - cur.y) < 1e-6) continue;
     const n2 = chain.length >= 2 ? chain[chain.length - 2] : null;
-    const sameDir = n2 && ((Math.abs(n2.y - cur.y) < 1e-6 && Math.abs(np.y - cur.y) < 1e-6) || (Math.abs(n2.x - cur.x) < 1e-6 && Math.abs(np.x - cur.x) < 1e-6));
+    const sameDir = n2 && !np.obl && !cur.obl && ((Math.abs(n2.y - cur.y) < 1e-6 && Math.abs(np.y - cur.y) < 1e-6) || (Math.abs(n2.x - cur.x) < 1e-6 && Math.abs(np.x - cur.x) < 1e-6));
     if (sameDir) chain[chain.length - 1] = np; else chain.push(np);
     cur = np;
   }
@@ -2522,11 +2735,12 @@ function openInline(hb) {
   else if (kind === 'ris') { const ap = apOf(hb.ap); if (ap) { old = risMis(ap) ? ap.ris : ''; ph = old ? 'm' : 'prop. ' + f2(risOf(ap)); } }
   else if (kind === 'q') { const d = (pl.dims || []).find(x => x.id === hb.id); old = d ? d.v || '' : ''; }
   else if (kind === 'par') { old = ''; ph = 'm'; }
+  else if (kind === 'ob') { const w = pl.walls.find(x => x.id === hb.id), F = G.oblFace.get(hb.id); old = w && w.mis || ''; ph = F ? 'prop. ' + f2(F[w.rif === 'est' || w.rif === 'asse' ? w.rif : 'int']) : 'm'; }
   else if (kind === 'il') { const k = (pl.ink || []).find(x => x.id === hb.id); old = k && k.v || ''; ph = k ? 'prop. ' + f2(lnLen(k)) : 'm'; }
   const spR = kind === 'sp' ? (G.runs || []).find(x => x.key === hb.rk) : null, spSt = kind === 'sp' ? (pl.stairs || []).find(x => x.id === hb.st) : null, spAx = spR && (spR.H ? 'x' : 'y');
   if (kind === 'sp' && spSt && spSt.anc && spSt.anc[spAx] && spSt.anc[spAx].m && spSt.anc[spAx].m.k === hb.rk && spSt.anc[spAx].m.side === hb.side) old = spSt.anc[spAx].m.v;
   // finestra «Modifica misura»: numero grande in metri e tastierino (niente tastiera del tablet)
-  const sub = kind === 'par' ? 'Parallela · distanza dalla linea' : kind === 'il' ? 'Linea · lunghezza (resta fermo il punto da cui sei partito)' : kind === 'sp' ? (hb.side === 'a' ? 'Parziale · dal muro al primo gradino (o al bordo della scala)' : 'Parziale · dalla scala al muro') : kind === 'w' ? (() => { const ap = apOf(hb.ap); return ap && ap.tipo === 'finestra' && ap.inc ? 'Finestra incassata · luce (parte stretta, dove sta l\'infisso)' : 'Larghezza del vano'; })() : kind === 'w2' ? 'Finestra incassata · larghezza della parte larga' : kind === 'ris' ? (() => { const f = dimAp(pl, hb.ap), I = f && G.T.info.get(f.w.id); return 'Finestra incassata · risega ' + (I && !I.H ? 'in basso' : 'a sinistra') + ': dal bordo largo al bordo della luce'; })() : kind === 'q' ? 'Quota libera' : kind === 'p' ? (hb.last ? 'Parziale · ultimo tratto del lato' : 'Parziale · tratto di muro') : hb.fac ? 'Totale esterno della facciata' :
+  const sub = kind === 'ob' ? (() => { const w = pl.walls.find(x => x.id === hb.id); return 'Muro obliquo · lunghezza ' + (w && w.rif === 'est' ? 'della faccia esterna' : w && w.rif === 'asse' ? "dell'asse" : 'della faccia interna'); })() : kind === 'par' ? 'Parallela · distanza dalla linea' : kind === 'il' ? 'Linea · lunghezza (resta fermo il punto da cui sei partito)' : kind === 'sp' ? (hb.side === 'a' ? 'Parziale · dal muro al primo gradino (o al bordo della scala)' : 'Parziale · dalla scala al muro') : kind === 'w' ? (() => { const ap = apOf(hb.ap); return ap && ap.tipo === 'finestra' && ap.inc ? 'Finestra incassata · luce (parte stretta, dove sta l\'infisso)' : 'Larghezza del vano'; })() : kind === 'w2' ? 'Finestra incassata · larghezza della parte larga' : kind === 'ris' ? (() => { const f = dimAp(pl, hb.ap), I = f && G.T.info.get(f.w.id); return 'Finestra incassata · risega ' + (I && !I.H ? 'in basso' : 'a sinistra') + ': dal bordo largo al bordo della luce'; })() : kind === 'q' ? 'Quota libera' : kind === 'p' ? (hb.last ? 'Parziale · ultimo tratto del lato' : 'Parziale · tratto di muro') : hb.fac ? 'Totale esterno della facciata' :
     (() => { const r = (G.runs || []).find(x => x.key === hb.key); if (!r) return 'Lato del muro'; const c = r.comp >= 0 && G.comps[r.comp] && G.comps[r.comp].rec ? ' · ' + G.comps[r.comp].rec.nome : ''; return tipoNome(r.walls[0]) + ', ' + latoNome(r) + c; })();
   const gdx = ui.guide ? `Misura guidata · ${ui.guide.left} da prendere · ` : '';
   const pop = document.createElement('div'); pop.id = 'inl'; pop.className = 'mpop' + (ui.guide ? ' guide ' + (ui.guide.px > window.innerWidth / 2 ? 'gl' : 'gr') : '');
@@ -2553,6 +2767,7 @@ function openInline(hb) {
     pushUndo(); undemo();
     if (kind === 'r') setMeasure(pl, 'r', hb.key, v);
     else if (kind === 'q') setMeasure(pl, 'q', hb.id, v);
+    else if (kind === 'ob') setMeasure(pl, 'o', hb.id, v);
     else if (kind === 'par') { const src = (pl.ink || []).find(x => x.id === hb.id); if (src && v) { pushUndo(); parMake(src, hb.sd, v); } }
     else if (kind === 'il') { const k = (pl.ink || []).find(x => x.id === hb.id); if (k) { if (v) lnSetLen(k, v); else delete k.v; } }
     else if (kind === 'sp') { if (spSt && spR) { spSt.anc = spSt.anc || {};
@@ -2690,7 +2905,9 @@ function winSelect(a, b) {
   const pl = piano(), cross = b[0] < a[0], X0 = WX(Math.min(a[0], b[0])), X1 = WX(Math.max(a[0], b[0])), Y0 = WY(Math.max(a[1], b[1])), Y1 = WY(Math.min(a[1], b[1]));
   const ok = r => cross ? (r[2] >= X0 && r[0] <= X1 && r[3] >= Y0 && r[1] <= Y1) : (r[0] >= X0 && r[2] <= X1 && r[1] >= Y0 && r[3] <= Y1);
   const out = {k:'m', w:[], s:[], n:[], q:[], i:[]};
-  pl.walls.forEach(w => { const I = G.T.info.get(w.id); if (!I) return; const h = I.t / 2, o = I.o || 0;
+  pl.walls.forEach(w => { const I = G.T.info.get(w.id);
+    if (!I) { const J = G.T.oinfo && G.T.oinfo.get(w.id); if (J && ok([Math.min(J.a.x, J.b.x), Math.min(J.a.y, J.b.y), Math.max(J.a.x, J.b.x), Math.max(J.a.y, J.b.y)])) out.w.push(w.id); return; }
+    const h = I.t / 2, o = I.o || 0;
     if (ok(I.H ? [I.a.x - I.da, I.a.y + o - h, I.b.x + I.db, I.a.y + o + h] : [I.a.x + o - h, I.a.y - I.da, I.a.x + o + h, I.b.y + I.db])) out.w.push(w.id); });
   (pl.stairs || []).forEach(st => { if (ok(stairPrims(st).bbox)) out.s.push(st.id); });
   (pl.notes || []).forEach(n => { const b = ui.nbb.get(n.id); if (!b) return; if (ok([WX(b[0]), WY(b[1] + b[3]), WX(b[0] + b[2]), WY(b[1])])) out.n.push(n.id); });
@@ -2798,7 +3015,9 @@ function hit(p) {
     const fc = G.facs.find(f => f.key === key); if (fc) { ui.sel = {k:'w', id:fc.walls[0].id}; draw(); renderSide(); const el = fc.ext && document.querySelector(`[data-run="${fc.ext.key}"]`); if (el) { el.scrollIntoView({block:'center'}); el.focus(); } return; }
   }
   const pl = piano(), wx = WX(p[0]), wy = WY(p[1]); let best = null, bd = Infinity;
-  pl.walls.forEach(w => { const I = G.T.info.get(w.id); if (!I) return;
+  pl.walls.forEach(w => { const I = G.T.info.get(w.id);
+    if (!I) { const J = G.T.oinfo && G.T.oinfo.get(w.id); if (!J) return; const dx = J.b.x - J.a.x, dy = J.b.y - J.a.y, t = Math.max(0, Math.min(1, ((wx - J.a.x) * dx + (wy - J.a.y) * dy) / (dx * dx + dy * dy || 1e-12)));
+      const d = Math.hypot(wx - J.a.x - t * dx, wy - J.a.y - t * dy), lim = Math.max(J.t / 2 + 0.02, 14 / ui.view.s); if (d < lim && d < bd) { bd = d; best = w; } return; }
     const oy = I.H ? I.o : 0, ox = I.H ? 0 : I.o;
     const d = I.H ? (wx < I.a.x ? Math.hypot(wx - I.a.x, wy - I.a.y - oy) : wx > I.b.x ? Math.hypot(wx - I.b.x, wy - I.b.y - oy) : Math.abs(wy - I.a.y - oy))
                   : (wy < I.a.y ? Math.hypot(wx - I.a.x - ox, wy - I.a.y) : wy > I.b.y ? Math.hypot(wx - I.b.x - ox, wy - I.b.y) : Math.abs(wx - I.a.x - ox));
@@ -2927,6 +3146,17 @@ function renderSide() {
     el.innerHTML = `<div class="cardh">Nota <span class="sp"></span><button class="sm bad" id="bDelN">Elimina nota</button></div>
       <textarea data-n="t" rows="7" placeholder="Scrivi qui: contatori, crepe, impianti, cose da verificare…">${esc(nt.t)}</textarea>
       <p class="hint">Trascina la nota sulla tavola per spostarla. Si va a capo con Invio. ${R.opt.note ? 'Le note entrano nello script.' : 'Le note restano nel rilievo; per metterle anche nello script attivale nelle Impostazioni.'}</p>`;
+  } else if (w && isObl(w)) {
+    const J = G.T.oinfo.get(w.id), F = G.oblFace.get(w.id), ang = J ? Math.round(Math.abs(Math.atan2(J.b.y - J.a.y, J.b.x - J.a.x)) * 180 / Math.PI) : 0, a2 = ang > 90 ? 180 - ang : ang;
+    el.innerHTML = `<div class="cardh">Muro obliquo <span class="sp"></span><button class="sm bad" id="bDelW">Elimina muro</button></div>
+      <div class="info">Inclinato di ${a2}° rispetto all'orizzontale. ${F ? `Facce: interna ${f2(F.int)} m, esterna ${f2(F.est)} m (asse ${f2(F.asse)} m).` : ''}</div>
+      <div class="grid">
+        <div><label class="l">Tipo</label><select data-w="tipo" data-re>${opt({P:`Perimetrale ${f2(P_())}`, T:`Tramezzo ${f2(T_())}`, X:'Altro spessore'}, w.tipo)}</select></div>
+        ${w.tipo === 'X' ? inp('sp', w.sp, 'Spessore (m)') : '<div></div>'}
+        <div><label class="l">Lunghezza misurata (m)</label><input data-w="mis" inputmode="decimal" value="${esc(w.mis || '')}" placeholder="${F ? f2(w.rif === 'est' ? F.est : w.rif === 'asse' ? F.asse : F.int) : ''}"></div>
+        <div><label class="l">Misurata su</label><select data-w="rif">${opt({int:'Faccia interna (verso la stanza)', est:'Faccia esterna', asse:'Asse del muro'}, w.rif === 'est' || w.rif === 'asse' ? w.rif : 'int')}</select></div>
+      </div>
+      <p class="hint">La lunghezza del muro obliquo fissa il «cateto» che le altre misure lasciano libero. Se le altre misure fissano già tutto, serve da controllo. Diagonali e rientro arrivano con la prossima tappa.</p>`;
   } else if (w) {
     const I = G.T.info.get(w.id), from = I.H ? 'da sinistra' : 'dal basso';
     el.innerHTML = `<div class="cardh">Muro ${I.H ? 'orizzontale' : 'verticale'} <span class="sp"></span><button class="sm bad" id="bDelW">Elimina muro</button></div>
@@ -3006,7 +3236,7 @@ function setW(w, path, v) { const ps = path.split('.'); if (ps[0] === 'ap') { co
   if (ps[2] === 'd') { delete x.pos; if (String(v).trim()) delete x.dp; } if (ps[2] === 'l' && String(v).trim()) delete x.lp;
   if (ps[2] === 'l2') { if (String(v).trim()) delete x.l2p; else { x.l2 = fN((num(x.l) || 1.20) + 0.40); x.l2p = true; } }
   if (ps[2] === 'inc' && v) { if (!(num(x.l2) > num(x.l))) { x.l2 = fN((num(x.l) || 1.20) + 0.40); x.l2p = true; }   // parte larga proposta: 20 cm per lato
-    if (x.lw !== 1 && x.lw !== -1) { const o = (G.ops || []).find(q => q.ap === x); x.lw = o && o.side ? o.side : 1; } } } } else { if (ps[0] === 'tipo' && v === 'X' && !(num(w.sp) > 0.02)) w.sp = f2(thick(w)); w[ps[0]] = v; } }
+    if (x.lw !== 1 && x.lw !== -1) { const o = (G.ops || []).find(q => q.ap === x); x.lw = o && o.side ? o.side : 1; } } } } else { if (ps[0] === 'mis' && isObl(w)) return setMeasure(piano(), 'o', w.id, v); if (ps[0] === 'tipo' && v === 'X' && !(num(w.sp) > 0.02)) w.sp = f2(thick(w)); w[ps[0]] = v; } }
 
 /* ---- calcoli ---- */
 function renderCalc() {
