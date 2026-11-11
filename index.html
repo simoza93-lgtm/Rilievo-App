@@ -312,6 +312,13 @@ function lax(w, I) {
   return w.rif === 'asse' ? m : w.rif === 'est' ? m - adj(I.ta, I.da) - adj(I.tb, I.db) : m + I.da + I.db;
 }
 const luce = I => I.len - I.da - I.db;
+// muro obliquo visto dalle aperture: come T.info dei muri dritti (da, db = dove il muro è libero su tutte e due le facce),
+// più l'inizio e la fine di ogni faccia (fa, fb: +1 = faccia sinistra andando da a verso b, −1 = destra), misurati lungo l'asse dal nodo a
+function oAI(T, J) { const E = oblJ(T).ends, ea = E.get(J.w.id + ':' + J.w.a) || {l:0, r:0}, eb = E.get(J.w.id + ':' + J.w.b) || {l:0, r:0};
+  return Object.assign({}, J, {da:Math.max(0, ea.l, ea.r), db:Math.max(0, eb.l, eb.r), fa:{1:ea.l, '-1':ea.r}, fb:{1:J.len - eb.r, '-1':J.len - eb.l}}); }
+// punto di un muro: al = lungo il muro dal nodo a, ac = di traverso dall'asse (verso la normale)
+const apPt = (I, al, ac) => I.obl ? [I.a.x + I.u[0] * al + I.n[0] * ac, I.a.y + I.u[1] * al + I.n[1] * ac] : I.H ? [I.a.x + al, I.a.y + (I.o || 0) + ac] : [I.a.x + (I.o || 0) + ac, I.a.y + al];
+const oKey = (w, sg) => 'o:' + w.id + ':' + (sg > 0 ? '+' : '-');
 
 /* ---- facce: ogni lato di una fila di muri allineati si misura da un muro all'altro di quel lato ---- */
 function runsOf(pl, T) {
@@ -393,6 +400,7 @@ function apAnchors(pl, T, runs) {
 // dopo il calcolo: i vani misurati in pianta tornano al loro posto (distanza dal muro)
 function placeAps(pl) {
   const T = topo(pl), runs = runsOf(pl, T), keys = new Set(runs.map(r => r.key)), ids = new Set();
+  T.oinfo.forEach(J => { keys.add(oKey(J.w, 1)); keys.add(oKey(J.w, -1)); });
   pl.walls.forEach(w => (w.ap || []).forEach(ap => ids.add(ap.id)));
   let lost = 0;
   pl.walls.forEach(w => (w.ap || []).forEach(ap => { if (ap.pos && (!keys.has(ap.pos.k) || (ap.pos.prev && !ids.has(ap.pos.prev)))) { delete ap.pos; lost++; } }));
@@ -400,6 +408,24 @@ function placeAps(pl) {
   pl.walls.forEach(w => { const I = T.info.get(w.id); if (!I) return;
     (w.ap || []).forEach(ap => { const a = A.get(ap.id); if (!a || a.src === 'd') return; const n = T.N.get(a.n); if (!n) return;
       ap.d = fN(r4(axC(n, I.H) + a.off - axC(I.a, I.H) - I.da)); }); });
+  // muri obliqui: la posizione misurata lungo una faccia (dallo spigolo o dal vano prima), oppure dall'ultima parziale se la posizione è solo proposta
+  T.oinfo.forEach(J => { const w = J.w, aps = w.ap || []; if (!aps.length) return; const I = oAI(T, J), S = new Map(), busy = new Set();
+    aps.forEach(ap => { if (ap.pos && !String(ap.pos.k).startsWith('o:' + w.id + ':')) { delete ap.pos; ap.dp = true; lost++; } });
+    const sgOf = k => String(k).endsWith(':+') ? 1 : -1;
+    const get = ap => { if (S.has(ap.id)) return S.get(ap.id); if (busy.has(ap.id)) return null; busy.add(ap.id); let v = null; const p = ap.pos;
+      if (p && num(p.v) >= 0) { const sg = sgOf(p.k), F = apFace(ap, I.t, sg);
+        if (!p.prev) v = I.fa[sg] + num(p.v) - F.d0;
+        else { const pa = aps.find(x => x.id === p.prev), sp = pa && num(pa.l) > 0 ? get(pa) : null; if (sp != null) { const Fp = apFace(pa, I.t, sg); v = sp + Fp.d0 + Fp.w + num(p.v) - F.d0; } } }
+      busy.delete(ap.id); S.set(ap.id, v); return v; };
+    aps.forEach(get);
+    [1, -1].forEach(sg => { const L = num((pl.fl || {})[oKey(w, sg)]); if (String((pl.fl || {})[oKey(w, sg)] ?? '').trim() === '' || !(L >= 0)) return;
+      const os = aps.filter(ap => num(ap.l) > 0 && isFinite(num(ap.d))).map(ap => { const s0 = S.get(ap.id) != null ? S.get(ap.id) : I.da + num(ap.d); return {ap, s:s0 + apFace(ap, I.t, sg).d0}; }).sort((a, b) => a.s - b.s);
+      const lastAp = os.length ? os[os.length - 1].ap : null; if (lastAp && S.get(lastAp.id) == null && lastAp.dp) { const F = apFace(lastAp, I.t, sg); S.set(lastAp.id, I.fb[sg] - L - F.w - F.d0); } });
+    aps.forEach(ap => { const v = S.get(ap.id); if (v != null) ap.d = fN(r4(v - I.da)); });
+    // posizione solo proposta: se il muro si è accorciato l'apertura rientra
+    const Lu = luce(I); aps.forEach(ap => { if (!ap.dp || S.get(ap.id) != null) return; let l = num(ap.l); const d = num(ap.d); if (!(l > 0) || !isFinite(d)) return;
+      if (ap.lp && l > Lu && Lu > 0.1) { l = Math.floor(Lu * 100) / 100; ap.l = fN(l); }
+      const d2 = Math.min(Math.max(d, 0), Math.max(0, Lu - l)); if (Math.abs(d2 - d) > 1e-4) ap.d = fN(r4(d2)); }); });
   // posizione (e larghezza) solo proposte: se il muro si è accorciato con le misure, l'apertura rientra nel muro invece di sparire
   let fit = 0;
   pl.walls.forEach(w => { const I = T.info.get(w.id); if (!I) return; const L = I.len - I.da - I.db;
@@ -479,19 +505,29 @@ function getNode(pl, x, y, tNew) {
   return n;
 }
 // muro dritto → obliquo (per il fuori squadra): la misura del suo lato passa alla lunghezza del muro obliquo
-function makeObl(pl, w) { if (isObl(w)) return 'già'; if ((w.ap || []).length) return 'aperture';
+function makeObl(pl, w) { if (isObl(w)) return 'già';
   const runs = (G.runs || []).filter(r => !r.ext && r.walls.length === 1 && r.walls[0] === w && num((pl.fm || {})[r.key]) > 0);
-  w.obl = true; w.filo = '';
+  // parziali dei vani: passano sulla faccia del muro obliquo se il lato era solo questo muro (dallo stesso spigolo), altrimenti si riscrivono
+  const rs = (G.runs || []).filter(r => r.walls.includes(w)), conv = r => r && r.walls.length === 1 && r.p === w.a, sgo = r => r.H ? r.sg : -r.sg;
+  let lostP = 0;
+  (w.ap || []).forEach(ap => { const p = ap.pos; if (!p) return; const r = rs.find(x => x.key === p.k);
+    if (conv(r) && (!p.prev || w.ap.some(x => x.id === p.prev))) ap.pos = {k:oKey(w, sgo(r)), v:p.v, prev:p.prev || ''}; else { delete ap.pos; ap.dp = true; lostP++; } });
+  rs.forEach(r => { if (!pl.fl || pl.fl[r.key] == null) return; if (conv(r)) { const k2 = oKey(w, sgo(r)); pl.fl[k2] = pl.fl[r.key]; pl.mord = (pl.mord || []).map(x => x === 'l:' + r.key ? 'l:' + k2 : x); } else lostP++;
+    delete pl.fl[r.key]; pl.mord = (pl.mord || []).filter(x => x !== 'l:' + r.key); });
+  w.obl = true; w.filo = ''; makeObl.lost = lostP;
   if (runs.length) { const r = runs[0], k = 'r:' + r.key; w.mis = pl.fm[r.key]; w.rif = 'int'; pl.mord = (pl.mord || []).map(x => x === k ? 'o:' + w.id : x); }
   runs.forEach(r => { delete pl.fm[r.key]; if (pl.fl) delete pl.fl[r.key]; pl.mord = (pl.mord || []).filter(x => x !== 'r:' + r.key); });
   return 'ok'; }
 function makeStraight(pl, w) { if (!isObl(w)) return; const a = nd(pl, w.a), b = nd(pl, w.b); if (Math.abs(b.x - a.x) >= Math.abs(b.y - a.y)) b.y = a.y; else b.x = a.x;
-  w.obl = false; w.mis = ''; delete w.rient; pl.mord = (pl.mord || []).filter(x => x !== 'o:' + w.id && x !== 'e:' + w.id); }
+  w.obl = false; w.mis = ''; delete w.rient; pl.mord = (pl.mord || []).filter(x => x !== 'o:' + w.id && x !== 'e:' + w.id);
+  let lostP = 0; (w.ap || []).forEach(ap => { if (ap.pos) { delete ap.pos; ap.dp = true; lostP++; } });
+  [1, -1].forEach(sg => { const k = oKey(w, sg); if (pl.fl && pl.fl[k] != null) { delete pl.fl[k]; lostP++; } pl.mord = (pl.mord || []).filter(x => x !== 'l:' + k); });
+  return lostP; }
 // stanza fuori squadra: tutti i suoi muri diventano obliqui tranne il più lungo, che resta il riferimento dritto
 function roomFuoriSquadra(pl, cid) { const ws = new Set(); (G.runs || []).forEach(r => { if (r.comp0 === cid) r.walls.forEach(w => ws.add(w)); });
   const list = [...ws].filter(w => !isObl(w)); if (list.length < 2) return {ok:0, ap:0};
   const len = w => { const a = nd(pl, w.a), b = nd(pl, w.b); return Math.hypot(b.x - a.x, b.y - a.y); }, ref = list.slice().sort((u, v) => len(v) - len(u))[0];
-  let ok = 0, ap = 0; list.forEach(w => { if (w === ref) return; const r = makeObl(pl, w); if (r === 'ok') ok++; else if (r === 'aperture') ap++; }); return {ok, ap, ref}; }
+  let ok = 0, lost = 0; list.forEach(w => { if (w === ref) return; const r = makeObl(pl, w); if (r === 'ok') { ok++; lost += makeObl.lost || 0; } }); return {ok, lost, ref}; }
 function splitObl(pl, w, n) {
   if (String(w.mis).trim()) toast('Il muro obliquo è stato diviso in due: misura i due tratti.');
   const w2 = {id:uid(), a:n.id, b:w.b, tipo:w.tipo, sp:w.sp, filo:'', mis:'', rif:w.rif, ap:[], obl:true}; w.b = n.id; w.mis = ''; pl.walls.push(w2); }
@@ -855,6 +891,17 @@ function gauss(A, b) {
 let OBLBAD = new Set();
 function oblTarget(w) { const m = num(w.mis); if (!(m > 0)) return null; if (w.rif === 'asse') return m;
   const c = G && G.oblCorr && G.oblCorr.get(w.id + ':' + (w.rif === 'est' ? 'est' : 'int')); return m + (c || 0); }
+// muro obliquo senza lunghezza misurata ma con tutte le parziali di una faccia (spigolo → vani → spigolo, larghezze misurate):
+// la somma è la lunghezza di quella faccia; key = l'ultima parziale (è lei che chiude la catena, nell'ordine delle misure)
+function oblChain(pl, w) { if (!isObl(w) || num(w.mis) > 0) return null; const aps = (w.ap || []).filter(ap => num(ap.l) > 0); if (!aps.length) return null; const t = thick(w);
+  for (const sg of [1, -1]) { const key = oKey(w, sg), Ls = (pl.fl || {})[key]; if (String(Ls ?? '').trim() === '' || !(num(Ls) >= 0)) continue;
+    let sum = num(Ls), prev = '', used = 0, ok = true;
+    for (;;) { const nx = aps.find(ap => ap.pos && ap.pos.k === key && (ap.pos.prev || '') === prev && num(ap.pos.v) >= 0); if (!nx) break; const F = apFace(nx, t, sg);
+      if (F.prop || !F.rok || nx.lp) { ok = false; break; } sum += num(nx.pos.v) + F.w; prev = nx.id; if (++used > aps.length) { ok = false; break; } }
+    if (!ok || used !== aps.length) continue;
+    const F = G && G.oblFace && G.oblFace.get(w.id), c = G && G.oblCorr && G.oblCorr.get(w.id + ':' + (F && sg !== F.side ? 'est' : 'int'));
+    return {key:'l:' + key, L:sum + (c || 0), sg, face:sum}; }
+  return null; }
 function solve(pl, extKeys) {
   const n = pl.nodes.length; if (!n) return;
   const T = topo(pl), idx = new Map(pl.nodes.map((nn, i) => [nn.id, i]));
@@ -867,13 +914,13 @@ function solve(pl, extKeys) {
   // pert = lunghezze dello schizzo stravolte: serve a capire quali quote dipendono solo dalle misure.
   const hsh = k => { const v = Math.sin((k + 1) * 12.9898) * 43758.5453; return v - Math.floor(v); };
   const oblDer = new Set();   // obliqui la cui lunghezza è già diventata un cateto (vincolo vero)
-  const base = pert => {
+  const base = (pert, light) => {   // light: segnaposto degli obliqui misurati leggeri come gli altri (per capire cosa è già fissato)
     const X = mk(), Y = mk();
     pl.walls.forEach((w, k) => {
       const I = T.info.get(w.id);
       if (!I) { const J = T.oinfo.get(w.id); if (!J) return;   // obliquo: niente vincolo dritto, solo lo schizzo (scalato alla lunghezza misurata)
-        const i = idx.get(w.a), j = idx.get(w.b), L = oblTarget(w), sc = (L ? L / J.len : 1) * (pert ? 1.5 + hsh(k) : 1);
-        const wo = L && !pert && !oblDer.has(w.id) ? 1e-3 : 1e-6;   // misurato: pesa più dello schizzo degli altri muri (ma niente rispetto alle misure vere)
+        const i = idx.get(w.a), j = idx.get(w.b), L = oblTarget(w) || (oblChain(pl, w) || {}).L, sc = (L ? L / J.len : 1) * (pert ? 1.5 + hsh(k) : 1);
+        const wo = L && !pert && !light && !oblDer.has(w.id) ? 1e-3 : 1e-6;   // misurato: pesa più dello schizzo degli altri muri (ma niente rispetto alle misure vere)
         eq(X, i, j, (J.b.x - J.a.x) * sc, wo); eq(Y, i, j, (J.b.y - J.a.y) * sc, wo); return; }
       const i = idx.get(w.a), j = idx.get(w.b), L = lax(w, I);
       const val = L ?? (pert ? I.len * (1.5 + hsh(k)) + 0.6 + hsh(k + 99) : I.len), wt = L != null ? 1 : 1e-6;
@@ -928,6 +975,7 @@ function solve(pl, extKeys) {
   // entra subito come vincolo e le misure prese dopo che non tornano restano NON APPLICATE, come per gli altri muri.
   // distanze misurate: lunghezze dei muri obliqui ('o:') e diagonali tra spigoli ('q:', quote dg); off = (spigolo b − nodo b) − (spigolo a − nodo a)
   const dists = [...pl.walls.filter(w => isObl(w) && oblTarget(w) != null && idx.has(w.a) && idx.has(w.b)).map(w => ({key:'o:' + w.id, id:w.id, i:idx.get(w.a), j:idx.get(w.b), L:oblTarget(w), off:[0, 0], w})),
+    ...pl.walls.filter(w => isObl(w) && idx.has(w.a) && idx.has(w.b)).map(w => ({w, c:oblChain(pl, w)})).filter(x => x.c).map(({w, c}) => ({key:c.key, id:w.id, i:idx.get(w.a), j:idx.get(w.b), L:c.L, off:[0, 0], w})),
     ...(pl.dims || []).filter(d => d.dg && num(d.v) > 0 && d.a.n && d.b.n && idx.has(d.a.n) && idx.has(d.b.n) && d.a.n !== d.b.n).map(d => ({key:'q:' + d.id, id:d.id, i:idx.get(d.a.n), j:idx.get(d.b.n), L:num(d.v), off:[(d.b.dx || 0) - (d.a.dx || 0), (d.b.dy || 0) - (d.a.dy || 0)], d}))];
   OBLBAD = new Set();
   if (!dists.length) { ax = axis(B0.X, true); ay = axis(B0.Y, false); }
@@ -939,7 +987,7 @@ function solve(pl, extKeys) {
     let accX = [], accY = [], pend = [];
     const fits = (B, list) => { const s2 = solveWith(B, list); return list.every(q => Math.abs(s2[q.j] - s2[q.i] - q.val) <= 0.005); };
     const tryObl = () => { for (let again = true; again && pend.length;) { again = false;
-      const Bn = base(false), Bp = base(true), xs0 = solveWith(Bn.X, accX), ys0 = solveWith(Bn.Y, accY), x1 = solveWith(Bp.X, accX), y1 = solveWith(Bp.Y, accY);
+      const Bn = base(false, true), Bp = base(true), xs0 = solveWith(Bn.X, accX), ys0 = solveWith(Bn.Y, accY), x1 = solveWith(Bp.X, accX), y1 = solveWith(Bp.Y, accY);
       const take = (D, cs) => { pend = pend.filter(x => x !== D); if (D.w) oblDer.add(D.w.id); const B = base(false);
         let ax2 = accX, ay2 = accY; cs.forEach(c => { if (c.X) ax2 = ax2.concat([c]); else ay2 = ay2.concat([c]); });
         if (fits(B.X, ax2) && fits(B.Y, ay2)) { accX = ax2; accY = ay2; return true; } rejected.add(D.key); return false; };
@@ -993,16 +1041,9 @@ function geoPoly(pl, T, rects, ops, warns) {
   try { return geoPoly1(pl, T, rects, ops, warns, 1e5); } catch (e) {
     try { return geoPoly1(pl, T, rects, ops, warns, 1e3); } catch (e2) { warns.push({t:'Calcolo dei muri obliqui non riuscito in un punto: controlla incroci molto vicini tra muri obliqui.'}); console.warn(e2);
       return {walls:[], fills:[], bb:null, comps:[], compAt:() => -1, wedges:[], fpolys:[], oblCorr:new Map(), oblFace:new Map()}; } } }
-// prec = arrotondamento delle coordinate (1e5 = centesimo di millimetro): punti quasi coincidenti mandano in crisi l'unione dei poligoni
-function geoPoly1(pl, T, rects, ops, warns, prec) {
-  const PC0 = window.polygonClipping, rd = v => Math.round(v * prec) / prec, clean = g0 => { const g = g0.length && g0[0].length && typeof g0[0][0][0] === 'number' ? [g0] : g0; return g.map(poly => poly.map(r => { const o = []; r.forEach(q => { const z = [rd(q[0]), rd(q[1])]; const l = o[o.length - 1]; if (!l || l[0] !== z[0] || l[1] !== z[1]) o.push(z); }); return o; }).filter(r => r.length >= 4)).filter(poly => poly.length); };
-  const PC = {union:(...a) => clean(PC0.union(...a.map(clean))), difference:(a, b) => clean(PC0.difference(clean(a), clean(b)))}, R = b => [[[b[0], b[1]], [b[2], b[1]], [b[2], b[3]], [b[0], b[3]], [b[0], b[1]]]];
-  const ring = pts => { const r = pts.map(q => [q[0], q[1]]); r.push([pts[0][0], pts[0][1]]); return [r]; };
-  const grp = new Map(), put = (lay, poly) => { if (!grp.has(lay)) grp.set(lay, []); grp.get(lay).push(poly); };
-  rects.forEach(x => put(x.lay, R(x.r)));
-  T.oinfo.forEach(J => { const h = J.t / 2, n = J.n, A = J.a, B = J.b; put(layerOf(J.w), ring([[A.x + n[0] * h, A.y + n[1] * h], [B.x + n[0] * h, B.y + n[1] * h], [B.x - n[0] * h, B.y - n[1] * h], [A.x - n[0] * h, A.y - n[1] * h]])); });
-  // giunti: per ogni nodo con un obliquo, i bracci in ordine d'angolo; tra due bracci vicini le facce che si guardano si incontrano (spigolo vivo)
-  const ends = new Map();   // obliquo:nodo → arretramento della faccia sinistra/destra lungo il muro (per la lunghezza delle facce)
+// giunti dei muri obliqui: per ogni nodo con un obliquo, i bracci in ordine d'angolo; tra due bracci vicini le facce che si guardano si incontrano
+function oblJoints(T) {
+  const ends = new Map(), jp = [];   // obliquo:nodo → arretramento della faccia sinistra/destra lungo il muro (per la lunghezza delle facce)
   const onodes = new Set(); T.oinfo.forEach(J => { onodes.add(J.w.a); onodes.add(J.w.b); });
   onodes.forEach(id => { const node = T.N.get(id); if (!node) return; const ws = [...(T.at.get(id) || []), ...(T.atO.get(id) || [])];
     const arms = ws.map(w => { const I = T.info.get(w.id) || T.oinfo.get(w.id); if (!I) return null; const other = w.a === id ? I.b : I.a; let d = [other.x - node.x, other.y - node.y]; const L = Math.hypot(d[0], d[1]) || 1; d = [d[0] / L, d[1] / L];
@@ -1015,7 +1056,20 @@ function geoPoly1(pl, T, rects, ops, warns, prec) {
       Ms.push(M); if (M) pts.push(M); });
     arms.forEach((A, k) => { if (!A.obl) return; const prev = Ms[(k - 1 + arms.length) % arms.length], next = Ms[k], pr = q => q ? (q[0] - node.x) * A.d[0] + (q[1] - node.y) * A.d[1] : 0;
       ends.set(A.w.id + ':' + id, {l:pr(next), r:pr(prev)}); });   // faccia sinistra (verso il braccio dopo) e destra (verso quello prima)
-    put(arms.some(a => a.lay === 'P') ? 'P' : arms[0].lay, ring(pts)); });
+    jp.push({lay:arms.some(a => a.lay === 'P') ? 'P' : arms[0].lay, pts}); });
+  return {ends, jp};
+}
+const oblJ = T => T.oj || (T.oj = oblJoints(T));
+// prec = arrotondamento delle coordinate (1e5 = centesimo di millimetro): punti quasi coincidenti mandano in crisi l'unione dei poligoni
+function geoPoly1(pl, T, rects, ops, warns, prec) {
+  const PC0 = window.polygonClipping, rd = v => Math.round(v * prec) / prec, clean = g0 => { const g = g0.length && g0[0].length && typeof g0[0][0][0] === 'number' ? [g0] : g0; return g.map(poly => poly.map(r => { const o = []; r.forEach(q => { const z = [rd(q[0]), rd(q[1])]; const l = o[o.length - 1]; if (!l || l[0] !== z[0] || l[1] !== z[1]) o.push(z); }); return o; }).filter(r => r.length >= 4)).filter(poly => poly.length); };
+  const PC = {union:(...a) => clean(PC0.union(...a.map(clean))), difference:(a, b) => clean(PC0.difference(clean(a), clean(b)))}, R = b => [[[b[0], b[1]], [b[2], b[1]], [b[2], b[3]], [b[0], b[3]], [b[0], b[1]]]];
+  const ring = pts => { const r = pts.map(q => [q[0], q[1]]); r.push([pts[0][0], pts[0][1]]); return [r]; };
+  const grp = new Map(), put = (lay, poly) => { if (!grp.has(lay)) grp.set(lay, []); grp.get(lay).push(poly); };
+  rects.forEach(x => put(x.lay, R(x.r)));
+  T.oinfo.forEach(J => { const h = J.t / 2, n = J.n, A = J.a, B = J.b; put(layerOf(J.w), ring([[A.x + n[0] * h, A.y + n[1] * h], [B.x + n[0] * h, B.y + n[1] * h], [B.x - n[0] * h, B.y - n[1] * h], [A.x - n[0] * h, A.y - n[1] * h]])); });
+  // giunti: per ogni nodo con un obliquo, i bracci in ordine d'angolo; tra due bracci vicini le facce che si guardano si incontrano (spigolo vivo)
+  const OJ = oblJ(T), ends = OJ.ends; OJ.jp.forEach(j => put(j.lay, ring(j.pts)));
   const U0 = list => list.length ? PC.union(...list) : [];
   const all = [...grp.values()].flat(), U = U0(all);
   // ambienti = buchi dell'unione
@@ -1036,9 +1090,9 @@ function geoPoly1(pl, T, rects, ops, warns, prec) {
   // pieni (pilastri, denti): diventano muro perimetrale
   const recs = pl.rooms || []; comps.forEach(c => { const rec = recs.find(r => holeAt(r.px, r.py) === c.id); c.pieno = !!(rec && rec.pieno === true); c.room = !c.pieno && c.area >= 0.25; if (c.pieno) put('P', [c.ring]); });
   // materiale dei muri meno le aperture; i cunei delle strombate tornano muro
-  const holes = ops.flatMap(o => o.c2 ? [R(o.c), R(o.c2)] : [R(o.c)]), HO = U0(holes);
-  const wedges = []; ops.forEach(o => { if (!o.inc || !o.inc.strom) return; const {I} = o, {lw, p, w0, w1} = o.inc, h = I.t / 2, oo = I.o || 0;
-    const P = (al, ac) => I.H ? [I.a.x + al, I.a.y + oo + ac] : [I.a.x + oo + ac, I.a.y + al], fw = lw * h, fd = lw * (p - h);
+  const holes = ops.flatMap(o => o.q ? [ring(o.q), ...(o.q2 ? [ring(o.q2)] : [])] : o.c2 ? [R(o.c), R(o.c2)] : [R(o.c)]), HO = U0(holes);
+  const wedges = []; ops.forEach(o => { if (!o.inc || !o.inc.strom) return; const {I} = o, {lw, p, w0, w1} = o.inc, h = I.t / 2;
+    const P = (al, ac) => apPt(I, al, ac), fw = lw * h, fd = lw * (p - h);
     [[w0, o.s0], [w1, o.s1]].forEach(([wa, la]) => { if (Math.abs(la - wa) >= 0.005) wedges.push({lay:layerOf(o.w), r:ring([P(wa, fw), P(wa, fd), P(la, fd)])}); }); });
   const diff = (a, b) => a.length && b.length ? PC.difference(a, b) : a;
   const Puni = U0(grp.get('P') || []), mats = [], walls = [], fpolys = [];
@@ -1099,6 +1153,24 @@ function geometry(pl) {
       ops.push(op);
     });
   });
+  // aperture nei muri obliqui: stesse regole, il vano ha le spalle perpendicolari al muro (quadrilatero ruotato)
+  T.oinfo.forEach(J => { const w = J.w; if (!(w.ap || []).length || !(J.t > 0)) return; const I = oAI(T, J), h = I.t / 2, PT = (al, ac) => apPt(I, al, ac);
+    const box = q => [Math.min(...q.map(z => z[0])), Math.min(...q.map(z => z[1])), Math.max(...q.map(z => z[0])), Math.max(...q.map(z => z[1]))];
+    w.ap.forEach(ap => {
+      const d = num(ap.d), l = num(ap.l), nm = TIPI_AP[ap.tipo] + ' nel muro obliquo (' + tipoNome(w) + ')';
+      if (!(l > 0) || !isFinite(d)) { errs.push({w:w.id, t:nm + ': mancano distanza o larghezza.'}); return; }
+      const s0 = I.da + d, s1 = s0 + l; let c0 = s0, c1 = s1;
+      if (d < -EPS || s1 > I.len - I.db + EPS) { errs.push({w:w.id, t:`${nm}: l'apertura esce dal muro (luce ${f2(luce(I))} m). Controlla distanza e larghezza, oppure spostala.`});
+        c0 = Math.max(I.da, Math.min(s0, I.len - I.db - Math.min(l, luce(I)))); c1 = Math.min(I.len - I.db, c0 + l); if (c1 - c0 < 0.05) { c0 = Math.max(I.da, I.len - I.db - 0.05); c1 = I.len - I.db; } }
+      if ((ap.tipo === 'finestra' || ap.tipo === 'uscita') && !(num(ap.h) > 0)) warns.push({w:w.id, t:nm + ': manca l\'altezza, non entra nel rapporto aeroilluminante.'});
+      const q = [PT(c0, -h), PT(c1, -h), PT(c1, h), PT(c0, h)], op = {ap, w, I, s0:c0, s1:c1, bad:c0 !== s0 || c1 !== s1, q, c:box(q)};
+      if (ap.tipo === 'finestra' && (ap.inc === 'scal' || ap.inc === 'strom') && !incOk(ap, I.t))
+        warns.push({w:w.id, t:nm + (num(ap.l2) > num(ap.l) + 0.005 ? `: muro troppo sottile per la finestra incassata (serve più di ${f2(incP() + 0.02)} m), disegnata normale.` : ': incassata, la parte larga deve essere più larga della luce. Controlla le due larghezze.')});
+      if (incOk(ap, I.t)) { let w0 = c0 - risOf(ap), w1 = w0 + num(ap.l2); const lo = I.da, hi = I.len - I.db;
+        if (w0 < lo - EPS || w1 > hi + EPS) { errs.push({w:w.id, t:`${nm}: la parte larga (${f2(num(ap.l2))} m) esce dal muro. Controlla la larghezza larga e la risega.`}); w0 = Math.max(lo, w0); w1 = Math.min(hi, w1); }
+        const lw = ap.lw, pD = incP(), x0 = lw * h, x1 = lw * (pD - h), m0 = Math.min(x0, x1), m1 = Math.max(x0, x1);
+        if (w1 - w0 > c1 - c0 + 0.005) { op.inc = {lw, p:pD, w0, w1, strom:ap.inc === 'strom'}; op.q2 = [PT(w0, m0), PT(w1, m0), PT(w1, m1), PT(w0, m1)]; } }
+      ops.push(op); }); });
   // controllo misure
   const resid = new Map();
   pl.walls.forEach(w => { const I = T.info.get(w.id); if (!I) return; const L = lax(w, I); if (L == null) return; const d = I.len - L; if (Math.abs(d) > 0.01) resid.set(w.id, d); });
@@ -1229,7 +1301,7 @@ function geometry(pl) {
   /* ---- infissi ---- */
   const lines = [], tris = [];
   ops.forEach(o => {
-    const {I, s0, s1} = o, h = I.t / 2, sm = (s0 + s1) / 2, tv = I.H ? [1, 0] : [0, 1], pn = I.H ? [0, 1] : [1, 0];
+    const {I, s0, s1} = o, h = I.t / 2, sm = (s0 + s1) / 2, tv = I.obl ? I.u : I.H ? [1, 0] : [0, 1], pn = I.obl ? I.n : I.H ? [0, 1] : [1, 0];
     const mid = [I.a.x + tv[0] * sm + pn[0] * (I.o || 0), I.a.y + tv[1] * sm + pn[1] * (I.o || 0)], probe = sg => compAt(mid[0] + pn[0] * sg * (h + 0.03), mid[1] + pn[1] * sg * (h + 0.03));
     const cp = probe(1), cm = probe(-1);
     [cp, cm].forEach(c => { if (c >= 0 && (o.ap.tipo === 'finestra' || o.ap.tipo === 'uscita') && num(o.ap.h) > 0) comps[c].Af += num(o.ap.l) * num(o.ap.h); });
@@ -1242,7 +1314,7 @@ function geometry(pl) {
     const k = d >= 0.30 - EPS ? 0.125 : d * 0.125 / 0.30;
     const L = (off, l = 'R') => lines.push({l, a:at(s0, off), b:at(s1, off)});
     if (o.ap.tipo === 'finestra' && o.inc) {   // incassata: fili e vetri nella parte stretta, filo della faccia larga sulla parte larga
-      const {lw, p, w0, w1} = o.inc, oo = I.o || 0, A = (al, off) => { const ac = oo + lw * (off - h); return I.H ? [I.a.x + al, I.a.y + ac] : [I.a.x + ac, I.a.y + al]; };
+      const {lw, p, w0, w1} = o.inc, A = (al, off) => apPt(I, al, lw * (off - h));
       const N = off => lines.push({l:'R', a:A(s0, off), b:A(s1, off)}), gk = Math.min(0.025, p / 6);
       N(0); N(p / 2 - gk); N(p / 2 + gk); N(p); lines.push({l:'R', a:A(w0, d), b:A(w1, d)}); }
     else if (o.ap.tipo === 'finestra') { L(0); L(k); L(d - k); L(d); }
@@ -1340,8 +1412,23 @@ function geometry(pl) {
     if (fc.mis > 0) { const ref = fc.sum != null ? fc.sum : fc.tot; fc.diff = ref - fc.mis;
       /* la verifica esterna è segnalata dalla faccia esterna (vedi sopra) */ }
   });
+  // muri obliqui con aperture: parziali lungo la faccia verso ogni ambiente (spigolo → vano → vano → spigolo), come i lati dritti
+  const ochains = [];
+  if (GG.oblFace) T.oinfo.forEach(J => { const w = J.w, mine = ops.filter(o => o.w === w); if (!mine.length) return; const I = mine[0].I, F = GG.oblFace.get(w.id); if (!F) return;
+    const sides = [1, -1].filter(sg => { const c = F.sides[sg > 0 ? 0 : 1]; return c >= 0 && comps[c] && !comps[c].pieno; }); if (!sides.length) sides.push(F.side);
+    const det = detSet([w.a, w.b]), posOk = ap => !!ap.pos || !ap.dp;
+    sides.forEach(sg => { const key = oKey(w, sg), fa = I.fa[sg], fb = I.fb[sg], comp = F.sides[sg > 0 ? 0 : 1];
+      const os = mine.map(o => { const Fx = apFace(o.ap, I.t, sg), s0 = o.s0 + Fx.d0; return {o, ap:o.ap, F:Fx, s:s0, e:s0 + Fx.w}; }).sort((a, b) => a.s - b.s), n = os.length, pcs = [];
+      for (let i = 0; i <= n; i++) { const a = i ? os[i - 1].e : fa, b = i < n ? os[i].s : fb, nx = i < n ? os[i].ap : null, pv = i ? os[i - 1].ap : null, last = i === n;
+        let meas = -1; if (!last) { const p = nx.pos; if (p && p.k === key && (pv ? p.prev === pv.id : !p.prev) && num(p.v) >= 0) meas = num(p.v); }
+        else if (String((pl.fl || {})[key] ?? '').trim() !== '' && num(pl.fl[key]) >= 0) meas = num(pl.fl[key]);
+        const known = det && (last ? os.every(x => posOk(x.ap) && !x.ap.lp && !x.F.prop && x.F.rok) : posOk(nx) && os[i].F.rok && (!pv || (posOk(pv) && !pv.lp && !os[i - 1].F.prop && os[i - 1].F.rok)));
+        pcs.push({a, b, len:b - a, nx, pv, last, meas, known, diff:meas >= 0 ? (b - a) - meas : 0}); }
+      const ch = {w, I, sg, key, comp, pcs, os}; ochains.push(ch);
+      const lp = pcs[n]; if (lp.meas >= 0 && Math.abs(lp.diff) > TOL) { const nm = comp >= 0 && comps[comp].rec ? ' · ' + comps[comp].rec.nome : '';
+        warns.push({w:w.id, t:`Muro obliquo (${tipoNome(w)}${nm}): ultima parziale misurata ${f2(lp.meas)} m${REJ.has('l:' + key) ? ' NON APPLICATA (non torna con le misure inserite prima, che restano bloccate)' : ''}, dal disegno viene ${f2(lp.len)} m (${lp.diff > 0 ? '+' : ''}${Math.round(lp.diff * 100)} cm). Controlla le parziali e le larghezze dei vani di questo muro.`}); } }); });
   const nonMis = pl.walls.filter(w => !covered.has(w.id) && !(num(w.mis) > 0)).length;
-  return {errs, warns, T, walls, lines, tris, fills, wedges, fpolys, oblCorr:GG.oblCorr || new Map(), oblFace:GG.oblFace || new Map(), ops, comps, bbox:bb, compAt, resid, facs, wOut, runs, nonMis, dims, oblBad};
+  return {errs, warns, T, walls, lines, tris, fills, wedges, fpolys, oblCorr:GG.oblCorr || new Map(), oblFace:GG.oblFace || new Map(), ops, comps, bbox:bb, compAt, resid, facs, wOut, runs, nonMis, dims, oblBad, ochains};
 }
 
 /* ---- abbinamento dei nomi agli ambienti ---- */
@@ -1795,7 +1882,7 @@ function bussola() {
 
 /* ================= script AutoCAD ================= */
 // misure che non tornano di oltre 3 cm (muri, parziali, quote libere)
-const nonTorna = () => G.resid.size || G.runs.some(r => Math.abs(r.diff || 0) > TOL || (r.chain && r.chain.pcs.some(pc => Math.abs(pc.diff || 0) > TOL))) || (G.dims || []).some(q => q.tied && Math.abs(q.diff || 0) > TOL);
+const nonTorna = () => G.resid.size || (G.ochains || []).some(ch => ch.pcs.some(pc => Math.abs(pc.diff || 0) > TOL)) || G.runs.some(r => Math.abs(r.diff || 0) > TOL || (r.chain && r.chain.pcs.some(pc => Math.abs(pc.diff || 0) > TOL))) || (G.dims || []).some(q => q.tied && Math.abs(q.diff || 0) > TOL);
 // cosa va nello script tra quote parziali, larghezze dei vani e quote libere (solo numeri che vengono dalle misure)
 function scrParts() {
   const pcs = [], vani = [], dims = []; let skipP = 0, skipV = 0, skipQ = 0;
@@ -1876,7 +1963,14 @@ function genScript(pl) {
   if (R.opt.vani !== false && sp.vani.length) {
     // larghezza del vano: linea perpendicolare al muro dal centro del vano verso l'ambiente, numero lungo la linea
     w('; ---- larghezza dei vani', 'CLAYER', LAY.R);
-    sp.vani.forEach(o => { const I = o.I, sg = o.side || 1, f = (I.H ? I.a.y : I.a.x) + (I.o || 0) + sg * I.t / 2, m = axC(I.a, I.H) + (o.s0 + o.s1) / 2, L = 0.60;
+    sp.vani.forEach(o => { const I = o.I, sg = o.side || 1, L = 0.60;
+      if (I.obl) {   // muro obliquo: la linea esce perpendicolare al muro, il testo la segue (sempre leggibile)
+        const m = (o.s0 + o.s1) / 2, txt = num(o.ap.l).toFixed(2) + (o.inc && !o.ap.l2p ? ' / ' + num(o.ap.l2).toFixed(2) : ''), h = I.t / 2;
+        w('_.LINE', pt(apPt(I, m, sg * (o.ap.tipo === 'uscita' ? 0.5 : h))), pt(apPt(I, m, sg * (h + L))), '');
+        let a = Math.atan2(I.n[1] * sg, I.n[0] * sg) * 180 / Math.PI; if (a > 90) a -= 180; if (a <= -90) a += 180;
+        const ar = a * Math.PI / 180, up = [-Math.sin(ar), Math.cos(ar)], c = apPt(I, m, sg * (h + L / 2));
+        w('_.TEXT', '_S', 'STUDIO', '_J', '_BC', pt([c[0] + up[0] * 0.05, c[1] + up[1] * 0.05]), '0.17', a.toFixed(2), txt); return; }
+      const f = (I.H ? I.a.y : I.a.x) + (I.o || 0) + sg * I.t / 2, m = axC(I.a, I.H) + (o.s0 + o.s1) / 2;
       const P = (al, pp) => I.H ? [al, pp] : [pp, al], txt = num(o.ap.l).toFixed(2) + (o.inc && !o.ap.l2p ? ' / ' + num(o.ap.l2).toFixed(2) : '');
       // la porta-finestra ha già la sua linea al centro del vano (lunga 1, a cavallo del muro): si prosegue da dove finisce
       const f0 = o.ap.tipo === 'uscita' ? (I.H ? I.a.y : I.a.x) + (I.o || 0) + sg * 0.5 : f;
@@ -1994,7 +2088,7 @@ function recompute() {
     + pl.walls.filter(w => isObl(w) && String(w.rient || '').trim()).map(w => { const F = G && G.oblFace && G.oblFace.get(w.id); return F ? F.fd.map(v => v.toFixed(4)).join() : ''; }).join();
   for (let k = 0; k < 6; k++) {
     const oc0 = oc(); solve(pl, ext); placeAps(pl); G = geometry(pl); resnap();
-    const ne = new Set(G.runs.filter(r => r.ext).map(r => r.key)), oblOk = !(pl.walls.some(w => isObl(w) && num(w.mis) > 0) || (pl.dims || []).some(d => d.dg && num(d.v) > 0) || pl.walls.some(w => isObl(w) && String(w.rient || '').trim())) || oc() === oc0;
+    const ne = new Set(G.runs.filter(r => r.ext).map(r => r.key)), oblOk = !(pl.walls.some(w => isObl(w) && (num(w.mis) > 0 || oblChain(pl, w))) || (pl.dims || []).some(d => d.dg && num(d.v) > 0) || pl.walls.some(w => isObl(w) && String(w.rient || '').trim())) || oc() === oc0;
     if (ne.size === ext.size && [...ne].every(x => ext.has(x)) && oblOk) break;
     ext = ne;
   }
@@ -2109,7 +2203,18 @@ function measItems() { const out = [], seenAp = new Set();
       out.push(Object.assign({}, base, {a:axC(r.P, r.H) + r.eA, b:axC(r.Q, r.H) - r.eB, hb:{kind:'r', key:r.key}, st:m ? 'm' : r.det ? 'd' : 'x', val:m ? r.mis : r.det ? r.face : NaN, bad:m && Math.abs(r.diff || 0) > TOL})); } });
   // muri obliquí: la lunghezza (si chiede dal lato della faccia misurata)
   if (G && G.T && G.T.oinfo) G.T.oinfo.forEach(J => { const F = G.oblFace.get(J.w.id); if (!F) return; const c = F.sides[F.side > 0 ? 0 : 1], m = [(J.a.x + J.b.x) / 2, (J.a.y + J.b.y) / 2], mis = num(J.w.mis) > 0;
-    out.push({o:true, H:true, face:m[1], a:m[0], b:m[0], sg:1, comp:c, wid:J.w.id, hb:{kind:'ob', id:J.w.id}, st:mis ? 'm' : 'x', val:mis ? num(J.w.mis) : F.int}); });
+    out.push({o:true, H:true, face:m[1], a:m[0], b:m[0], sg:1, comp:c, wid:J.w.id, hb:{kind:'ob', id:J.w.id}, st:mis ? 'm' : oblChain(piano(), J.w) ? 'd' : 'x', val:mis ? num(J.w.mis) : F.int}); });
+  // muri obliqui con aperture: parziali lungo la faccia e larghezze dei vani (si disegnano a parte, vedi oblMeasSvg)
+  ((G && G.ochains) || []).forEach(ch => { const h = ch.I.t / 2, mid = (a, b) => apPt(ch.I, (a + b) / 2, ch.sg * h);
+    ch.pcs.forEach(pc => { if (pc.len < 0.02 && !(pc.meas >= 0)) return; const m = mid(pc.a, pc.b), ms = pc.meas >= 0;
+      out.push({o:true, oc:ch, pc, H:true, face:m[1], a:m[0], b:m[0], sg:1, comp:ch.comp, wid:ch.w.id, hb:{kind:'p', rk:ch.key, nx:pc.nx ? pc.nx.id : '', pv:pc.pv ? pc.pv.id : '', last:pc.last, wid:ch.w.id},
+        st:ms ? 'm' : pc.known ? 'd' : 'x', val:ms ? pc.meas : pc.known ? pc.len : NaN, bad:ms && Math.abs(pc.diff || 0) > TOL}); });
+    ch.os.forEach(x => { const one = (k, a, b, it) => { if (seenAp.has(k + x.ap.id)) return; seenAp.add(k + x.ap.id); const m = mid(a, b); out.push(Object.assign({o:true, ow:ch, H:true, face:m[1], a:m[0], b:m[0], sg:1, comp:ch.comp, wid:ch.w.id, w:true, ap:x.ap, oa:a, ob:b}, it)); };
+      if (x.F.wide) { const ls = x.s - x.F.d0;
+        one('w2', x.s, x.e, {hb:{kind:'w2', ap:x.ap.id}, st:x.ap.l2p ? 'x' : 'm', val:num(x.ap.l2)});
+        one('ris', x.s, ls, {hb:{kind:'ris', ap:x.ap.id}, st:risMis(x.ap) ? 'm' : 'x', val:risOf(x.ap)});
+        one('w', ls, ls + num(x.ap.l), {hb:{kind:'w', ap:x.ap.id}, st:x.ap.lp ? 'x' : 'm', val:num(x.ap.l)}); }
+      else one('w', x.s, x.e, {hb:{kind:'w', ap:x.ap.id}, st:x.ap.lp ? 'x' : 'm', val:num(x.ap.l)}); }); });
   out.forEach(it => { it.k = it.hb ? hbKey(it.hb) : ''; });
   return out; }
 // stanze «aperte»: si vedono anche le misure ricavate e le caselle di quelle da prendere
@@ -2364,9 +2469,33 @@ function draw() {
   if (v.s >= 18 && G.T.oinfo) G.T.oinfo.forEach(J => { const w = J.w, F = G.oblFace.get(w.id); if (!F) return; const rif = w.rif === 'est' || w.rif === 'asse' ? w.rif : 'int';
     const sd = rif === 'est' ? -F.side : F.side, off = rif === 'asse' ? 0 : J.t / 2 + 24 * K / v.s, m = [(J.a.x + J.b.x) / 2 + J.n[0] * sd * off, (J.a.y + J.b.y) / 2 + J.n[1] * sd * off];
     const hb = {kind:'ob', id:w.id}, ed = ui.inl && ui.inl.key === hbKey(hb), mis = num(w.mis) > 0, bad = OBLBAD.has(w.id) || (G.oblBad && G.oblBad.has(w.id));
-    const b = mbox(X(m[0]), Y(m[1]), true, mis ? num(w.mis) : F[rif], mis, bad, ed || (ui.guide && ui.guide.cur === hbKey(hb)), ui.sel && ui.sel.k === 'w' && ui.sel.id === w.id, {prop:!mis});
+    const b = mbox(X(m[0]), Y(m[1]), true, mis ? num(w.mis) : F[rif], mis, bad, ed || (ui.guide && ui.guide.cur === hbKey(hb)), ui.sel && ui.sel.k === 'w' && ui.sel.id === w.id, {prop:!mis && !oblChain(pl, w)});
     s += b.s; ui.pbb.push({box:b.box, hb}); });
-  if (v.s >= 18) G.ops.forEach(o => { const I = o.I; if (!(I.t > 0)) return;
+  // muri obliqui con aperture: parziali lungo la faccia (linea di quota parallela al muro) e larghezze dei vani (linea perpendicolare)
+  if (v.s >= 18 && (G.ochains || []).length) measItems().forEach(it => { if (!it.oc && !it.ow) return;
+    const ch = it.oc || it.ow, I = ch.I, h = I.t / 2, sg = ch.sg, nS = [I.n[0] * sg, -I.n[1] * sg];   // verso la stanza, sullo schermo
+    const selW = ui.sel && (ui.sel.k === 'w' || ui.sel.k === 'a') && ui.sel.id === ch.w.id, foc = !ui.mnew || FOC.has(it.comp) || selW;
+    const cur = ui.guide && ui.guide.cur === it.k, ed = !!(ui.inl && it.k && ui.inl.key === it.k), S = (al, px) => { const q = apPt(I, al, sg * h); return [X(q[0]) + nS[0] * px, Y(q[1]) + nS[1] * px]; };
+    const txt = isFinite(it.val) ? f2(it.val) : '', bw = (txt ? Math.max(35, txt.length * 7 + 10) : 37) * K, bh = 19 * K, ext = (Math.abs(nS[0]) * bw + Math.abs(nS[1]) * bh) / 2;
+    const col = cur || ed ? 'var(--acc)' : it.bad ? 'var(--bad)' : it.st === 'm' ? 'var(--ink)' : it.st === 'd' ? 'var(--mut)' : 'var(--todo)', r0 = Math.max(3, 4.5 * K);
+    const dot = q => { s += `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${r0.toFixed(1)}" fill="var(--todo)" stroke="var(--cv)" stroke-width="1.5"/>`; if (it.hb) ui.pbb.push({box:[q[0] - 12, q[1] - 12, 24, 24], hb:it.hb}); };
+    const label = (C, H0) => { const [tx, ty] = freeAt(C[0], C[1], true, it.val, nS, 12 * K, 2);
+      if (H0) s += `<line x1="${H0[0].toFixed(1)}" y1="${H0[1].toFixed(1)}" x2="${tx.toFixed(1)}" y2="${ty.toFixed(1)}" stroke="${col}" stroke-width=".8" stroke-opacity=".6"/>`;
+      if (it.st === 'x' || ed || cur || !ui.mnew) { const b = mbox(tx, ty, true, it.val, it.st === 'm', it.bad, ed || cur, selW, {prop:it.st === 'x' && isFinite(it.val)}); s += b.s; if (it.hb) ui.pbb.push({box:b.box, hb:it.hb}); return; }
+      s += dimTxt(tx, ty, true, txt, col, it.st === 'm' ? 700 : 500, it.st === 'm' && !it.bad); if (it.hb) ui.pbb.push({box:[tx - bw / 2, ty - bh / 2, bw, bh], hb:it.hb}); };
+    if (it.oc) { const pc = it.pc, d0 = 12 * K, A = S(pc.a, d0), B = S(pc.b, d0), M = S((pc.a + pc.b) / 2, d0);
+      if (it.st === 'x' && !foc && !cur && !ed) { dot(M); return; }
+      if (it.st === 'd' && !foc && !cur && !ed) return;
+      if (cur) s += `<path d="M${A[0].toFixed(1)} ${A[1].toFixed(1)}L${B[0].toFixed(1)} ${B[1].toFixed(1)}" stroke="var(--acc)" stroke-width="10" stroke-opacity=".28" stroke-linecap="round" fill="none"/>`;
+      const tk = q => `M${(q[0] - 3.5 * K).toFixed(1)} ${(q[1] + 3.5 * K).toFixed(1)}L${(q[0] + 3.5 * K).toFixed(1)} ${(q[1] - 3.5 * K).toFixed(1)}`;
+      s += `<path d="M${A[0].toFixed(1)} ${A[1].toFixed(1)}L${B[0].toFixed(1)} ${B[1].toFixed(1)}${tk(A)}${tk(B)}" stroke="${col}" stroke-width="${(cur ? 2.4 : 1.1) * Math.max(.7, K)}" fill="none" ${it.st === 'x' ? `stroke-dasharray="${(4 * K).toFixed(1)} ${(3 * K).toFixed(1)}"` : ''}/>`;
+      const short = Math.hypot(B[0] - A[0], B[1] - A[1]) < 40 * K; label(S((pc.a + pc.b) / 2, d0 + (short ? 22 : 6) * K + ext), short ? M : null); return; }
+    // larghezza del vano: linea che esce dal centro del vano verso la stanza
+    const m = (it.oa + it.ob) / 2, L1 = 28 * K, F0 = S(m, 0), E = S(m, L1);
+    if (ui.mnew && !ed && !cur && !(ui.sel && ui.sel.k === 'a' && ui.sel.ap === it.ap.id) && !foc && it.st === 'x') { s += `<line x1="${F0[0].toFixed(1)}" y1="${F0[1].toFixed(1)}" x2="${E[0].toFixed(1)}" y2="${E[1].toFixed(1)}" stroke="var(--wR)" stroke-width="1"/>`; dot(E); return; }
+    s += `<line x1="${F0[0].toFixed(1)}" y1="${F0[1].toFixed(1)}" x2="${E[0].toFixed(1)}" y2="${E[1].toFixed(1)}" stroke="var(--wR)" stroke-width="1"/>`;
+    label(S(m, L1 + ext + 2 * K), null); });
+  if (v.s >= 18) G.ops.forEach(o => { const I = o.I; if (!(I.t > 0) || I.obl) return;
     // finestra incassata: la luce si scrive dalla sua faccia, la parte larga dall'altra
     const parts = o.inc ? [{prop:!!o.ap.l2p, val:num(o.ap.l2), hb:{kind:'w2', ap:o.ap.id}, sg:o.inc.lw, m:(o.inc.w0 + o.inc.w1) / 2}, {prop:!!o.ap.lp, val:num(o.ap.l), hb:{kind:'w', ap:o.ap.id}, sg:-o.inc.lw, m:(o.s0 + o.s1) / 2}]
       : [{prop:!!o.ap.lp, val:num(o.ap.l), hb:{kind:'w', ap:o.ap.id}, sg:0, m:(o.s0 + o.s1) / 2}];
@@ -2873,6 +3002,8 @@ function wallUnder(wx, wy) {
     const s = I.H ? wx - I.a.x : wy - I.a.y, perp = I.H ? Math.abs(wy - I.a.y - I.o) : Math.abs(wx - I.a.x - I.o);
     if (s < -0.05 || s > I.len + 0.05) return; if (perp > Math.max(I.t / 2 + 0.10, lim)) return;
     if (perp < bd) { bd = perp; best = {w, I, s}; } });
+  if (G.T.oinfo) G.T.oinfo.forEach(J => { if (!(J.t > 0)) return; const rx = wx - J.a.x, ry = wy - J.a.y, s = rx * J.u[0] + ry * J.u[1], perp = Math.abs(rx * J.n[0] + ry * J.n[1]);
+    if (s < -0.05 || s > J.len + 0.05 || perp > Math.max(J.t / 2 + 0.10, lim)) return; if (perp < bd) { bd = perp; best = {w:J.w, I:oAI(G.T, J), s}; } });
   return best;
 }
 function ghostAt(p, tipo, l, ap) {
@@ -2889,6 +3020,9 @@ function ghostSvg(gh) {
   if (gh.free) { const w = gh.l * v.s, h = Math.max(10, 0.30 * v.s), x = X(gh.wx) - w / 2, y = Y(gh.wy) - h / 2;
     return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="var(--acc)" fill-opacity=".35" stroke="var(--acc)" stroke-dasharray="4 3"/><text x="${X(gh.wx)}" y="${y - 8}" font-size="13" text-anchor="middle" fill="var(--acc)" font-weight="700" paint-order="stroke" stroke="var(--cv)" stroke-width="3">${esc(lab)} · portala su un muro</text>`; }
   const {I} = gh, h = I.t / 2, col = gh.ok ? 'var(--acc)' : 'var(--bad)';
+  if (I.obl) { const q = [apPt(I, gh.s0, -h), apPt(I, gh.s0 + gh.l, -h), apPt(I, gh.s0 + gh.l, h), apPt(I, gh.s0, h)], ys = q.map(z => Y(z[1])), mx = q.reduce((t, z) => t + X(z[0]), 0) / 4;
+    const txt = gh.ok ? `${lab} · dallo spigolo ${f2(gh.d)}` : gh.over ? `${lab}: si sovrappone a un'altra apertura` : `${lab}: il muro è troppo corto (luce ${f2(luce(I))})`;
+    return `<polygon points="${q.map(z => X(z[0]).toFixed(1) + ',' + Y(z[1]).toFixed(1)).join(' ')}" fill="${col}" fill-opacity=".45" stroke="${col}" stroke-width="2"/><text x="${mx}" y="${Math.min(...ys) - 12}" font-size="13" text-anchor="middle" fill="${col}" font-weight="700" paint-order="stroke" stroke="var(--cv)" stroke-width="4">${esc(txt)}</text>`; }
   const o = I.o || 0, r = I.H ? [I.a.x + gh.s0, I.a.y + o - h, I.a.x + gh.s0 + gh.l, I.a.y + o + h] : [I.a.x + o - h, I.a.y + gh.s0, I.a.x + o + h, I.a.y + gh.s0 + gh.l];
   const tx = X((r[0] + r[2]) / 2), ty = Y(r[3]) - 12;
   const txt = gh.ok ? `${lab} · da ${I.H ? 'sinistra' : 'basso'} ${f2(gh.d)}` : gh.over ? `${lab}: si sovrappone a un'altra apertura` : `${lab}: il muro è troppo corto (luce ${f2(luce(I))})`;
@@ -2896,7 +3030,8 @@ function ghostSvg(gh) {
 }
 function opAt(p) {
   const tol = 6 / ui.view.s, wx = WX(p[0]), wy = WY(p[1]);
-  return (G.ops || []).find(o => wx >= o.c[0] - tol && wx <= o.c[2] + tol && wy >= o.c[1] - tol && wy <= o.c[3] + tol) || null;
+  return (G.ops || []).find(o => { if (o.q) { const I = o.I, rx = wx - I.a.x, ry = wy - I.a.y, al = rx * I.u[0] + ry * I.u[1], ac = rx * I.n[0] + ry * I.n[1]; return al >= o.s0 - tol && al <= o.s1 + tol && Math.abs(ac) <= I.t / 2 + tol; }
+    return wx >= o.c[0] - tol && wx <= o.c[2] + tol && wy >= o.c[1] - tol && wy <= o.c[3] + tol; }) || null;
 }
 function dropGhost(gh) {
   const pl = piano();
@@ -3020,7 +3155,7 @@ function dimSnap(p) {
 }
 function dimEndFor(pl, q) {
   // spigolo o spalletta di un vano: segue il vano
-  for (const o of (G.ops || [])) { const I = o.I, al = I.H ? q.x : q.y, pp = I.H ? q.y : q.x, c0 = (I.H ? I.a.y : I.a.x) + (I.o || 0), A0 = axC(I.a, I.H);
+  for (const o of (G.ops || [])) { if (o.I.obl) continue; const I = o.I, al = I.H ? q.x : q.y, pp = I.H ? q.y : q.x, c0 = (I.H ? I.a.y : I.a.x) + (I.o || 0), A0 = axC(I.a, I.H);
     if (Math.abs(pp - c0) > I.t / 2 + 2e-4) continue;
     const e = Math.abs(al - (A0 + o.s0)) < 2e-4 ? 0 : Math.abs(al - (A0 + o.s1)) < 2e-4 ? 1 : -1;
     if (e >= 0) return {ap:o.ap.id, e, dp:r4(pp - (I.H ? I.a.y : I.a.x)), x:r4(q.x), y:r4(q.y)}; }
@@ -3243,7 +3378,14 @@ function renderSide() {
         <div><label class="l">Rientro (m)</label><input data-w="rient" inputmode="decimal" value="${esc(w.rient || '')}" placeholder="${F ? f2(Math.abs(w.rax === 'y' ? F.fd[1] : w.rax === 'x' ? F.fd[0] : Math.min(Math.abs(F.fd[0]), Math.abs(F.fd[1])))) : ''}"></div>
         <div><label class="l">Misurata su</label><select data-w="rif">${opt({int:'Faccia interna (verso la stanza)', est:'Faccia esterna', asse:'Asse del muro'}, w.rif === 'est' || w.rif === 'asse' ? w.rif : 'int')}</select></div>
       </div>
-      <p class="hint">La lunghezza del muro obliquo fissa il «cateto» che le altre misure lasciano libero; se le altre misure fissano già tutto, serve da controllo. Il <b>rientro</b> è di quanto il muro si sposta da un capo all'altro, misurato lungo la faccia interna (il cateto corto: ${w.rax === 'y' ? 'in verticale' : w.rax === 'x' ? 'in orizzontale' : 'quello più piccolo'}). Per gli angoli puoi usare anche lo strumento «Diagonale».</p>`;
+      <p class="hint">La lunghezza del muro obliquo fissa il «cateto» che le altre misure lasciano libero; se le altre misure fissano già tutto, serve da controllo. Il <b>rientro</b> è di quanto il muro si sposta da un capo all'altro, misurato lungo la faccia interna (il cateto corto: ${w.rax === 'y' ? 'in verticale' : w.rax === 'x' ? 'in orizzontale' : 'quello più piccolo'}). Per gli angoli puoi usare anche lo strumento «Diagonale».</p>
+      <h3>Porte e finestre</h3>
+      <p class="hint" style="margin:-4px 0 8px">Come sui muri dritti: in pianta le caselle lungo la faccia sono le parziali (spigolo → vano → vano → spigolo, misurate lungo il muro) e quella sulla linea che esce dal vano è la larghezza. Qui la distanza è lungo il muro, dallo spigolo dove il muro è libero sulle due facce all'inizio del vano.</p>
+      ${(w.ap || []).map(x => `<div class="ap${x.id === ui.focusAp ? ' hl' : ''}" data-aprow="${x.id}">
+${apFields(x)}
+        <button class="sm rm" data-rmap="${x.id}" title="Rimuovi">✕</button></div>`).join('')}
+      <button id="bAddAp">+ Porta o finestra</button>`;
+    if (ui.focusAp) { const row = el.querySelector(`[data-aprow="${ui.focusAp}"]`); if (row) row.scrollIntoView({block:'center'}); ui.focusAp = null; }
   } else if (w) {
     const I = G.T.info.get(w.id), from = I.H ? 'da sinistra' : 'dal basso';
     el.innerHTML = `<div class="cardh">Muro ${I.H ? 'orizzontale' : 'verticale'} <span class="sp"></span><button class="sm" id="bMkObl" title="Per il fuori squadra: il muro potrà inclinarsi secondo le misure (diagonali, lunghezze)">Rendi obliquo</button> <button class="sm bad" id="bDelW">Elimina muro</button></div>
@@ -3443,7 +3585,7 @@ document.addEventListener('click', e => {
   if (id === 'bFuoriSq') { const qd = ui.sel && ui.sel.k === 'q' && (pl.dims || []).find(x => x.id === ui.sel.id), g = qd && (G.dims || []).find(x => x.d === qd); if (!g) return;
     let cid = G.compAt((g.a[0] + g.b[0]) / 2, (g.a[1] + g.b[1]) / 2); if (cid < 0) return toast('Non trovo la stanza della diagonale.');
     pushUndo(); const r = roomFuoriSquadra(pl, cid); update(true);
-    toast(r.ok ? `Stanza fuori squadra: ${r.ok} muri ora sono obliqui, il più lungo resta dritto come riferimento.${r.ap ? ` ${r.ap} muri con porte o finestre restano dritti (le aperture sui muri obliqui arrivano nella prossima tappa).` : ''}` : 'Nessun muro da rendere obliquo in questa stanza.'); return; }
+    toast(r.ok ? `Stanza fuori squadra: ${r.ok} muri ora sono obliqui, il più lungo resta dritto come riferimento.${r.lost ? ` ${r.lost === 1 ? 'Una parziale dei vani va riscritta' : r.lost + ' parziali dei vani vanno riscritte'} (il lato passava su più muri).` : ''}` : 'Nessun muro da rendere obliquo in questa stanza.'); return; }
   if (id === 'bDelQ') { pushUndo(); const qid = ui.sel && ui.sel.id; pl.dims = (pl.dims || []).filter(d => d.id !== qid); pl.mord = (pl.mord || []).filter(k => k !== 'q:' + qid); ui.sel = null; update(true); return; }
   if (id === 'bFull') return setFull(!ui.full);
   if (id === 'bCloseSide') { ui.sel = null; draw(); renderSide(); return; }
@@ -3478,8 +3620,8 @@ document.addEventListener('click', e => {
   if (!w) return;
   if (id === 'bClrMis') { pushUndo(); w.mis = ''; update(true); return; }
   if (id === 'bDelW') { pushUndo(); deleteWall(pl, w); ui.sel = null; update(true); return; }
-  if (id === 'bMkObl') { if ((w.ap || []).length) return toast('Questo muro ha porte o finestre: sui muri obliqui arrivano nella prossima tappa.'); pushUndo(); makeObl(pl, w); update(true); renderSide(); toast('Ora il muro è obliquo: diagonali e lunghezze ne decidono l\'inclinazione.'); return; }
-  if (id === 'bMkStr') { pushUndo(); makeStraight(pl, w); update(true); renderSide(); toast('Il muro è tornato dritto.'); return; }
+  if (id === 'bMkObl') { pushUndo(); makeObl(pl, w); const lo = makeObl.lost || 0; update(true); renderSide(); toast('Ora il muro è obliquo: diagonali e lunghezze ne decidono l\'inclinazione.' + (lo ? ` ${lo === 1 ? 'Una parziale dei vani va riscritta' : lo + ' parziali dei vani vanno riscritte'} sul muro obliquo (il lato passava su più muri).` : '')); return; }
+  if (id === 'bMkStr') { pushUndo(); const lo = makeStraight(pl, w) || 0; update(true); renderSide(); toast('Il muro è tornato dritto.' + (lo ? ' Le parziali dei suoi vani vanno riscritte sul lato dritto.' : '')); return; }
   if (id === 'bAddAp') { pushUndo(); w.ap.push({id:uid(), tipo:'finestra', d:'', l:'', h:'', dav:'', inv:false}); update(true); return; }
   const rm = e.target.closest('[data-rmap]'); if (rm) { pushUndo(); w.ap = w.ap.filter(x => x.id !== rm.dataset.rmap); update(true); }
 });
