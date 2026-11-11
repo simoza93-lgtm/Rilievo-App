@@ -3,9 +3,29 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 11 novembre 2026 — strumenti per disegnare (prospetto sulla pianta), tappa 1
+
+- Menu Note: **Linea** e **Costruzione**, più «Nascondi/Mostra costr.».
+- Linea: trascini la penna da dove parti a dove arrivi; si aggancia a spigoli dei muri, estremi e incroci delle
+  linee (quadratino blu), a un punto sopra una linea o sulla faccia di un muro; va dritta in orizzontale/verticale
+  (o a multipli di 15°) e, se passa su una linea, si ferma all'incrocio. Appena posata si apre il tastierino per la
+  lunghezza: resta fermo il punto da cui sei partito. Selezionata, mostra la lunghezza e nel pannello si cambia
+  lunghezza o tipo.
+- Costruzione: stesse regole, tratteggiata grigia, serve solo per agganciarsi (proiezioni dalla pianta); non va
+  nello script e si nasconde col tasto.
+- Script: le Linee vanno sempre, sul layer delle note a mano; le note a mano libere solo con l'opzione di sempre.
+- Prova `linee`. Prossime tappe: parallela a distanza, taglia ed estendi.
+
+## 11 novembre 2026 — «Incassata» tra le aperture
+
+- Le finestre incassate si posano col tasto **Incassata** in Aperture (accanto a Finestra, Porta-finestra, Porta,
+  Ingresso), come le altre: nascono a scalino, con la parte larga verso la stanza.
+- Nel pannello la casella «Forma» (A scalino / Strombata / Normale) compare solo sulle finestre incassate; le finestre
+  normali non ce l'hanno più. Il titolo del pannello dice «Finestra incassata». Prova `incassata` aggiornata.
+
 ## 10 novembre 2026 — finestre incassate (palazzi antichi)
 
-- Nel pannello della finestra, «Incassata»: No / A scalino / Strombata. La finestra ha due larghezze: la **luce**
+- (Dall'11 novembre si posano col tasto «Incassata», vedi sopra.) Forma: A scalino / Strombata. La finestra ha due larghezze: la **luce**
   (parte stretta, dove sta l'infisso: è la larghezza che conta per il rapporto aeroilluminante) e la **parte larga**.
 - La parte stretta è profonda 0,15 m dalla sua faccia (Impostazioni → «Finestre incassate: profondità della luce
   stretta»); il resto dello spessore è la parte larga. A scalino: due rettangoli. Strombata: i fianchi vanno in

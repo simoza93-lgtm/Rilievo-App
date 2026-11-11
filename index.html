@@ -200,8 +200,10 @@ const ascii = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').repl
 
 const DEST = {'Soggiorno':'A','Cucina':'A','Soggiorno-cucina':'A','Camera':'A','Studio':'A','Bagno':'C','Disimpegno':'C','Corridoio':'C','Ripostiglio':'C','Lavanderia':'C','Cantina':'C','Garage':'C','Altro':'C'};
 const TIPI_AP = {finestra:'Finestra', uscita:'Porta-finestra', porta:'Porta', ingresso:'Ingresso', varco:'Varco (senza infisso)'};
+// «Incassata» tra le aperture: si posa come una finestra con la parte larga (a scalino; strombata si sceglie nel pannello)
+const apLab = (k, ap) => k === 'incassata' || (ap && ap.tipo === 'finestra' && ap.inc) ? 'Finestra incassata' : TIPI_AP[k];
 // misure proposte quando si posa un'apertura con i tasti rapidi (poi si correggono con il laser)
-const DEF_AP = {finestra:{l:'1,20', h:'1,40', dav:'0,90'}, uscita:{l:'1,20', h:'2,20', dav:''}, porta:{l:'0,80', h:'', dav:''}, ingresso:{l:'1,00', h:'2,10', dav:''}};
+const DEF_AP = {finestra:{l:'1,20', h:'1,40', dav:'0,90'}, incassata:{l:'1,20', h:'1,40', dav:'0,90'}, uscita:{l:'1,20', h:'2,20', dav:''}, porta:{l:'0,80', h:'', dav:''}, ingresso:{l:'1,00', h:'2,10', dav:''}};
 
 /* ================= stato ================= */
 let R, G = null, tab = 'pianta';
@@ -1625,7 +1627,8 @@ function genScript(pl) {
     w('_.SOLID', pt(g.left[0]), pt(g.left[1]), pt(g.left[2]), '', '');
     w('_.PLINE', pt(g.right[0]), pt(g.right[1]), pt(g.right[2]), '_C');
     w('_.TEXT', '_S', 'STUDIO', '_J', '_MC', pt(g.txt), '0.25', '0', 'N'); } }
-  if (R.opt.mano && (pl.ink || []).length) { w('; ---- note a mano', 'CLAYER', LAY.R); pl.ink.forEach(k => w('_.PLINE', ...k.pts.map(pt), '')); }
+  const inkOut = (pl.ink || []).filter(k => !k.cs && (k.lin || R.opt.mano));
+  if (inkOut.length) { w('; ---- ' + (R.opt.mano ? 'note a mano e linee' : 'linee disegnate'), 'CLAYER', LAY.R); inkOut.forEach(k => w('_.PLINE', ...k.pts.map(pt), '')); }
   if (R.opt.note) (pl.notes || []).forEach(n => String(n.t || '').split('\n').map(x => ascii(x).replace(/^;+/, '').trim()).forEach((l, i) => { if (l) w('_.TEXT', '_S', 'STUDIO', pt([n.x, n.y - 0.30 - i * 0.35]), '0.20', '0', l); }));
   if (R.opt.vani !== false && sp.vani.length) {
     // larghezza del vano: linea perpendicolare al muro dal centro del vano verso l'ambiente, numero lungo la linea
@@ -1773,7 +1776,7 @@ function render() {
     $('#main').innerHTML = banner + `<div class="cols"><div class="card cvcard">
       <div class="tbar">
         <div class="tcl"><button class="tb sm" id="bUndo"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg><span>Annulla</span></button><button class="tb sm" id="bRedo"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg><span>Ripeti</span></button></div>
-        <div class="tcl tmain"><div class="tg" data-g="sel"><button class="tb" data-fly="sel" data-auto="1"><svg viewBox="0 0 24 24"><path d="M6 3l12 9-6 1 3.5 7-2.5 1-3.5-7L5 18z"/></svg><span>Seleziona</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="select"><svg viewBox="0 0 24 24"><path d="M6 3l12 9-6 1 3.5 7-2.5 1-3.5-7L5 18z"/></svg><span>Seleziona</span></button><button class="tb" data-win="1" title="Tocca un angolo e poi quello opposto (anche dentro gli ambienti)"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1" stroke-dasharray="3 2.5"/><path d="M14 13l6 6M14 13h4M14 13v4"/></svg><span>Rettangolo</span></button><button class="tb" data-mode="pan"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg><span>Sposta vista</span></button></div></div><div class="tg" data-g="muri"><button class="tb" data-fly="muri" data-auto="1"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" stroke-width="2.2"/><path d="M6 8l-3 4M11 8l-6 8M16 8l-6 8M21 8l-6 8M21 13l-2 3" stroke-width="1.2"/></svg><span>Muri</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="draw" data-tw="P"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" stroke-width="2.2"/><path d="M6 8l-3 4M11 8l-6 8M16 8l-6 8M21 8l-6 8M21 13l-2 3" stroke-width="1.2"/></svg><span>Perimetrali</span></button><button class="tb" data-mode="draw" data-tw="T"><svg viewBox="0 0 24 24"><path d="M3 10h18M3 14h18" stroke-width="1.9"/></svg><span>Tramezzi</span></button></div></div><div class="tg" data-g="ap"><button class="tb" data-fly="ap"><svg viewBox="0 0 24 24"><path d="M2 18h4M18 18h4" stroke-width="2.2"/><path d="M6 18V6M6 6a12 12 0 0 1 12 12"/></svg><span>Aperture</span><i class="car"></i></button><div class="tfly"><button class="tb" data-ap="finestra"><svg viewBox="0 0 24 24"><path d="M3 8h4M17 8h4M3 16h4M17 16h4" stroke-width="2.2"/><path d="M7 8v8M17 8v8M7 11h10M7 13h10"/></svg><span>Finestra</span></button><button class="tb" data-ap="uscita"><svg viewBox="0 0 24 24"><path d="M3 8h4M17 8h4M3 16h4M17 16h4" stroke-width="2.2"/><path d="M7 8v8M17 8v8M7 12h10"/><path d="M7 12a5 5 0 0 1 5-4" stroke-dasharray="2 2"/></svg><span>Porta-finestra</span></button><button class="tb" data-ap="porta"><svg viewBox="0 0 24 24"><path d="M2 18h4M18 18h4" stroke-width="2.2"/><path d="M6 18V6M6 6a12 12 0 0 1 12 12"/></svg><span>Porta</span></button><button class="tb" data-ap="ingresso"><svg viewBox="0 0 24 24"><path d="M2 18h3M19 18h3" stroke-width="2.2"/><path d="M5 18V5M5 5a13 13 0 0 1 14 13"/><path d="M12 22v-6M10 18l2-2 2 2"/></svg><span>Ingresso</span></button></div></div><button class="tb" data-sc="1"><svg viewBox="0 0 24 24"><path d="M4 20h4v-4h4v-4h4V8h4V4"/><path d="M4 20V16M8 16v-4M12 12V8M16 8V4" stroke-width="1"/></svg><span>Scala</span></button><button class="tb" data-dim="1" title="Quota libera: tocca due fili e scrivi la misura"><svg viewBox="0 0 24 24"><path d="M4 7v10M20 7v10M4 12h16M4 12l3-2.5M4 12l3 2.5M20 12l-3-2.5M20 12l-3 2.5"/></svg><span>Quota</span></button><button class="tb" data-guide="1" title="Misura guidata: ti porta da un tratto da misurare al successivo, stanza per stanza"><svg viewBox="0 0 24 24"><path d="M3 17h12M3 17v-3M15 17v-3M7 17v-2M11 17v-2"/><path d="M14 7h7M18 4l3 3-3 3"/></svg><span>Prossima</span></button><div class="tg" data-g="note"><button class="tb" data-fly="note" data-auto="1"><svg viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z"/><path d="M8 11h8M8 15h5"/></svg><span>Note</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="ink" title="Scrivi o disegna a mano libera con la penna (due dita: zoom e spostamento)"><svg viewBox="0 0 24 24"><path d="M4 20l1-5L16 4l4 4L9 19z"/><path d="M14 6l4 4"/><path d="M3 21c3-1 5 1 8 0" stroke-width="1.3"/></svg><span>A mano</span></button><button class="tb" data-mode="text" title="Nota scritta con la tastiera"><svg viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg><span>Testo</span></button><button class="tb" data-mode="gomma" title="Passa sopra ai tratti a mano per cancellarli"><svg viewBox="0 0 24 24"><path d="M8 20h12"/><path d="M5 15l9-9 5 5-8 8H8z"/><path d="M10 10l5 5"/></svg><span>Gomma</span></button></div></div><button class="tb" data-foto="1" title="Tocca dove ti trovi e scatta"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Foto</span></button><button class="tb" data-nord="1"><svg viewBox="0 0 24 24"><path d="M12 2l5 18-5-4-5 4z"/><path d="M12 2v14"/></svg><span>Nord</span></button><button class="tb" data-bg="1" title="Planimetria di sfondo da ricalcare (JPEG)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.6"/></svg><span>Sfondo</span></button></div>
+        <div class="tcl tmain"><div class="tg" data-g="sel"><button class="tb" data-fly="sel" data-auto="1"><svg viewBox="0 0 24 24"><path d="M6 3l12 9-6 1 3.5 7-2.5 1-3.5-7L5 18z"/></svg><span>Seleziona</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="select"><svg viewBox="0 0 24 24"><path d="M6 3l12 9-6 1 3.5 7-2.5 1-3.5-7L5 18z"/></svg><span>Seleziona</span></button><button class="tb" data-win="1" title="Tocca un angolo e poi quello opposto (anche dentro gli ambienti)"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1" stroke-dasharray="3 2.5"/><path d="M14 13l6 6M14 13h4M14 13v4"/></svg><span>Rettangolo</span></button><button class="tb" data-mode="pan"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg><span>Sposta vista</span></button></div></div><div class="tg" data-g="muri"><button class="tb" data-fly="muri" data-auto="1"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" stroke-width="2.2"/><path d="M6 8l-3 4M11 8l-6 8M16 8l-6 8M21 8l-6 8M21 13l-2 3" stroke-width="1.2"/></svg><span>Muri</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="draw" data-tw="P"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" stroke-width="2.2"/><path d="M6 8l-3 4M11 8l-6 8M16 8l-6 8M21 8l-6 8M21 13l-2 3" stroke-width="1.2"/></svg><span>Perimetrali</span></button><button class="tb" data-mode="draw" data-tw="T"><svg viewBox="0 0 24 24"><path d="M3 10h18M3 14h18" stroke-width="1.9"/></svg><span>Tramezzi</span></button></div></div><div class="tg" data-g="ap"><button class="tb" data-fly="ap"><svg viewBox="0 0 24 24"><path d="M2 18h4M18 18h4" stroke-width="2.2"/><path d="M6 18V6M6 6a12 12 0 0 1 12 12"/></svg><span>Aperture</span><i class="car"></i></button><div class="tfly"><button class="tb" data-ap="finestra"><svg viewBox="0 0 24 24"><path d="M3 8h4M17 8h4M3 16h4M17 16h4" stroke-width="2.2"/><path d="M7 8v8M17 8v8M7 11h10M7 13h10"/></svg><span>Finestra</span></button><button class="tb" data-ap="incassata"><svg viewBox="0 0 24 24"><path d="M2 7h2M20 7h2M2 17h5M17 17h5" stroke-width="2.2"/><path d="M4 7v5h3v5M20 7v5h-3v5M7 14h10M7 15.5h10M4 7h16"/></svg><span>Incassata</span></button><button class="tb" data-ap="uscita"><svg viewBox="0 0 24 24"><path d="M3 8h4M17 8h4M3 16h4M17 16h4" stroke-width="2.2"/><path d="M7 8v8M17 8v8M7 12h10"/><path d="M7 12a5 5 0 0 1 5-4" stroke-dasharray="2 2"/></svg><span>Porta-finestra</span></button><button class="tb" data-ap="porta"><svg viewBox="0 0 24 24"><path d="M2 18h4M18 18h4" stroke-width="2.2"/><path d="M6 18V6M6 6a12 12 0 0 1 12 12"/></svg><span>Porta</span></button><button class="tb" data-ap="ingresso"><svg viewBox="0 0 24 24"><path d="M2 18h3M19 18h3" stroke-width="2.2"/><path d="M5 18V5M5 5a13 13 0 0 1 14 13"/><path d="M12 22v-6M10 18l2-2 2 2"/></svg><span>Ingresso</span></button></div></div><button class="tb" data-sc="1"><svg viewBox="0 0 24 24"><path d="M4 20h4v-4h4v-4h4V8h4V4"/><path d="M4 20V16M8 16v-4M12 12V8M16 8V4" stroke-width="1"/></svg><span>Scala</span></button><button class="tb" data-dim="1" title="Quota libera: tocca due fili e scrivi la misura"><svg viewBox="0 0 24 24"><path d="M4 7v10M20 7v10M4 12h16M4 12l3-2.5M4 12l3 2.5M20 12l-3-2.5M20 12l-3 2.5"/></svg><span>Quota</span></button><button class="tb" data-guide="1" title="Misura guidata: ti porta da un tratto da misurare al successivo, stanza per stanza"><svg viewBox="0 0 24 24"><path d="M3 17h12M3 17v-3M15 17v-3M7 17v-2M11 17v-2"/><path d="M14 7h7M18 4l3 3-3 3"/></svg><span>Prossima</span></button><div class="tg" data-g="note"><button class="tb" data-fly="note" data-auto="1"><svg viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z"/><path d="M8 11h8M8 15h5"/></svg><span>Note</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="ink" title="Scrivi o disegna a mano libera con la penna (due dita: zoom e spostamento)"><svg viewBox="0 0 24 24"><path d="M4 20l1-5L16 4l4 4L9 19z"/><path d="M14 6l4 4"/><path d="M3 21c3-1 5 1 8 0" stroke-width="1.3"/></svg><span>A mano</span></button><button class="tb" data-mode="linea" title="Linea dritta: si aggancia a spigoli, estremi e incroci; poi scrivi la lunghezza"><svg viewBox="0 0 24 24"><path d="M4 20L20 4"/><circle cx="4" cy="20" r="1.8"/><circle cx="20" cy="4" r="1.8"/></svg><span>Linea</span></button><button class="tb" data-mode="costr" title="Linea di costruzione (proiezioni): tratteggiata, solo per agganciarsi, non va nello script"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20" stroke-dasharray="2.5 2"/></svg><span>Costruzione</span></button><button class="tb" data-csvis="1" title="Mostra o nascondi le linee di costruzione"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Vedi costr.</span></button><button class="tb" data-mode="text" title="Nota scritta con la tastiera"><svg viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg><span>Testo</span></button><button class="tb" data-mode="gomma" title="Passa sopra ai tratti a mano per cancellarli"><svg viewBox="0 0 24 24"><path d="M8 20h12"/><path d="M5 15l9-9 5 5-8 8H8z"/><path d="M10 10l5 5"/></svg><span>Gomma</span></button></div></div><button class="tb" data-foto="1" title="Tocca dove ti trovi e scatta"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Foto</span></button><button class="tb" data-nord="1"><svg viewBox="0 0 24 24"><path d="M12 2l5 18-5-4-5 4z"/><path d="M12 2v14"/></svg><span>Nord</span></button><button class="tb" data-bg="1" title="Planimetria di sfondo da ricalcare (JPEG)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.6"/></svg><span>Sfondo</span></button></div>
         <div class="tcl"><button class="tb sm" id="bZo"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M7.5 10.5h6"/></svg><span>Zoom −</span></button><button class="tb sm" id="bZi"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M7.5 10.5h6M10.5 7.5v6"/></svg><span>Zoom +</span></button><button class="tb sm" id="bFit"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg><span>Adatta</span></button><span class="tsep"></span><label class="tb sm" title="Nomi e superfici degli ambienti"><input type="checkbox" id="cLab" ${ui.labels ? 'checked' : ''}><svg viewBox="0 0 24 24"><path d="M3 5h12l6 7-6 7H3z"/><path d="M7 10.5v4M7 11.5a1.5 1.5 0 0 1 3 0v3M10 11.5a1.5 1.5 0 0 1 3 0v3" stroke-width="1.3"/></svg><span>Nomi e m²</span></label><button class="tb sm" id="bFull">${ui.full ? '<svg viewBox="0 0 24 24"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg><span>Esci</span>' : '<svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span>Schermo</span>'}</button></div>
       </div>
       <div id="cv"><svg id="svg"></svg><div id="vrot"><button id="bRotL" title="Ruota la vista di 90° in senso antiorario"><svg viewBox="0 0 24 24"><path d="M9 4.5A8 8 0 1 0 19.5 9"/><path d="M9 1.5v4.2h4.2" transform="rotate(-15 9 4.5)"/></svg></button><button id="bRot0" title="Rotazione della vista: tocca per tornare a 0°">0°</button><button id="bRotR" title="Ruota la vista di 90° in senso orario"><svg viewBox="0 0 24 24"><path d="M15 4.5A8 8 0 1 1 4.5 9"/><path d="M15 1.5v4.2h-4.2" transform="rotate(15 15 4.5)"/></svg></button></div><div id="empty"></div><div id="toast"></div></div>
@@ -1795,12 +1798,13 @@ function updTools() {
   document.querySelectorAll('[data-foto]').forEach(b => b.classList.toggle('on', !!ui.placeFoto));
   document.querySelectorAll('[data-nord]').forEach(b => b.classList.toggle('on', !!ui.placeNord));
   document.querySelectorAll('[data-dim]').forEach(b => b.classList.toggle('on', !!ui.placeDim));
+  document.querySelectorAll('[data-csvis]').forEach(b => { const sp = b.querySelector('span'); if (sp) sp.textContent = csHidden() ? 'Mostra costr.' : 'Nascondi costr.'; });
   document.querySelectorAll('[data-win]').forEach(b => b.classList.toggle('on', !!ui.winArm));
   document.querySelectorAll('[data-bg]').forEach(b => b.classList.toggle('on', !!(ui.sel && ui.sel.k === 'bg')));
   if (ui.winArm) document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('on'));
   const busy = ui.place || ui.placeSc || ui.placeDim || ui.placeFoto || ui.placeNord || ui.winArm || (ui.sel && ui.sel.k === 'bg');
   document.querySelectorAll('[data-tw]').forEach(b => b.classList.toggle('on', ui.mode === 'draw' && !busy && b.dataset.tw === ui.newType));
-  if (busy) document.querySelectorAll('[data-mode="select"],[data-mode="pan"],[data-mode="text"],[data-mode="ink"],[data-mode="gomma"]').forEach(b => b.classList.remove('on'));
+  if (busy) document.querySelectorAll('[data-mode="select"],[data-mode="pan"],[data-mode="text"],[data-mode="ink"],[data-mode="gomma"],[data-mode="linea"],[data-mode="costr"]').forEach(b => b.classList.remove('on'));
   // pulsante del gruppo: mostra il comando scelto (o l'ultimo usato) ed è acceso se un suo comando è attivo
   document.querySelectorAll('.tg').forEach(g => { const m = g.querySelector('[data-fly]'), on = g.querySelector('.tfly .on');
     ui.flyLast = ui.flyLast || {}; if (on) ui.flyLast[g.dataset.g] = on;
@@ -1894,7 +1898,7 @@ function inkLive(pts) { const svg = $('#svg'); if (!svg) return; let el = svg.qu
   el.setAttribute('stroke-width', inkW()); el.setAttribute('d', 'M' + pts.map(q => q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join(' L') + (pts.length === 1 ? ' l0.1 0' : '')); }
 function inkW() { return Math.max(1.2, Math.min(4, 0.025 * ui.view.s)).toFixed(2); }
 // «disegna e tieni fermo»: ferma la penna mezzo secondo alla fine del tratto e diventa una linea dritta
-let inkT = null, inkA = null;
+let inkT = null, inkA = null, lnS = null;
 function inkHold(p, inkS) { if (inkA && Math.hypot(p[0] - inkA[0], p[1] - inkA[1]) < 5) return; inkA = p; clearTimeout(inkT);
   inkT = setTimeout(() => { if (!inkS || inkS.dritta || inkS.length < 2) return; const a = inkS[0], b = inkS[inkS.length - 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < 30) return; let dv = 0; for (const q of inkS) dv = Math.max(dv, Math.abs((q[0] - a[0]) * (b[1] - a[1]) - (q[1] - a[1]) * (b[0] - a[0])) / L); if (dv > Math.max(8, 0.2 * L)) return;
     inkS.dritta = true; inkS.ini = inkSnapPt(a, true) || a; inkS.fine = inkEnd(inkS.ini, b); inkLive([inkS.ini, inkS.fine]); try { navigator.vibrate && navigator.vibrate(12); } catch (_) {} }, 480); }
@@ -1905,13 +1909,54 @@ function inkEnd(a, p) { const c = inkSnapPt(p, false); if (c) return c; const dx
   const ang = Math.atan2(dy, dx) * 180 / Math.PI, k = Math.round(ang / 15) * 15; if (Math.abs(ang - k) > 6) return p; const t = k * Math.PI / 180; return [a[0] + L * Math.cos(t), a[1] + L * Math.sin(t)]; }
 function inkSave(pts, dritta) { const pl = piano(); let P = dritta ? pts.map(q => [r4(WX(q[0])), r4(WY(q[1]))]) : rdp(pts, 0.8).map(q => [r4(WX(q[0])), r4(WY(q[1]))]); if (P.length === 1) P = [P[0], [r4(P[0][0] + 0.01), P[0][1]]];
   pushUndo(); (pl.ink = pl.ink || []).push({id:uid(), pts:P}); draw(); save(); }
+/* ---- Linea e Costruzione: linee dritte per disegnare (es. un prospetto sulla pianta con le proiezioni).
+   k.lin = linea vera (va nello script come le note a mano, layer note), k.cs = linea di costruzione (tratteggiata, mai nello script),
+   k.v = lunghezza scritta (l'estremo dove sei partito resta fermo). ---- */
+const csHidden = () => !!(R.opt && R.opt.csHide);
+function lnSegs(skip) { const out = []; (piano().ink || []).forEach(k => { if (k === skip || (k.cs && csHidden())) return; for (let i = 0; i < k.pts.length - 1; i++) out.push({k, a:[SX(k.pts[i][0]), SY(k.pts[i][1])], b:[SX(k.pts[i + 1][0]), SY(k.pts[i + 1][1])]}); }); return out; }
+function segX(s1, s2) { const r = [s1.b[0] - s1.a[0], s1.b[1] - s1.a[1]], q = [s2.b[0] - s2.a[0], s2.b[1] - s2.a[1]], d = r[0] * q[1] - r[1] * q[0]; if (Math.abs(d) < 1e-9) return null;
+  const t = ((s2.a[0] - s1.a[0]) * q[1] - (s2.a[1] - s1.a[1]) * q[0]) / d, u = ((s2.a[0] - s1.a[0]) * r[1] - (s2.a[1] - s1.a[1]) * r[0]) / d;
+  return t > -0.02 && t < 1.02 && u > -0.02 && u < 1.02 ? [s1.a[0] + t * r[0], s1.a[1] + t * r[1]] : null; }
+function segNear(sg, p) { const dx = sg.b[0] - sg.a[0], dy = sg.b[1] - sg.a[1], L = dx * dx + dy * dy || 1e-9, t = Math.max(0, Math.min(1, ((p[0] - sg.a[0]) * dx + (p[1] - sg.a[1]) * dy) / L)); const q = [sg.a[0] + t * dx, sg.a[1] + t * dy]; return {q, d:Math.hypot(p[0] - q[0], p[1] - q[1])}; }
+// punto agganciato: spigolo dei muri, estremo o incrocio di linee (entro 14 px); poi un punto sopra una linea o sulla faccia di un muro
+function lnSnap(p, skip) { const segs = lnSegs(skip); let best = null, bd = 14;
+  const c = inkSnapPt(p, false); if (c) { const d = Math.hypot(c[0] - p[0], c[1] - p[1]); if (d < bd) { bd = d; best = {p:c, t:'c'}; } }
+  segs.forEach(sg => [sg.a, sg.b].forEach(q => { const d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d < bd) { bd = d; best = {p:q, t:'e'}; } }));
+  const near = segs.filter(sg => segNear(sg, p).d < 30);
+  for (let i = 0; i < near.length; i++) for (let j = i + 1; j < near.length; j++) { const x = segX(near[i], near[j]); if (x) { const d = Math.hypot(x[0] - p[0], x[1] - p[1]); if (d < bd) { bd = d; best = {p:x, t:'x'}; } } }
+  if (best) return best;
+  let on = null, od = 10; segs.forEach(sg => { const n = segNear(sg, p); if (n.d < od) { od = n.d; on = {p:n.q, t:'o', sg}; } }); if (on) return on;
+  const f = inkSnapPt(p, true); return f ? {p:f, t:'f'} : null; }
+// fine della linea: punto agganciato, altrimenti orizzontale/verticale (multipli di 15°); se passa su una linea si ferma all'incrocio
+function lnEnd(a, p, skip) { const s0 = lnSnap(p, skip); if (s0 && s0.t !== 'o' && s0.t !== 'f') return s0;
+  const o = inkEnd(a, p); if (o === p) return s0 || {p, t:''};
+  const ray = {a, b:o}; let best = null, bd = 12; lnSegs(skip).forEach(sg => { const n = segNear(sg, o); if (n.d >= bd) return; const dx = o[0] - a[0], dy = o[1] - a[1], L = Math.hypot(dx, dy) || 1;
+    const ext = {a, b:[a[0] + dx / L * (L + 40), a[1] + dy / L * (L + 40)]}, x = segX(ext, sg); if (x) { bd = n.d; best = {p:x, t:'x'}; } });
+  return best || {p:o, t:'h'}; }
+function lnLive(a, e) { inkLive(a ? [a, e.p] : null); let m = $("#svg").querySelector("#lnMark"); if (!a || !e.t) { if (m) m.remove(); return; }
+  if (!m) { m = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); m.id = 'lnMark'; m.setAttribute('fill', 'none'); m.setAttribute('stroke', 'var(--acc)'); m.setAttribute('stroke-width', '1.6'); ($("#svg").querySelector("#vg") || $("#svg")).appendChild(m); }
+  m.setAttribute('x', (e.p[0] - 6).toFixed(1)); m.setAttribute('y', (e.p[1] - 6).toFixed(1)); m.setAttribute('width', 12); m.setAttribute('height', 12); }
+function lnSave(a, b, cs) { if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 6) { toast('Linea troppo corta: trascina la penna dal punto di partenza a quello d\'arrivo.'); return null; }
+  const pl = piano(), k = {id:uid(), pts:[[r4(WX(a[0])), r4(WY(a[1]))], [r4(WX(b[0])), r4(WY(b[1]))]]}; if (cs) k.cs = true; else k.lin = true;
+  pushUndo(); (pl.ink = pl.ink || []).push(k); draw(); save(); return k; }
+const lnLen = k => Math.hypot(k.pts[1][0] - k.pts[0][0], k.pts[1][1] - k.pts[0][1]);
+function lnSetLen(k, v) { const L = lnLen(k), n = num(v); if (!(n > 0) || !(L > 0)) return; const a = k.pts[0], b = k.pts[1];
+  k.pts[1] = [r4(a[0] + (b[0] - a[0]) / L * n), r4(a[1] + (b[1] - a[1]) / L * n)]; k.v = v; }
+function lnAsk(k) { const a = [SX(k.pts[0][0]), SY(k.pts[0][1])], b = [SX(k.pts[1][0]), SY(k.pts[1][1])], c = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  openInline({kind:'il', id:k.id, box:[c[0] - 20, c[1] - 10, c[0] + 20, c[1] + 10]}); }
 function inkDist(k, p) { let best = 1e9; for (let i = 0; i < k.pts.length - 1; i++) { const a = [SX(k.pts[i][0]), SY(k.pts[i][1])], b = [SX(k.pts[i + 1][0]), SY(k.pts[i + 1][1])], dx = b[0] - a[0], dy = b[1] - a[1], L = dx * dx + dy * dy || 1e-9;
   const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L)); best = Math.min(best, Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy)); } return best; }
 function inkAt(p, tol = 9) { const pl = piano(); let best = null, bd = tol; (pl.ink || []).forEach(k => { const d = inkDist(k, p); if (d < bd) { bd = d; best = k; } }); return best; }
 function gomAt(p, g) { const pl = piano(), hitk = (pl.ink || []).filter(k => inkDist(k, p) < 12); if (!hitk.length) return;
   if (!g.undo) { pushUndo(); g.undo = true; } pl.ink = pl.ink.filter(k => !hitk.includes(k)); draw(); save(); }
 function inkSvg(pl) { const w = inkW(); return (pl.ink || []).map(k => { const sel = (ui.sel && ui.sel.k === 'ink' && ui.sel.id === k.id) || inM('i', k.id);
-  return `<path d="M${k.pts.map(q => SX(q[0]).toFixed(1) + ' ' + SY(q[1]).toFixed(1)).join(' L')}" fill="none" stroke="${sel ? 'var(--acc)' : 'var(--inkc)'}" stroke-width="${sel ? +w + 1.5 : w}" stroke-linecap="round" stroke-linejoin="round"/>`; }).join(''); }
+  if (k.cs && csHidden() && !sel) return '';
+  const d = `M${k.pts.map(q => SX(q[0]).toFixed(1) + ' ' + SY(q[1]).toFixed(1)).join(' L')}`;
+  if (k.cs) return `<path d="${d}" fill="none" stroke="${sel ? 'var(--acc)' : 'var(--mut)'}" stroke-width="${sel ? 2.2 : 1}" stroke-dasharray="6 4"/>`;
+  let s = `<path d="${d}" fill="none" stroke="${sel ? 'var(--acc)' : 'var(--inkc)'}" stroke-width="${sel ? +w + 1.5 : w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (k.lin && sel) { const a = k.pts[0], b = k.pts[1], mx = SX((a[0] + b[0]) / 2), my = SY((a[1] + b[1]) / 2);   // lunghezza della linea selezionata
+    s += `<text x="${mx.toFixed(1)}" y="${(my - 8).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--acc)" paint-order="stroke" stroke="var(--cv)" stroke-width="3">${f2(lnLen(k))}${k.v ? ' 🔒' : ''}</text>`; }
+  return s; }).join(''); }
 
 /* ---- porte: arco e pulsanti per girarle ---- */
 function arcPts(D, n = 16) { const a0 = Math.atan2(D.p0[1] - D.c[1], D.p0[0] - D.c[0]), a1 = Math.atan2(D.p1[1] - D.c[1], D.p1[0] - D.c[0]); let da = a1 - a0; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
@@ -2129,7 +2174,7 @@ function mbox(tx, ty, H, val, m, bad, edit, sel, o = {}) {
   if (txt) s += `<text x="${tx}" y="${ty}" font-size="${(11 * K).toFixed(1)}" text-anchor="middle" dominant-baseline="central" fill="${bad ? 'var(--bad)' : m && !o.prop ? 'var(--ink)' : 'var(--mut)'}" font-weight="${bad || sel ? 700 : m && !o.prop ? 600 : 400}" ${o.prop ? 'font-style="italic"' : ''} ${H ? '' : `transform="rotate(-90 ${tx} ${ty})"`}>${esc(txt)}</text>`;
   return {s, box};
 }
-const hbKey = hb => hb.kind === 'w2' ? 'w2:' + hb.ap : hb.kind === 'ris' ? 'ris:' + hb.ap : hb.kind === 'sp' ? 'sp:' + hb.rk + ':' + hb.side : hb.kind === 'p' ? 'p:' + hb.rk + ':' + (hb.nx || 'fine') : hb.kind === 'w' ? 'w:' + hb.ap : hb.kind === 'q' ? 'q:' + hb.id : hb.key;
+const hbKey = hb => hb.kind === 'il' ? 'il:' + hb.id : hb.kind === 'w2' ? 'w2:' + hb.ap : hb.kind === 'ris' ? 'ris:' + hb.ap : hb.kind === 'sp' ? 'sp:' + hb.rk + ':' + hb.side : hb.kind === 'p' ? 'p:' + hb.rk + ':' + (hb.nx || 'fine') : hb.kind === 'w' ? 'w:' + hb.ap : hb.kind === 'q' ? 'q:' + hb.id : hb.key;
 function roomRects(cc) {
   const v = ui.view; if (cc.isRect) { const b = cc.bbox; return `<rect x="${SX(b[0])}" y="${SY(b[3])}" width="${(b[2] - b[0]) * v.s}" height="${(b[3] - b[1]) * v.s}"/>`; }
   return cc.rects.map(b => `<rect x="${SX(b[0])}" y="${SY(b[3])}" width="${(b[2] - b[0]) * v.s + 0.3}" height="${(b[3] - b[1]) * v.s + 0.3}"/>`).join('');
@@ -2142,8 +2187,10 @@ function bindCanvas() {
   svg.addEventListener('pointerdown', e => {
     try { svg.setPointerCapture(e.pointerId); } catch (_) {} const p = pos(e); ptrs.set(e.pointerId, p);
     if (e.pointerType === 'pen') ui.penSeen = true;
-    if (ptrs.size === 2) { inkS = null; clearTimeout(inkT); gom = null; inkLive(null); win = null; winShow(null); stroke = null; pan = null; drag = null; boxTap = null; dimTap = null; dmDrag = null; closeInline(true); if (apDrag) { apDrag = null; ui.ghost = null; draw(); } const [a, b] = [...ptrs.values()]; pinch = {d:Math.hypot(a[0] - b[0], a[1] - b[1]), s:ui.view.s, mx:(a[0] + b[0]) / 2, my:(a[1] + b[1]) / 2, wx:WX((a[0] + b[0]) / 2), wy:WY((a[1] + b[1]) / 2)}; const st = $('#stroke'); if (st) st.setAttribute('points', ''); return; }
+    if (ptrs.size === 2) { inkS = null; lnS = null; lnLive(null); clearTimeout(inkT); gom = null; inkLive(null); win = null; winShow(null); stroke = null; pan = null; drag = null; boxTap = null; dimTap = null; dmDrag = null; closeInline(true); if (apDrag) { apDrag = null; ui.ghost = null; draw(); } const [a, b] = [...ptrs.values()]; pinch = {d:Math.hypot(a[0] - b[0], a[1] - b[1]), s:ui.view.s, mx:(a[0] + b[0]) / 2, my:(a[1] + b[1]) / 2, wx:WX((a[0] + b[0]) / 2), wy:WY((a[1] + b[1]) / 2)}; const st = $('#stroke'); if (st) st.setAttribute('points', ''); return; }
     if (ptrs.size > 2) return;
+    if ((ui.mode === 'linea' || ui.mode === 'costr') && ptrs.size === 1 && !(ui.penSeen && e.pointerType === 'touch')) { e.preventDefault();
+      const s0 = lnSnap(p); lnS = {a:s0 ? s0.p : p, cs:ui.mode === 'costr'}; lnS.e = {p:lnS.a, t:s0 ? s0.t : ''}; lnLive(lnS.a, lnS.e); return; }
     if ((ui.mode === 'ink' || ui.mode === 'gomma') && ptrs.size === 1 && !(ui.penSeen && e.pointerType === 'touch')) {   // con la penna, il dito sposta la vista
       e.preventDefault(); if (ui.mode === 'ink') { inkS = [p]; inkA = null; inkHold(p, inkS); inkLive(inkS); } else { gom = {undo:false}; gomAt(p, gom); } return; }
     if (ptrs.size === 1) { const fb = flipAt(p); if (fb) { e.preventDefault(); ptrs.delete(e.pointerId); flipDoor(fb.k); return; } }
@@ -2172,6 +2219,7 @@ function bindCanvas() {
   });
   svg.addEventListener('pointermove', e => {
     if (!ptrs.has(e.pointerId)) { if (ui.winA && ui.mode === 'select') { winShow(ui.winA, pos(e)); return; } if (ui.placeDim && e.pointerType !== 'touch') { ui.dimHover = dimSnap(pos(e)); draw(); return; } if (ui.place && e.pointerType !== 'touch') { ui.ghost = ghostAt(pos(e), ui.place, num(DEF_AP[ui.place].l), null); draw(); } return; } const p = pos(e); ptrs.set(e.pointerId, p);
+    if (lnS && ptrs.size === 1) { lnS.e = lnEnd(lnS.a, pos(e)); lnLive(lnS.a, lnS.e); return; }
     if (inkS && ptrs.size === 1) { const p = pos(e);
       if (inkS.dritta) { inkS.fine = inkEnd(inkS.ini, p); inkLive([inkS.ini, inkS.fine]); return; }
       const l = inkS[inkS.length - 1]; if (Math.hypot(p[0] - l[0], p[1] - l[1]) >= 1.5) { inkS.push(p); inkLive(inkS); } inkHold(p, inkS); return; }
@@ -2202,6 +2250,7 @@ function bindCanvas() {
   });
   const end = e => {
     if (!ptrs.has(e.pointerId)) return; const p = pos(e); ptrs.delete(e.pointerId);
+    if (lnS) { const L = lnS; lnS = null; lnLive(null); const k = lnSave(L.a, L.e.p, L.cs); if (k && !L.cs) lnAsk(k); return; }
     if (inkS) { const pts = inkS; inkS = null; clearTimeout(inkT); inkLive(null); inkSave(pts.dritta ? [pts.ini, pts.fine] : pts, !!pts.dritta); return; }
     if (gom) { gom = null; return; }
     if (pinch) { if (ptrs.size === 0) pinch = null; return; }
@@ -2243,7 +2292,7 @@ function bindCanvas() {
       return; }
     if (pan) { const wasMoved = pan.moved; pan = null; if (!wasMoved && ui.mode === 'select') hit(p); else if (!wasMoved && ui.mode === 'text') newNote(p); }
   };
-  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); inkS = null; clearTimeout(inkT); gom = null; inkLive(null); bgTap = null; bgDrag = null; win = null; winShow(null); dimTap = null; dmDrag = null; stroke = null; ui.trk = null; scDrag = null; fotoTap = null; nordTap = null; ndDrag = null; ui.scGhost = null; pan = null; pinch = null; drag = null; apDrag = null; boxTap = null; ui.ghost = null; draw(); });
+  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); inkS = null; lnS = null; lnLive(null); clearTimeout(inkT); gom = null; inkLive(null); bgTap = null; bgDrag = null; win = null; winShow(null); dimTap = null; dmDrag = null; stroke = null; ui.trk = null; scDrag = null; fotoTap = null; nordTap = null; ndDrag = null; ui.scGhost = null; pan = null; pinch = null; drag = null; apDrag = null; boxTap = null; ui.ghost = null; draw(); });
   svg.addEventListener('click', e => { const el = $('#inl'); if (el && document.activeElement !== el) { e.preventDefault(); el.focus(); } });
   svg.addEventListener('pointerleave', e => { if (ui.place && !ptrs.size && ui.ghost) { ui.ghost = null; draw(); } if (ui.dimHover && !ptrs.size) { ui.dimHover = null; draw(); } });
   svg.addEventListener('wheel', e => { e.preventDefault(); const p = pos(e); zoomAt(e.deltaY < 0 ? 1.15 : 1 / 1.15, p[0], p[1]); }, {passive:false});
@@ -2438,10 +2487,11 @@ function openInline(hb) {
   else if (kind === 'w2') { const ap = apOf(hb.ap); if (ap) { old = ap.l2p ? '' : ap.l2 || ''; ph = ap.l2p ? 'prop. ' + ap.l2 : 'm'; } }
   else if (kind === 'ris') { const ap = apOf(hb.ap); if (ap) { old = risMis(ap) ? ap.ris : ''; ph = old ? 'm' : 'prop. ' + f2(risOf(ap)); } }
   else if (kind === 'q') { const d = (pl.dims || []).find(x => x.id === hb.id); old = d ? d.v || '' : ''; }
+  else if (kind === 'il') { const k = (pl.ink || []).find(x => x.id === hb.id); old = k && k.v || ''; ph = k ? 'prop. ' + f2(lnLen(k)) : 'm'; }
   const spR = kind === 'sp' ? (G.runs || []).find(x => x.key === hb.rk) : null, spSt = kind === 'sp' ? (pl.stairs || []).find(x => x.id === hb.st) : null, spAx = spR && (spR.H ? 'x' : 'y');
   if (kind === 'sp' && spSt && spSt.anc && spSt.anc[spAx] && spSt.anc[spAx].m && spSt.anc[spAx].m.k === hb.rk && spSt.anc[spAx].m.side === hb.side) old = spSt.anc[spAx].m.v;
   // finestra «Modifica misura»: numero grande in metri e tastierino (niente tastiera del tablet)
-  const sub = kind === 'sp' ? (hb.side === 'a' ? 'Parziale · dal muro al primo gradino (o al bordo della scala)' : 'Parziale · dalla scala al muro') : kind === 'w' ? (() => { const ap = apOf(hb.ap); return ap && ap.tipo === 'finestra' && ap.inc ? 'Finestra incassata · luce (parte stretta, dove sta l\'infisso)' : 'Larghezza del vano'; })() : kind === 'w2' ? 'Finestra incassata · larghezza della parte larga' : kind === 'ris' ? (() => { const f = dimAp(pl, hb.ap), I = f && G.T.info.get(f.w.id); return 'Finestra incassata · risega ' + (I && !I.H ? 'in basso' : 'a sinistra') + ': dal bordo largo al bordo della luce'; })() : kind === 'q' ? 'Quota libera' : kind === 'p' ? (hb.last ? 'Parziale · ultimo tratto del lato' : 'Parziale · tratto di muro') : hb.fac ? 'Totale esterno della facciata' :
+  const sub = kind === 'il' ? 'Linea · lunghezza (resta fermo il punto da cui sei partito)' : kind === 'sp' ? (hb.side === 'a' ? 'Parziale · dal muro al primo gradino (o al bordo della scala)' : 'Parziale · dalla scala al muro') : kind === 'w' ? (() => { const ap = apOf(hb.ap); return ap && ap.tipo === 'finestra' && ap.inc ? 'Finestra incassata · luce (parte stretta, dove sta l\'infisso)' : 'Larghezza del vano'; })() : kind === 'w2' ? 'Finestra incassata · larghezza della parte larga' : kind === 'ris' ? (() => { const f = dimAp(pl, hb.ap), I = f && G.T.info.get(f.w.id); return 'Finestra incassata · risega ' + (I && !I.H ? 'in basso' : 'a sinistra') + ': dal bordo largo al bordo della luce'; })() : kind === 'q' ? 'Quota libera' : kind === 'p' ? (hb.last ? 'Parziale · ultimo tratto del lato' : 'Parziale · tratto di muro') : hb.fac ? 'Totale esterno della facciata' :
     (() => { const r = (G.runs || []).find(x => x.key === hb.key); if (!r) return 'Lato del muro'; const c = r.comp >= 0 && G.comps[r.comp] && G.comps[r.comp].rec ? ' · ' + G.comps[r.comp].rec.nome : ''; return tipoNome(r.walls[0]) + ', ' + latoNome(r) + c; })();
   const gdx = ui.guide ? `Misura guidata · ${ui.guide.left} da prendere · ` : '';
   const pop = document.createElement('div'); pop.id = 'inl'; pop.className = 'mpop' + (ui.guide ? ' guide ' + (ui.guide.px > window.innerWidth / 2 ? 'gl' : 'gr') : '');
@@ -2468,6 +2518,7 @@ function openInline(hb) {
     pushUndo(); undemo();
     if (kind === 'r') setMeasure(pl, 'r', hb.key, v);
     else if (kind === 'q') setMeasure(pl, 'q', hb.id, v);
+    else if (kind === 'il') { const k = (pl.ink || []).find(x => x.id === hb.id); if (k) { if (v) lnSetLen(k, v); else delete k.v; } }
     else if (kind === 'sp') { if (spSt && spR) { spSt.anc = spSt.anc || {};
         if (v) spSt.anc[spAx] = {n:hb.side === 'a' ? spR.p : spR.q, e:hb.side === 'a' ? 'min' : 'max', d:r4(hb.side === 'a' ? spR.eA + num(v) : -(spR.eB + num(v))), m:{k:hb.rk, v, side:hb.side}};
         else if (spSt.anc[spAx]) delete spSt.anc[spAx].m; } }
@@ -2513,7 +2564,7 @@ function ghostAt(p, tipo, l, ap) {
   return {w, I, s0:a0, l, d, ok:ok && !over, over, tipo, ap};
 }
 function ghostSvg(gh) {
-  const X = SX, Y = SY, v = ui.view, lab = `${TIPI_AP[gh.tipo]} ${f2(gh.l)}`;
+  const X = SX, Y = SY, v = ui.view, lab = `${apLab(gh.tipo)} ${f2(gh.l)}`;
   if (gh.free) { const w = gh.l * v.s, h = Math.max(10, 0.30 * v.s), x = X(gh.wx) - w / 2, y = Y(gh.wy) - h / 2;
     return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="var(--acc)" fill-opacity=".35" stroke="var(--acc)" stroke-dasharray="4 3"/><text x="${X(gh.wx)}" y="${y - 8}" font-size="13" text-anchor="middle" fill="var(--acc)" font-weight="700" paint-order="stroke" stroke="var(--cv)" stroke-width="3">${esc(lab)} · portala su un muro</text>`; }
   const {I} = gh, h = I.t / 2, col = gh.ok ? 'var(--acc)' : 'var(--bad)';
@@ -2534,11 +2585,13 @@ function dropGhost(gh) {
   let ap = gh.ap;
   // posizione e larghezza restano proposte finché non scrivi le parziali e la larghezza misurate
   if (ap) { pl.walls.forEach(w => { w.ap = (w.ap || []).filter(x => x !== ap); }); ap.d = f2(gh.d); delete ap.pos; ap.dp = true; }
-  else { const df = DEF_AP[gh.tipo]; ap = {id:uid(), tipo:gh.tipo, d:f2(gh.d), l:df.l, h:df.h, dav:df.dav, inv:false, dp:true, lp:true}; }
+  else { const df = DEF_AP[gh.tipo]; ap = {id:uid(), tipo:gh.tipo === 'incassata' ? 'finestra' : gh.tipo, d:f2(gh.d), l:df.l, h:df.h, dav:df.dav, inv:false, dp:true, lp:true};
+    if (gh.tipo === 'incassata') { ap.inc = 'scal'; ap.l2 = fN(num(df.l) + 0.40); ap.l2p = true; } }
   gh.w.ap = gh.w.ap || []; gh.w.ap.push(ap);
   ui.selAp = ap.tipo === 'porta' ? ap.id : null;
   update(true);   // il pannello non si apre: le misure si inseriscono dopo, selezionando il muro
-  toast(TIPI_AP[ap.tipo] + (gh.ap ? ' spostata.' : ' posata.') + (ap.tipo === 'porta' ? ' Girala con i tasti tondi ⇄ e ⇅.' : '') + ' Tocca le caselle accanto per scrivere parziali e larghezza misurate.');
+  if (ap.inc && ap.lw !== 1 && ap.lw !== -1) { const o = G.ops.find(q => q.ap === ap); ap.lw = o && o.side ? o.side : 1; update(true); }   // parte larga verso la stanza
+  toast(apLab(ap.tipo, ap) + (gh.ap ? ' spostata.' : ' posata.') + (ap.tipo === 'porta' ? ' Girala con i tasti tondi ⇄ e ⇅.' : '') + ' Tocca le caselle accanto per scrivere parziali e larghezza misurate.');
   return true;
 }
 /* ---- planimetria di sfondo (JPEG): carta da lucido sotto il disegno, una per piano ----
@@ -2737,7 +2790,7 @@ function apFields(x) { return `        <div><label class="l">Tipo</label><select
         ${inp('ap.' + x.id + '.d', x.d, 'Distanza (m)')}${inp('ap.' + x.id + '.l', x.l, 'Larghezza (m)')}
         ${x.tipo === 'finestra' || x.tipo === 'uscita' ? inp('ap.' + x.id + '.h', x.h, 'Altezza (m)') : ''}
         ${x.tipo === 'finestra' ? inp('ap.' + x.id + '.dav', x.dav, 'Davanzale (m)') : ''}
-        ${x.tipo === 'finestra' ? `<div><label class="l">Incassata (palazzi antichi)</label><select data-w="ap.${x.id}.inc" data-re>${opt({'':'No', scal:'A scalino', strom:'Strombata'}, x.inc || '')}</select></div>` : ''}
+        ${x.tipo === 'finestra' && x.inc ? `<div><label class="l">Forma</label><select data-w="ap.${x.id}.inc" data-re>${opt({scal:'A scalino', strom:'Strombata', '':'Normale (non incassata)'}, x.inc)}</select></div>` : ''}
         ${x.tipo === 'finestra' && x.inc ? (() => { const f = dimAp(piano(), x.id), I = f && G.T && G.T.info.get(f.w.id), rs = (num(x.l2) - num(x.l)) / 2;
           return inp('ap.' + x.id + '.l2', x.l2p ? '' : x.l2, 'Larghezza parte larga (m)').replace('<input ', `<input placeholder="${x.l2p ? 'prop. ' + f2(num(x.l2)) : ''}" `)
             + inp('ap.' + x.id + '.ris', x.ris, 'Risega ' + (I && !I.H ? 'in basso' : 'a sinistra') + ' (m)').replace('<input ', `<input placeholder="${isFinite(rs) ? 'centrata ' + f2(rs) : ''}" `)
@@ -2754,11 +2807,16 @@ function renderSide() {
   const r = ui.sel && ui.sel.k === 'r' && (pl.rooms || []).find(x => x.id === ui.sel.id);
   const nt = ui.sel && ui.sel.k === 'n' && (pl.notes || []).find(x => x.id === ui.sel.id);
   if (ui.sel && ui.sel.k === 'ink') { if (!(pl.ink || []).some(k => k.id === ui.sel.id)) { ui.sel = null; el.innerHTML = ''; el.style.display = 'none'; renderMsgs(); return; }
-    el.innerHTML = `<div class="cardh">Nota a mano <span class="sp"></span><button class="sm bad" data-rmink="1">Elimina</button></div><p class="hint">Per cancellarne solo un pezzo usa la «Gomma» (menu Note). Nello script va solo se lo attivi nelle Impostazioni.</p>`;
+    const k = pl.ink.find(x => x.id === ui.sel.id), dr = k.pts.length === 2 && (k.lin || k.cs);
+    el.innerHTML = dr ? `<div class="cardh">${k.cs ? 'Linea di costruzione' : 'Linea'} <span class="sp"></span><button class="sm bad" data-rmink="1">Elimina</button></div>
+      <div class="grid"><div><label class="l">Lunghezza (m)</label><input data-ink="len" inputmode="decimal" value="${esc(k.v || '')}" placeholder="${f2(lnLen(k))}"></div>
+      <div><label class="l">Tipo</label><select data-ink="tipo"><option value="lin" ${k.lin ? 'selected' : ''}>Linea (va nello script)</option><option value="cs" ${k.cs ? 'selected' : ''}>Costruzione (solo per agganciarsi)</option></select></div></div>
+      <p class="hint">Scrivendo la lunghezza resta fermo il punto da cui l'hai tirata. ${k.cs ? 'Le linee di costruzione non vanno nello script; «Vedi costr.» nel menu Note le nasconde.' : 'Nello script va sul layer delle note a mano.'}</p>`
+      : `<div class="cardh">Nota a mano <span class="sp"></span><button class="sm bad" data-rmink="1">Elimina</button></div><p class="hint">Per cancellarne solo un pezzo usa la «Gomma» (menu Note). Nello script va solo se lo attivi nelle Impostazioni.</p>`;
     renderMsgs(); return; }
   if (ui.sel && ui.sel.k === 'a') { const wa = pl.walls.find(x => x.id === ui.sel.id), x = wa && (wa.ap || []).find(q => q.id === ui.sel.ap);
     if (!x) { ui.sel = null; el.innerHTML = ''; el.style.display = 'none'; renderMsgs(); return; }
-    el.innerHTML = `<div class="cardh">${esc(TIPI_AP[x.tipo] || 'Vano')} <span class="sp"></span><button class="sm bad" data-rmsel="1">Elimina</button></div>
+    el.innerHTML = `<div class="cardh">${esc(apLab(x.tipo, x) || 'Vano')} <span class="sp"></span><button class="sm bad" data-rmsel="1">Elimina</button></div>
       <div class="ap" data-aprow="${x.id}" style="border:0;padding:0;box-shadow:none">${apFields(x)}</div>
       <p class="hint">Sta in un muro ${tipoNome(wa)}: <button class="sm" data-gowall="1">Seleziona il muro</button>. Le parziali e la larghezza misurate si scrivono anche toccando le caselle in pianta.</p>`;
     renderMsgs(); return; }
@@ -2974,7 +3032,11 @@ document.addEventListener('click', e => {
   const dq = e.target.closest('[data-dim]'); if (dq) { ui.placeDim = !ui.placeDim; ui.dimA = null; ui.dimHover = null; ui.place = null; ui.placeSc = false; ui.placeFoto = false; ui.placeNord = false; ui.ghost = null; updTools(); draw();
     if (ui.placeDim) toast('Quota: tocca il filo di partenza e quello di arrivo (facce o spigoli dei muri, spallette dei vani); tenendo premuto vedi dove si aggancia. Poi scrivi la misura.'); return; }
   if (e.target.closest('[data-ap],[data-sc],[data-foto],[data-nord],[data-nt]') && ui.placeDim) { ui.placeDim = false; ui.dimA = null; ui.dimHover = null; }
-  const md = e.target.closest('[data-mode]'); if (md) { ui.bgCal = null; ui.bgMove = false; ui.winA = null; ui.winArm = false; ui.placeDim = false; ui.dimA = null; ui.dimHover = null; ui.place = null; ui.placeSc = false; ui.placeNord = false; ui.morePt = null; showMore(); ui.ghost = null; ui.mode = md.dataset.mode; if (md.dataset.tw) ui.newType = md.dataset.tw; if (ui.sel && ui.sel.k === 'bg') ui.sel = null; updTools(); draw(); renderSide(); return; }
+  const md = e.target.closest('[data-mode]'); if (md) { ui.bgCal = null; ui.bgMove = false; ui.winA = null; ui.winArm = false; ui.placeDim = false; ui.dimA = null; ui.dimHover = null; ui.place = null; ui.placeSc = false; ui.placeNord = false; ui.morePt = null; showMore(); ui.ghost = null; ui.mode = md.dataset.mode; if (md.dataset.tw) ui.newType = md.dataset.tw; if (ui.sel && ui.sel.k === 'bg') ui.sel = null; updTools(); draw(); renderSide();
+    if (ui.mode === 'linea') toast('Linea: trascina la penna da dove parti a dove arrivi. Si aggancia a spigoli, estremi e incroci (quadratino blu) e va dritta in orizzontale o in verticale. Poi scrivi la lunghezza.');
+    if (ui.mode === 'costr') toast('Costruzione: tira le proiezioni dagli spigoli della pianta. Sono tratteggiate, servono solo per agganciarsi e non vanno nello script.');
+    return; }
+  if (e.target.closest('[data-csvis]')) { R.opt.csHide = !R.opt.csHide; updTools(); draw(); save(); toast(R.opt.csHide ? 'Linee di costruzione nascoste.' : 'Linee di costruzione visibili.'); return; }
   const fb = e.target.closest('[data-foto]'); if (fb) { ui.morePt = null; showMore(); ui.placeFoto = !ui.placeFoto; ui.place = null; ui.placeSc = false; ui.ghost = null; updTools(); draw();
     if (ui.placeFoto) toast('Foto: tocca sulla pianta il punto in cui ti trovi; si apre la fotocamera.'); return; }
   const nb = e.target.closest('[data-nord]'); if (nb) { ui.morePt = null; showMore(); ui.placeNord = !ui.placeNord; ui.placeFoto = false; ui.place = null; ui.placeSc = false; updTools(); draw();
@@ -3003,7 +3065,7 @@ document.addEventListener('click', e => {
   const scb = e.target.closest('[data-sc]'); if (scb) { ui.placeSc = !ui.placeSc; ui.place = null; ui.ghost = null; updTools(); draw();
     if (ui.placeSc) toast('Scala: tocca dentro il vano e trascina; solleva per posarla. Poi con «Seleziona» toccala per tipo e misure.'); return; }
   const ab = e.target.closest('[data-ap]'); if (ab) { ui.placeSc = false; ui.place = ui.place === ab.dataset.ap ? null : ab.dataset.ap; ui.ghost = null; updTools(); draw();
-    if (ui.place) toast(TIPI_AP[ui.place] + ': appoggia la penna sul muro e trascina; solleva per posarla.'); return; }
+    if (ui.place) toast(apLab(ui.place) + ': appoggia la penna sul muro e trascina; solleva per posarla.' + (ui.place === 'incassata' ? ' La parte larga va verso la stanza.' : '')); return; }
   const nt = e.target.closest('[data-nt]'); if (nt) { ui.newType = nt.dataset.nt; if (ui.mode !== 'draw') ui.mode = 'draw'; updTools(); draw(); return; }
   const fa = e.target.closest('[data-flipap]'); if (fa) { const [id, k] = fa.dataset.flipap.split(':'); ui.selAp = id; flipDoor(k); return; }
   if (e.target.closest('[data-rmink]') && ui.sel && ui.sel.k === 'ink') { const pl = piano(); pushUndo(); pl.ink = (pl.ink || []).filter(k => k.id !== ui.sel.id); ui.sel = null; draw(); renderSide(); save(); return; }
@@ -3066,6 +3128,10 @@ document.addEventListener('input', e => {
   else if (t.dataset.r) { const r = (pl.rooms || []).find(x => x.id === ui.sel.id); if (!r) return; undemo();
     if (t.dataset.r === 'pieno') { r.pieno = t.checked; update(true); } else { r[t.dataset.r] = t.value; draw(); save(); } }
   else if (t.dataset.run) { setMeasure(pl, 'r', t.dataset.run, t.value); undemo(); update(false); }
+  else if (t.dataset.ink) { const k = ui.sel && ui.sel.k === 'ink' && (pl.ink || []).find(x => x.id === ui.sel.id); if (!k) return; undemo();
+    if (t.dataset.ink === 'len') { if (num(t.value) > 0) lnSetLen(k, t.value); else if (!String(t.value).trim()) delete k.v; }
+    else if (t.dataset.ink === 'tipo') { delete k.lin; delete k.cs; k[t.value] = true; renderSide(); }
+    draw(); save(); }
   else if (t.dataset.q) { const q = ui.sel && ui.sel.k === 'q' && (pl.dims || []).find(x => x.id === ui.sel.id); if (!q) return; setMeasure(pl, 'q', q.id, t.value); undemo(); update(false); const qi = $('#qInfo'); if (qi) qi.innerHTML = qInfo((G.dims || []).find(x => x.d === q)); }
   else if (t.dataset.faci) { setMeasure(pl, 'f', t.dataset.faci, t.value); undemo(); update(false); }
   else if (t.dataset.fac) { if (!pl.facc) pl.facc = {}; if (String(t.value).trim()) pl.facc[t.dataset.fac] = t.value; else delete pl.facc[t.dataset.fac]; undemo(); update(false); }
