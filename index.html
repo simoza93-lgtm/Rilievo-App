@@ -2567,7 +2567,18 @@ function finishStroke(sp) {
   const st = $('#stroke'); if (st) st.setAttribute('points', '');
   if (sp.length < 2) return;
   const pl = piano(), tol = 16 / ui.view.s, minLen = Math.max(0.2, 10 / ui.view.s);
-  const raw = rdp(sp, 14).map(p => ({x:WX(p[0]), y:WY(p[1])}));
+  let raw = rdp(sp, 14).map(p => ({x:WX(p[0]), y:WY(p[1])}));
+  { // gradini corti (meno di 30 px) attaccati a un lato obliquo: tolti; due obliqui quasi in linea diventano uno
+    const ob = (a, b) => { const g = Math.atan2(Math.abs(b.y - a.y), Math.abs(b.x - a.x)) * 180 / Math.PI; return g > 10 && g < 80; }, ln = (a, b) => Math.hypot(b.x - a.x, b.y - a.y), sh = 30 / ui.view.s;
+    const dir = (a, b) => Math.atan2(b.y - a.y, b.x - a.x), near = (u, v) => { let d = Math.abs(u - v) % (2 * Math.PI); if (d > Math.PI) d = 2 * Math.PI - d; return d < 15 * Math.PI / 180; };
+    for (let ch = true; ch && raw.length > 2;) { ch = false;
+      for (let i = 0; i < raw.length - 1; i++) { const a = raw[i], b = raw[i + 1]; if (ln(a, b) >= sh || ob(a, b)) continue;
+        const pv = i > 0 && ob(raw[i - 1], a), nx = i + 2 < raw.length && ob(b, raw[i + 2]);
+        if (pv && nx && near(dir(raw[i - 1], a), dir(b, raw[i + 2]))) { raw.splice(i, 2); ch = true; break; }   // gradino in mezzo a un obliquo
+        if (i === 0 && nx) { raw.splice(1, 1); ch = true; break; }                                            // gradino all'inizio
+        if (i + 2 === raw.length && pv) { raw.splice(i + 1, 1); raw[raw.length - 1] = b; ch = true; break; } }   // gradino alla fine: si arriva al punto finale
+      for (let i = 1; !ch && i < raw.length - 1; i++) if (ob(raw[i - 1], raw[i]) && ob(raw[i], raw[i + 1]) && near(dir(raw[i - 1], raw[i]), dir(raw[i], raw[i + 1]))) { raw.splice(i, 1); ch = true; } }
+  }
   if (Math.hypot(raw[raw.length - 1].x - raw[0].x, raw[raw.length - 1].y - raw[0].y) < minLen && raw.length < 3) return;
   // spigoli veri delle facce dei muri (non i nodi al centro del muro)
   const corners = []; (G.walls || []).forEach(wl => wl.pts.forEach(q => corners.push(q)));
@@ -2678,7 +2689,7 @@ const TRK = {IN:10, OUT:16, MAX:34, HOLD:220};   // px: aggancio, sgancio, sganc
 function trkInit() {
   const pl = piano();
   const pts = pl.nodes.map(n => [SX(n.x), SY(n.y)]);
-  const segs = pl.walls.map(w => { const a = nd(pl, w.a), b = nd(pl, w.b); return a && b ? {H:isH(a, b), a:[SX(a.x), SY(a.y)], b:[SX(b.x), SY(b.y)]} : null; }).filter(Boolean);
+  const segs = pl.walls.filter(w => !isObl(w)).map(w => { const a = nd(pl, w.a), b = nd(pl, w.b); return a && b ? {H:isH(a, b), a:[SX(a.x), SY(a.y)], b:[SX(b.x), SY(b.y)]} : null; }).filter(Boolean);
   return {pts, segs, x:null, y:null, n:0, own:[]};
 }
 function track(p, stroke) {
@@ -2686,6 +2697,9 @@ function track(p, stroke) {
   const now = performance.now(), res = [p[0], p[1]];
   // spigoli del tratto che si sta disegnando (escluso l'inizio del lato in corso)
   if (stroke.length - T.n >= 5) { T.n = stroke.length; const r = rdp(stroke, 14); T.own = r.slice(0, -2); }
+  // lato obliquo in corso (dall'ultimo spigolo del tratto, più di 10° dagli assi): niente aggancio agli allineamenti, farebbe dei gradini
+  const s0 = T.own.length ? T.own[T.own.length - 1] : stroke[0], vx = p[0] - s0[0], vy = p[1] - s0[1], ang = Math.atan2(Math.abs(vy), Math.abs(vx)) * 180 / Math.PI;
+  if (Math.hypot(vx, vy) > 25 && ang > 12 && ang < 78) { T.x = T.y = null; return res; }
   const cands = T.pts.concat(T.own);
   [0, 1].forEach(ax => {
     const key = ax ? 'y' : 'x', o = 1 - ax; let cur = T[key];
