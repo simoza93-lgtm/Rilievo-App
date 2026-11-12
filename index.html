@@ -1782,8 +1782,13 @@ function edSnapPt(d, w) { const px = q => [SX(q[0]), SY(q[1])], sp = px(w); let 
     if (bl) return {q:bl, t:'l'}; }
   return {q:w, t:''}; }
 function edMove(d, p) { const st = d.st, P = stairPrims(st), w = [WX(p[0]), WY(p[1])], ed = st.ed = st.ed || {};
-  if (d.h === 'm') { const a0 = P.inv([WX(d.p0[0]), WY(d.p0[1])]), a1 = P.inv(w), dx = a1[0] - a0[0], dy = a1[1] - a0[1];
-    ed[d.k] = [d.la[0] + dx, d.la[1] + dy, d.lb[0] + dx, d.lb[1] + dy].map(r4); ui.edSnap = null; return; }
+  if (d.h === 'm') { const a0 = P.inv([WX(d.p0[0]), WY(d.p0[1])]), a1 = P.inv(w); let dx = a1[0] - a0[0], dy = a1[1] - a0[1]; ui.edSnap = null;
+    // aggancio all'asse centrale della rampa (la linea dei centri delle alzate come da parametri), entro 14 px: l'alzata scorre avanti e indietro senza uscire di lato
+    if (d.def) { const u = d.def.u, M0 = [(d.def.la[0] + d.def.lb[0]) / 2, (d.def.la[1] + d.def.lb[1]) / 2], m1 = [(d.la[0] + d.lb[0]) / 2 + dx, (d.la[1] + d.lb[1]) / 2 + dy];
+      const t = (m1[0] - M0[0]) * u[0] + (m1[1] - M0[1]) * u[1], pr = [M0[0] + u[0] * t, M0[1] + u[1] * t];
+      if (Math.hypot(m1[0] - pr[0], m1[1] - pr[1]) * ui.view.s < 14) { dx += pr[0] - m1[0]; dy += pr[1] - m1[1];
+        const wm = [(d.def.a[0] + d.def.b[0]) / 2, (d.def.a[1] + d.def.b[1]) / 2]; ui.edSnap = [wm[0] + d.def.uw[0] * t, wm[1] + d.def.uw[1] * t]; } }
+    ed[d.k] = [d.la[0] + dx, d.la[1] + dy, d.lb[0] + dx, d.lb[1] + dy].map(r4); return; }
   const sn = edSnapPt(d, w), l = P.inv(sn.q), cur = ed[d.k] || [...d.la, ...d.lb]; ui.edSnap = sn.t ? sn.q : null;
   ed[d.k] = (d.h === 'a' ? [l[0], l[1], cur[2], cur[3]] : [cur[0], cur[1], l[0], l[1]]).map(r4); }
 function edSync(st) { linkedStairs(st).forEach(o => { if (st.ed && Object.keys(st.ed).length) o.ed = JSON.parse(JSON.stringify(st.ed)); else delete o.ed; }); }
@@ -3580,7 +3585,7 @@ function renderSide() {
         <div><label class="l">Porta dell'ascensore</label><select data-st="ps" data-re>${opt(ASC_PS, stP(sc).ps)}</select></div>` : ''}
       </div>
       ${ch ? '' : (() => { const on = stEdOn() === sc, nEd = Object.keys(sc.ed || {}).length, P = stairPrims(sc), r = on && ui.stK != null ? P.ris.find(x => x.k === ui.stK) : null, e = r ? edPed(P, r) : null;
-        const fld = (k, v, lab) => `<div><label class="l">${lab}</label><input data-sk="${k}" value="${fN(r4(v))}" inputmode="decimal"></div>`;
+        const fld = (k, v, lab) => `<div><label class="l">${lab}</label><input data-sk="${k}" value="${f2(v)}" inputmode="decimal"></div>`;
         return `<h3>Gradini</h3><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button id="bStEd" class="${on ? 'pri' : ''}">${on ? '✓ Fine modifica' : '✎ Modifica gradini'}</button>${nEd ? `<button id="bStRstAll">Ripristina tutti (${nEd})</button>` : ''}</div>
         ${!on ? `<p class="hint" style="margin-top:6px">${nEd ? nEd + (nEd === 1 ? ' alzata ritoccata' : ' alzate ritoccate') + ' (più marcate in pianta). ' : ''}Per ridisegnare la scala come la trovi: sposta le alzate una per una, anche in diagonale (gradini a ventaglio).</p>`
           : !r ? `<p class="hint" style="margin-top:6px">Trascina i pallini: ● un estremo dell'alzata (anche in diagonale), ■ il centro (sposta l'alzata intera). Si agganciano agli estremi delle altre alzate e ai fianchi della rampa. Tocca un pallino senza trascinare per scrivere le pedate. Il resto della scala qui non si sposta.</p>`
