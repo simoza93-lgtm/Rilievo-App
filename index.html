@@ -74,6 +74,7 @@ label.tb:has(input:checked){color:var(--acc);background:var(--accbg)}
 #appan .api>*{pointer-events:none}
 #appan .lyr{display:flex;align-items:center;gap:2px;padding:1px 2px 1px 6px;border-radius:9px}#appan .lyr.off .lyn{color:var(--mut)}#appan .lyn{flex:1;font-size:12.5px;line-height:1.2}
 #appan .lyb{width:34px;height:34px;padding:5px;border:0;border-radius:9px;background:none;color:var(--mut);display:inline-flex;align-items:center;justify-content:center}#appan .lyb svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}#appan .lyb.on{color:var(--acc)}#appan .lyb.lk{color:var(--bad)}
+.incl{border:1px solid var(--acc);border-radius:8px;padding:8px;margin:8px 0}.incl p{margin:4px 0;font-size:13px}.iopt{display:block;width:100%;text-align:left;margin:5px 0;padding:7px 8px;line-height:1.35;font-size:13px}.iopt.off{opacity:.65;border:1px dashed var(--mut);border-radius:6px;background:none;cursor:default}.iopt .ich{display:block;color:var(--mut);font-size:12px}.iopt .iw{display:block;color:var(--warn);font-size:12px}
 #appan .aphint{font-size:11.5px;color:var(--mut);padding:6px 6px 2px;line-height:1.3}
 @media(min-width:701px){body.full.hassel #appan{right:calc(min(380px,44vw) + 14px)}}
 #cv{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--cv)}
@@ -563,6 +564,45 @@ function roomFuoriSquadra(pl, cid) { const ws = new Set(); (G.runs || []).forEac
   const list = [...ws].filter(w => !isObl(w)); if (list.length < 2) return {ok:0, ap:0};
   const len = w => { const a = nd(pl, w.a), b = nd(pl, w.b); return Math.hypot(b.x - a.x, b.y - a.y); }, ref = list.slice().sort((u, v) => len(v) - len(u))[0];
   let ok = 0, lost = 0; list.forEach(w => { if (w === ref) return; const r = makeObl(pl, w); if (r === 'ok') { ok++; lost += makeObl.lost || 0; } }); return {ok, lost, ref}; }
+// diagonale rossa → «Sistema inclinando un muro»: scegli tu il muro e l'estremo che si sposta. L'altro estremo resta fermo; quello scelto
+// scorre lungo il muro che incontra. Le misure lungo quel muro che finiscono nello spigolo che scorre (anche nelle stanze vicine)
+// diventano ricavate: è la diagonale a fissare di quanto scorre. La lunghezza del muro inclinato resta come controllo.
+function inclEnds(pl, w) { return [w.a, w.b].map(eid => { const E = nd(pl, eid), P = nd(pl, eid === w.a ? w.b : w.a), wH = Math.abs(E.y - P.y) < 1e-6;
+  const at = pl.walls.filter(x => x !== w && (x.a === eid || x.b === eid)); let why = '';
+  if (!at.length) why = 'l\'estremo è libero, non incontra un muro su cui scorrere';
+  else if (at.some(isObl)) why = 'in quello spigolo arriva un muro obliquo';
+  else if (at.some(x => { const o = nd(pl, x.a === eid ? x.b : x.a); return wH ? Math.abs(o.y - E.y) < 1e-6 : Math.abs(o.x - E.x) < 1e-6; })) why = 'il muro prosegue dritto oltre lo spigolo';
+  return {eid, pid:P.id, why, sH:!wH}; }); }
+function tiltWall(pl, wid, eid, did) { const w = pl.walls.find(x => x.id === wid); if (!w || isObl(w)) return null;
+  const E = nd(pl, eid), P = nd(pl, eid === w.a ? w.b : w.a), sH = Math.abs(E.y - P.y) >= 1e-6, lost = [], nm = r => { const c = G.comps && G.comps[r.comp]; return r.ext ? 'esterno' : (c && c.rec && c.rec.nome) || 'ambiente'; };
+  (G.runs || []).filter(r => r.H === sH && (r.p === eid || r.q === eid) && !r.walls.includes(w)).forEach(r => {
+    if (pl.fm && String(pl.fm[r.key] == null ? '' : pl.fm[r.key]).trim()) { lost.push({k:'r', key:r.key, v:pl.fm[r.key], nm:nm(r)}); delete pl.fm[r.key]; }
+    if (pl.fl && pl.fl[r.key] != null) { lost.push({k:'l', key:r.key, v:pl.fl[r.key], nm:nm(r)}); delete pl.fl[r.key]; }
+    pl.mord = (pl.mord || []).filter(x => x !== 'r:' + r.key && x !== 'l:' + r.key); });
+  (G.facs || []).filter(fc => fc.H === sH && (fc.A.id === eid || fc.B.id === eid)).forEach(fc => {
+    [['faci', 'interno'], ['facc', 'esterno']].forEach(([b, t]) => { if (pl[b] && String(pl[b][fc.key] == null ? '' : pl[b][fc.key]).trim()) { lost.push({k:'f', key:fc.key, v:pl[b][fc.key], nm:'facciata (totale ' + t + ')'}); delete pl[b][fc.key]; } });
+    pl.mord = (pl.mord || []).filter(x => x !== 'f:' + fc.key); });
+  // misure del muro stesso: la prima diventa la lunghezza del muro obliquo, quelle dall'altra faccia si tolgono (un muro obliquo ha una sola lunghezza)
+  const own = (G.runs || []).filter(r => !r.ext && r.walls.length === 1 && r.walls[0] === w && num((pl.fm || {})[r.key]) > 0), dup = own.slice(1).map(r => ({v:pl.fm[r.key], nm:nm(r)}));
+  if (makeObl(pl, w) !== 'ok') return null;
+  // la lunghezza del muro inclinato passa dopo la diagonale (fa da controllo): con lati quasi uguali Pitagora direbbe "dritto"
+  const ok = 'o:' + w.id, ord = (pl.mord || []).filter(x => x !== ok), iq = ord.indexOf('q:' + did); if (pl.mord.includes(ok)) { if (iq >= 0) ord.splice(iq + 1, 0, ok); else ord.push(ok); } pl.mord = ord;
+  return {lost, dup, lostP:makeObl.lost || 0}; }
+// prova le due scelte senza toccare il rilievo: per ciascuna dice se la diagonale torna, cosa cambia e di quanto si sposta lo spigolo
+function inclOpts(wid, did) { const pl0 = piano(), w = pl0.walls.find(x => x.id === wid); if (!w) return [];
+  const warn0 = new Set((G.warns || []).map(x => x.t)), dkey = 'q:' + did;
+  return inclEnds(pl0, w).map(o => { if (o.why) return o;
+    const snap = JSON.stringify(piano()), v0 = Object.assign({}, ui.view), G0 = G, rej0 = REJ, pl = piano(), E0 = nd(pl, o.eid), P0 = nd(pl, o.pid), d0 = [E0.x - P0.x, E0.y - P0.y];
+    let res = null, out = Object.assign({}, o);
+    try { res = tiltWall(pl, wid, o.eid, did); if (!res) { out.why = 'non si riesce a inclinare questo muro'; } else { recompute();
+      const pl2 = piano(), E = nd(pl2, o.eid), P = nd(pl2, o.pid), g = (G.dims || []).find(x => x.d && x.d.id === did);
+      out.ok = !!(g && g.meas > 0 && Math.abs(g.diff || 0) <= TOL) && !REJ.has(dkey); out.mv = Math.hypot(E.x - P.x - d0[0], E.y - P.y - d0[1]);
+      const RK = new Map((G.runs || []).map(r => [r.key, r]));
+      out.ch = res.lost.map(x => { const r = x.k === 'r' ? RK.get(x.key) : null; return Object.assign({}, x, {nv:r && isFinite(r.face) ? r.face : null}); });
+      out.dup = res.dup; out.lostP = res.lostP;
+      out.nw = (G.warns || []).map(x => x.t).filter(t => !warn0.has(t) && !/^Diagonale /.test(t)); } }
+    catch (e) { console.warn(e); out.why = 'calcolo non riuscito'; }
+    R.piani[R.cur] = JSON.parse(snap); ui.view = v0; G = G0; REJ = rej0; recompute(); return out; }); }
 function splitObl(pl, w, n) {
   if (String(w.mis).trim()) toast('Il muro obliquo è stato diviso in due: misura i due tratti.');
   const w2 = {id:uid(), a:n.id, b:w.b, tipo:w.tipo, sp:w.sp, filo:'', mis:'', rif:w.rif, ap:[], obl:true}; w.b = n.id; w.mis = ''; pl.walls.push(w2); }
@@ -1017,8 +1057,8 @@ function solve(pl, extKeys) {
   else {
     const oPos = new Map(measureOrder(pl).map((k, n) => [k, n])), seq = [], firstExt = ordered.findIndex(c => c.ext), cut = firstExt < 0 ? ordered.length : firstExt;
     const marks = dists.map(D => ({k:D.key, D, mark:true, p:oPos.has(D.key) ? oPos.get(D.key) : -1}));
-    ordered.slice(0, cut).forEach(c => { marks.filter(m => !m.done && m.p < (oPos.has(c.k) ? oPos.get(c.k) : -1)).forEach(m => { m.done = true; seq.push(m); }); seq.push(c); });
-    marks.filter(m => !m.done).forEach(m => seq.push(m)); ordered.slice(cut).forEach(c => seq.push(c));
+    ordered.slice(0, cut).forEach(c => { marks.filter(m => !m.done && m.p < (oPos.has(c.k) ? oPos.get(c.k) : -1)).sort((u, v) => u.p - v.p).forEach(m => { m.done = true; seq.push(m); }); seq.push(c); });
+    marks.filter(m => !m.done).sort((u, v) => u.p - v.p).forEach(m => seq.push(m)); ordered.slice(cut).forEach(c => seq.push(c));
     let accX = [], accY = [], pend = [];
     const fits = (B, list) => { const s2 = solveWith(B, list); return list.every(q => Math.abs(s2[q.j] - s2[q.i] - q.val) <= 0.005); };
     const tryObl = () => { for (let again = true; again && pend.length;) { again = false;
@@ -1436,7 +1476,7 @@ function geometry(pl) {
     if (d.dg) {   // diagonale tra due spigoli: distanza vera; nota se tutte e due le componenti sono fissate dalle misure
       const len = Math.hypot(b[0] - a[0], b[1] - a[1]), tied = !!(d.a.n && d.b.n), known = tied && (d.a.n === d.b.n || (detD(d.a.n, d.b.n, true) && detD(d.a.n, d.b.n, false))), meas = num(d.v), q = {d, a, b, len, meas, known, tied, dg:true};
       if (meas > 0) { q.diff = len - meas; if (Math.abs(q.diff) > TOL) warns.push({t:`Diagonale ${f2(meas)} m${REJ.has('q:' + d.id) ? ' NON APPLICATA (non torna con le misure inserite prima)' : ''}: nel disegno risolto viene ${f2(len)} m, differenza ${q.diff > 0 ? '+' : ''}${Math.round(q.diff * 100)} cm.`
-        + (OBLBAD.has(d.id) ? ' È più corta di quanto già fissato dalle altre misure: controlla.' : ' Se le misure sono giuste la stanza è fuori squadra: tocca il muro che non è a 90° e scegli «Rendi obliquo», la diagonale lo metterà al suo posto.')}); }
+        + (OBLBAD.has(d.id) ? ' È più corta di quanto già fissato dalle altre misure: controlla.' : ' Se le misure sono giuste la stanza è fuori squadra: seleziona la diagonale e scegli «Sistema inclinando un muro» (scegli tu il muro e quale estremo si sposta), oppure tocca il muro che non è a 90° e scegli «Rendi obliquo».')}); }
       return q; }
     const ax = d.H ? 0 : 1, len = Math.abs(b[ax] - a[ax]), ra = dimRef(pl, T, AN, d.a, d.H), rb = dimRef(pl, T, AN, d.b, d.H);
     const tied = !!(ra && rb && ra.ok && rb.ok), known = tied && (ra.n === rb.n || detD(ra.n, rb.n, d.H)), meas = num(d.v), q = {d, a, b, len, meas, known, tied};
@@ -2371,6 +2411,7 @@ function updTools() {
   document.querySelectorAll('[data-bg]').forEach(b => b.classList.toggle('on', !!(ui.sel && ui.sel.k === 'bg')));
   if (ui.winArm) document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('on'));
   const busy = ui.place || ui.placeSc || ui.placeDim || ui.placeFoto || ui.placeNord || ui.winArm || (ui.sel && ui.sel.k === 'bg');
+  if (ui.incl && !ui.incl.done && (busy || (ui.mode !== 'select' && ui.mode !== 'pan'))) { ui.incl = null; draw(); renderSide(); }
   document.querySelectorAll('[data-tw]').forEach(b => b.classList.toggle('on', ui.mode === 'draw' && !busy && b.dataset.tw === ui.newType));
   if (busy) document.querySelectorAll('[data-mode="select"],[data-mode="pan"],[data-mode="text"],[data-mode="ink"],[data-mode="gomma"],[data-mode="linea"],[data-mode="costr"],[data-mode="paral"],[data-mode="taglia"],[data-mode="estendi"]').forEach(b => b.classList.remove('on'));
   // pulsante del gruppo: mostra il comando scelto (o l'ultimo usato) ed è acceso se un suo comando è attivo
@@ -2766,6 +2807,7 @@ function draw() {
     s += h.snap === 'c' ? `<rect x="${c[0] - 6}" y="${c[1] - 6}" width="12" height="12" fill="none" stroke="var(--acc)" stroke-width="2"/>` : `<path d="M${c[0] - 6} ${c[1] - 6}L${c[0] + 6} ${c[1] + 6}M${c[0] + 6} ${c[1] - 6}L${c[0] - 6} ${c[1] + 6}" stroke="var(--acc)" stroke-width="2"/>`; }
   if (ui.placeDim && ui.dimA) { const a = [X(ui.dimA.x), Y(ui.dimA.y)];
     s += `<circle cx="${a[0]}" cy="${a[1]}" r="6" fill="none" stroke="var(--acc)" stroke-width="2.5"/><text x="${a[0] + 10}" y="${a[1] - 10}" font-size="12" fill="var(--acc)" font-weight="700" paint-order="stroke" stroke="var(--cv)" stroke-width="3">partenza · tocca il filo di arrivo</text>`; }
+  if (ui.incl && !ui.incl.done) s += inclDraw(X, Y);
   // quote esterne delle facciate
   ui.fbb = new Map();
   if (QV && v.s >= 14) G.facs.forEach(fc => {
@@ -2838,13 +2880,15 @@ function roomRects(cc) {
 
 /* ---- interazione con la tavola ---- */
 function bindCanvas() {
-  const svg = $('#svg'), ptrs = new Map(); let edDrag = null, bgTap = null, bgDrag = null, win = null, stroke = null, pan = null, pinch = null, drag = null, apDrag = null, boxTap = null, scDrag = null, fotoTap = null, nordTap = null, ndDrag = null, dimTap = null, dmDrag = null, doorTap = null, inkS = null, gom = null;
+  const svg = $('#svg'), ptrs = new Map(); let edDrag = null, bgTap = null, bgDrag = null, win = null, stroke = null, pan = null, pinch = null, drag = null, apDrag = null, boxTap = null, scDrag = null, fotoTap = null, nordTap = null, ndDrag = null, dimTap = null, dmDrag = null, doorTap = null, inkS = null, gom = null, inclTap = null;
   const pos = e => { const r = svg.getBoundingClientRect(); return rotPt(e.clientX - r.left, e.clientY - r.top); };
   svg.addEventListener('pointerdown', e => {
     try { svg.setPointerCapture(e.pointerId); } catch (_) {} const p = pos(e); ptrs.set(e.pointerId, p);
     if (e.pointerType === 'pen') ui.penSeen = true;
-    if (ptrs.size === 2) { inkS = null; lnS = null; lnLive(null); clearTimeout(inkT); gom = null; inkLive(null); win = null; winShow(null); stroke = null; pan = null; drag = null; boxTap = null; dimTap = null; dmDrag = null; closeInline(true); if (apDrag) { apDrag = null; ui.ghost = null; draw(); } const [a, b] = [...ptrs.values()]; pinch = {d:Math.hypot(a[0] - b[0], a[1] - b[1]), s:ui.view.s, mx:(a[0] + b[0]) / 2, my:(a[1] + b[1]) / 2, wx:WX((a[0] + b[0]) / 2), wy:WY((a[1] + b[1]) / 2)}; const st = $('#stroke'); if (st) st.setAttribute('points', ''); return; }
+    if (ptrs.size === 2) { inclTap = null; inkS = null; lnS = null; lnLive(null); clearTimeout(inkT); gom = null; inkLive(null); win = null; winShow(null); stroke = null; pan = null; drag = null; boxTap = null; dimTap = null; dmDrag = null; closeInline(true); if (apDrag) { apDrag = null; ui.ghost = null; draw(); } const [a, b] = [...ptrs.values()]; pinch = {d:Math.hypot(a[0] - b[0], a[1] - b[1]), s:ui.view.s, mx:(a[0] + b[0]) / 2, my:(a[1] + b[1]) / 2, wx:WX((a[0] + b[0]) / 2), wy:WY((a[1] + b[1]) / 2)}; const st = $('#stroke'); if (st) st.setAttribute('points', ''); return; }
     if (ptrs.size > 2) return;
+    // «Sistema inclinando un muro»: il tocco sceglie il muro o l'estremo; trascinando sposti la vista
+    if (ui.incl && !ui.incl.done && ptrs.size === 1) { inclTap = p; pan = {p, vx:ui.view.x, vy:ui.view.y, moved:false}; return; }
     if ((ui.mode === 'taglia' || ui.mode === 'estendi') && ptrs.size === 1 && !(ui.penSeen && e.pointerType === 'touch')) { e.preventDefault(); ptrs.delete(e.pointerId); (ui.mode === 'taglia' ? tagliaTap : estendiTap)(p); return; }
     if (ui.mode === 'paral' && ptrs.size === 1 && !(ui.penSeen && e.pointerType === 'touch')) { e.preventDefault(); ptrs.delete(e.pointerId); parTap(p); return; }
     if ((ui.mode === 'linea' || ui.mode === 'costr') && ptrs.size === 1 && !(ui.penSeen && e.pointerType === 'touch')) { e.preventDefault();
@@ -2959,9 +3003,10 @@ function bindCanvas() {
       hit(p); if (!ui.sel || (ui.sel.k === 'r' && w0.pt !== 'touch')) { ui.winA = p; winShow(p, [p[0] + 1, p[1] + 1]);
         if (!ui.sel) toast('Primo angolo della selezione: tocca l\'altro angolo (verso destra: solo ciò che sta tutto dentro; verso sinistra: anche ciò che tocca).'); }
       return; }
+    if (inclTap) { const q = inclTap; inclTap = null; if (pan && !pan.moved) { pan = null; inclPick(q); return; } }
     if (pan) { const wasMoved = pan.moved; pan = null; if (!wasMoved && ui.mode === 'select') hit(p); else if (!wasMoved && ui.mode === 'text') newNote(p); }
   };
-  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); inkS = null; lnS = null; lnLive(null); clearTimeout(inkT); gom = null; inkLive(null); bgTap = null; bgDrag = null; win = null; winShow(null); dimTap = null; dmDrag = null; stroke = null; ui.trk = null; scDrag = null; fotoTap = null; nordTap = null; ndDrag = null; ui.scGhost = null; pan = null; pinch = null; drag = null; apDrag = null; boxTap = null; ui.ghost = null; draw(); });
+  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); inclTap = null; inkS = null; lnS = null; lnLive(null); clearTimeout(inkT); gom = null; inkLive(null); bgTap = null; bgDrag = null; win = null; winShow(null); dimTap = null; dmDrag = null; stroke = null; ui.trk = null; scDrag = null; fotoTap = null; nordTap = null; ndDrag = null; ui.scGhost = null; pan = null; pinch = null; drag = null; apDrag = null; boxTap = null; ui.ghost = null; draw(); });
   svg.addEventListener('click', e => { const el = $('#inl'); if (el && document.activeElement !== el) { e.preventDefault(); el.focus(); } });
   svg.addEventListener('pointerleave', e => { if (ui.place && !ptrs.size && ui.ghost) { ui.ghost = null; draw(); } if (ui.dimHover && !ptrs.size) { ui.dimHover = null; draw(); } });
   svg.addEventListener('wheel', e => { e.preventDefault(); const p = pos(e); zoomAt(e.deltaY < 0 ? 1.15 : 1 / 1.15, p[0], p[1]); }, {passive:false});
@@ -3508,7 +3553,53 @@ function apFields(x) { return `        <div><label class="l">Tipo</label><select
         ${x.tipo === 'porta' ? `<div><label class="l">Apertura</label><select data-w="ap.${x.id}.pt" data-re>${opt(PORTE_T, x.pt || '')}</select></div>
         <div style="grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap">${x.pt === '2a' ? '' : `<button class="sm" data-flipap="${x.id}:cx">⇄ ${x.pt === 'sce' || x.pt === 'sco' ? 'Scorre dall\'altra parte' : x.pt === 'am' ? 'Anta grande dall\'altra parte' : 'Cerniera dall\'altra parte'}</button>`}${x.pt === 'sco' ? '' : `<button class="sm" data-flipap="${x.id}:vx">⇅ ${x.pt === 'sce' ? 'Anta sull\'altra faccia' : 'Apre dall\'altro lato'}</button>`}</div>` : ''}
         ${x.tipo === 'uscita' || x.tipo === 'ingresso' ? `<label class="chk" style="grid-column:1/-1"><input type="checkbox" data-w="ap.${x.id}.inv" ${x.inv ? 'checked' : ''}> Esterno dal lato opposto</label>` : ''}`; }
+// «Sistema inclinando un muro»: pannello, tocchi in pianta e frecce
+function inclRoom(did) { const g = (G.dims || []).find(x => x.d && x.d.id === did); return g ? G.compAt((g.a[0] + g.b[0]) / 2, (g.a[1] + g.b[1]) / 2) : -1; }
+function inclRoomWalls(did) { const cid = inclRoom(did), ws = new Set(); if (cid < 0) return ws; (G.runs || []).forEach(r => { if (r.comp0 === cid && !r.ext) r.walls.forEach(w => { if (!isObl(w)) ws.add(w.id); }); }); return ws; }
+// verso come lo vedi sullo schermo (anche con la vista girata)
+function scrDir(dx, dy) { let v = [dx, -dy]; for (let k = 0; k < ((R && R.vrot) || 0); k++) v = [-v[1], v[0]];
+  return Math.abs(v[0]) >= Math.abs(v[1]) ? (v[0] > 0 ? 'a destra' : 'a sinistra') : (v[1] > 0 ? 'in basso' : 'in alto'); }
+const inclCm = v => v < 0.005 ? 'meno di 1 cm' : Math.round(v * 100) + ' cm';
+function inclEndName(o) { const pl = piano(), E = nd(pl, o.eid), P = nd(pl, o.pid); return E && P ? scrDir(E.x - P.x, E.y - P.y) : ''; }
+function inclChanges(o) { const L = [];
+  (o.ch || []).forEach(x => L.push(x.k === 'r' ? `${esc(x.nm)}: lato da ${esc(x.v)} a ${x.nv != null ? f2(x.nv) : '?'} m (diventa ricavato)` : x.k === 'l' ? `${esc(x.nm)}: ultima parziale ${esc(x.v)} m (diventa ricavata)` : `${esc(x.nm)}: ${esc(x.v)} m (diventa ricavato)`));
+  (o.dup || []).forEach(x => L.push(`${esc(x.nm)}: la misura del muro ${esc(x.v)} m si toglie (il muro obliquo ha una sola lunghezza)`));
+  if (o.lostP) L.push(o.lostP === 1 ? 'una parziale dei vani su questo muro va riscritta' : o.lostP + ' parziali dei vani su questo muro vanno riscritte');
+  if (!L.length) L.push('nessuna misura presa cambia');
+  const W = []; if (o.mv > 0.2) W.push('spostamento grande: prima controlla di aver letto bene le misure'); (o.nw || []).forEach(t => W.push(esc(t)));
+  return L.map(t => `<span class="ich">• ${t}</span>`).join('') + W.map(t => `<span class="iw">⚠ ${t}</span>`).join(''); }
+function inclHtml() { const I = ui.incl, pl = piano();
+  if (I.done) return `<div class="incl"><b>Muro inclinato</b><p>Lo spigolo si è spostato di ${inclCm(I.o.mv)} e la diagonale ora torna. In pianta vedi già il risultato.</p>${inclChanges(I.o)}
+    <div style="display:flex;gap:6px;margin-top:8px"><button class="sm" id="bInclOk">Conferma</button><button class="sm bad" id="bInclNo">Annulla</button></div></div>`;
+  if (!I.wid) return `<div class="incl"><b>Sistema inclinando un muro</b><p>Tocca in pianta il muro da inclinare: quelli della stanza sono evidenziati.</p><button class="sm" id="bInclX">Lascia stare</button></div>`;
+  const w = pl.walls.find(x => x.id === I.wid);
+  return `<div class="incl"><b>Muro scelto: ${esc(w ? tipoNome(w) : '')}</b><p>Scegli quale estremo si sposta (anche toccando la freccia in pianta). L'altro resta fermo.</p>${I.opts.map(o => { const nm = inclEndName(o);
+      if (o.why) return `<div class="iopt off"><b>Estremo ${nm}</b>: non si può, ${esc(o.why)}.</div>`;
+      if (!o.ok) return `<div class="iopt off"><b>Estremo ${nm}</b>: spostandolo la diagonale non torna lo stesso (lo spigolo che si muove non è un estremo della diagonale).</div>`;
+      return `<button class="iopt" data-incl-e="${o.eid}"><b>Sposta l'estremo ${nm}</b>: scorre di ${inclCm(o.mv)} lungo il muro che incontra${inclChanges(o)}</button>`; }).join('')}
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button class="sm" id="bInclW">Scegli un altro muro</button><button class="sm" id="bInclX">Lascia stare</button></div></div>`; }
+function inclDraw(X, Y) { const I = ui.incl, pl = piano(); let s = '';
+  const seg = (w, op, sw) => { const a = nd(pl, w.a), b = nd(pl, w.b); return a && b ? `<line x1="${X(a.x)}" y1="${Y(a.y)}" x2="${X(b.x)}" y2="${Y(b.y)}" stroke="var(--acc)" stroke-width="${sw}" stroke-opacity="${op}" stroke-linecap="round" pointer-events="none"/>` : ''; };
+  inclRoomWalls(I.did).forEach(id => { const w = pl.walls.find(x => x.id === id); if (w && id !== I.wid) s += seg(w, I.wid ? .15 : .35, 10); });
+  const w = I.wid && pl.walls.find(x => x.id === I.wid); if (!w) return s; s += seg(w, .55, 10);
+  (I.opts || []).forEach(o => { const E = nd(pl, o.eid); if (!E) return; const c = [X(E.x), Y(E.y)];
+    if (o.why || !o.ok) { s += `<circle cx="${c[0]}" cy="${c[1]}" r="9" fill="var(--cv)" stroke="var(--mut)" stroke-width="2" pointer-events="none"/><path d="M${c[0] - 4} ${c[1] - 4}L${c[0] + 4} ${c[1] + 4}M${c[0] + 4} ${c[1] - 4}L${c[0] - 4} ${c[1] + 4}" stroke="var(--mut)" stroke-width="2" pointer-events="none"/>`; return; }
+    const d = o.sH ? [1, 0] : [0, -1], L = 26, h = 7, A = [c[0] - d[0] * L, c[1] - d[1] * L], B = [c[0] + d[0] * L, c[1] + d[1] * L], n = [-d[1], d[0]];
+    const head = (P, sg) => `M${P[0]} ${P[1]}L${P[0] - sg * d[0] * h + n[0] * h} ${P[1] - sg * d[1] * h + n[1] * h}M${P[0]} ${P[1]}L${P[0] - sg * d[0] * h - n[0] * h} ${P[1] - sg * d[1] * h - n[1] * h}`;
+    s += `<circle cx="${c[0]}" cy="${c[1]}" r="14" fill="var(--acc)" fill-opacity=".18" stroke="var(--acc)" stroke-width="2" pointer-events="none"/><path d="M${A[0]} ${A[1]}L${B[0]} ${B[1]}${head(B, 1)}${head(A, -1)}" stroke="var(--acc)" stroke-width="3" fill="none" stroke-linecap="round" pointer-events="none"/>`; });
+  return s; }
+function inclPick(p) { const I = ui.incl, pl = piano(); if (!I || I.done) return;
+  if (I.opts) { const o = I.opts.find(o => o.ok && !o.why && (() => { const E = nd(pl, o.eid); return E && Math.hypot(SX(E.x) - p[0], SY(E.y) - p[1]) < 28; })()); if (o) return inclApply(o.eid); }
+  const u = wallUnder(WX(p[0]), WY(p[1])); if (!u) { toast('Tocca un muro della stanza.'); return; }
+  if (isObl(u.w)) { toast('Questo muro è già obliquo: la diagonale lo mette già al suo posto se le misure lo permettono.'); return; }
+  if (!inclRoomWalls(I.did).has(u.w.id)) { toast('Tocca un muro della stanza della diagonale (quelli evidenziati).'); return; }
+  I.wid = u.w.id; I.opts = inclOpts(I.wid, I.did); draw(); renderSide();
+  if (!I.opts.some(o => o.ok && !o.why)) toast('Con questo muro la diagonale non si sistema: prova un altro muro.'); }
+function inclApply(eid) { const I = ui.incl; if (!I || !I.opts) return; const o = I.opts.find(x => x.eid === eid); if (!o || !o.ok) return;
+  pushUndo(); undemo(); const r = tiltWall(piano(), I.wid, eid, I.did); if (!r) { toast('Non riesco a inclinare questo muro.'); return; }
+  ui.incl = {did:I.did, wid:I.wid, eid, done:true, o, back:I.opts}; ui.sel = {k:'q', id:I.did}; update(true); }
 function renderSide() {
+  if (ui.incl && !(ui.sel && ui.sel.k === 'q' && ui.sel.id === ui.incl.did)) ui.incl = null;
   { const sd = $('#side'); if (sd) sd.style.display = ''; }
   document.body.classList.toggle('hassel', !!ui.sel);
   { const sc = $('#sidecol'), cv = $('#cv');   // a schermo intero il pannello sta sopra la tavola, sotto i pulsanti
@@ -3566,8 +3657,8 @@ function renderSide() {
     el.innerHTML = `<div class="cardh">Diagonale <span class="sp"></span><button class="sm bad" id="bDelQ">Elimina</button></div>
       <div class="grid"><div><label class="l">Misura presa (m)</label><input data-q="v" value="${esc(qd.v || '')}" inputmode="decimal" placeholder="${g && g.known ? f2(g.len) : 'm'}"></div>
       <div class="mut" id="qInfo" style="align-self:end;font-size:13px">${qInfo(g)}</div></div>
-      ${bad ? `<div class="info" style="color:var(--bad)">La stanza non torna a 90°: se le misure sono giuste è fuori squadra.</div><button class="sm" id="bFuoriSq">Rendi la stanza fuori squadra</button>` : ''}
-      <p class="hint">Da spigolo a spigolo. Se le altre misure fissano già tutto fa da controllo (tolleranza 3 cm). Se un muro è obliquo, la diagonale lo mette al suo posto (Pitagora o triangoli come nella trilaterazione). «Rendi la stanza fuori squadra» rende obliqui i muri della stanza tranne il più lungo, che resta il riferimento: poi la diagonale fissa gli angoli veri. Vale l'ordine delle misure.</p>`;
+      ${ui.incl && ui.incl.did === qd.id ? inclHtml() : bad ? `<div class="info" style="color:var(--bad)">La stanza non torna a 90°: se le misure sono giuste è fuori squadra.</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="sm" id="bIncl">Sistema inclinando un muro</button><button class="sm" id="bFuoriSq">Rendi la stanza fuori squadra</button></div>` : ''}
+      <p class="hint">Da spigolo a spigolo. Se le altre misure fissano già tutto fa da controllo (tolleranza 3 cm). Se un muro è obliquo, la diagonale lo mette al suo posto (Pitagora o triangoli come nella trilaterazione). «Sistema inclinando un muro»: scegli tu il muro e quale estremo si sposta; le misure lungo il muro su cui scorre diventano ricavate, anche nelle stanze vicine. «Rendi la stanza fuori squadra» rende obliqui i muri della stanza tranne il più lungo, che resta il riferimento: poi la diagonale fissa gli angoli veri. Vale l'ordine delle misure.</p>`;
     renderMsgs(); return; }
   if (qd) { const g = (G.dims || []).find(x => x.d === qd);
     el.innerHTML = `<div class="cardh">Quota libera <span class="sp"></span><button class="sm bad" id="bDelQ">Elimina quota</button></div>
@@ -3876,6 +3967,13 @@ document.addEventListener('click', e => {
   if (id === 'bRot0') { if (R.vrot) rotView(-R.vrot); return; }
   if (id === 'bDelM') return delMulti();
   const mt = e.target.closest('[data-mtipo]'); if (mt && ui.sel && ui.sel.k === 'm') { pushUndo(); undemo(); ui.sel.w.forEach(wid => { const w = pl.walls.find(x => x.id === wid); if (w) { w.tipo = mt.dataset.mtipo; if (w.tipo !== 'X') w.sp = ''; } }); update(true); toast('Tipo cambiato.'); return; }
+  if (id === 'bIncl') { const qd = ui.sel && ui.sel.k === 'q' && (pl.dims || []).find(x => x.id === ui.sel.id); if (!qd) return; if (inclRoom(qd.id) < 0) return toast('Non trovo la stanza della diagonale.');
+    closeInline(true); if (ui.mode !== 'select' && ui.mode !== 'pan') ui.mode = 'select'; ui.incl = {did:qd.id}; updTools(); draw(); renderSide(); toast('Tocca in pianta il muro da inclinare.'); return; }
+  if (id === 'bInclX') { ui.incl = null; draw(); renderSide(); return; }
+  if (id === 'bInclW') { if (ui.incl) { delete ui.incl.wid; delete ui.incl.opts; } draw(); renderSide(); return; }
+  if (id === 'bInclOk') { ui.incl = null; draw(); renderSide(); toast('Fatto: il muro resta inclinato.'); return; }
+  if (id === 'bInclNo') { const I = ui.incl; if (!I) return; undo(); ui.sel = {k:'q', id:I.did}; ui.incl = {did:I.did, wid:I.wid, opts:I.back}; draw(); renderSide(); toast('Annullato: il muro è tornato dritto e le misure come prima.'); return; }
+  { const ie = e.target.closest('[data-incl-e]'); if (ie) return inclApply(ie.dataset.inclE); }
   if (id === 'bFuoriSq') { const qd = ui.sel && ui.sel.k === 'q' && (pl.dims || []).find(x => x.id === ui.sel.id), g = qd && (G.dims || []).find(x => x.d === qd); if (!g) return;
     let cid = G.compAt((g.a[0] + g.b[0]) / 2, (g.a[1] + g.b[1]) / 2); if (cid < 0) return toast('Non trovo la stanza della diagonale.');
     pushUndo(); const r = roomFuoriSquadra(pl, cid); update(true);
