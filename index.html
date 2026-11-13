@@ -908,7 +908,7 @@ function syncVarchi(pl) {
   (pl.stairs || []).forEach(st => {
     const f = find(st.id); if (!varcoOn(st)) { if (f) drop(f, false); return; }
     const V = varcoWall(pl, st); if (!V) { if (f) drop(f, true); return; }
-    const {w, I} = V, b = stP(st).b, l = f && !f.ap.lp ? num(f.ap.l) : b;
+    const {w, I} = V, b = stP(st).bLast, l = f && !f.ap.lp ? num(f.ap.l) : b;
     if (f && f.w === w && f.ap.pos) {   // posizione del varco misurata: è la scala che si allinea al varco
       const c = axC(I.a, I.H) + I.da + num(f.ap.d) + l / 2, dl = c - V.cx;
       if (Math.abs(dl) > 1e-4) { if (I.H) st.x = r4(num(st.x) + dl); else st.y = r4(num(st.y) + dl); anchorStair(pl, st); ch = true; }
@@ -1579,13 +1579,23 @@ const TIPI_SCALA = Object.fromEntries(Object.entries(TIPI_SC).filter(([k]) => k 
 // scala attorno all'ascensore: porta dell'ascensore verso l'ingresso (lato senza rampe), il fondo, la prima o l'ultima rampa
 const ASC_PS = {ing:'Verso l\'ingresso', fondo:'Verso il fondo', r1:'Verso la prima rampa', rU:'Verso l\'ultima rampa'};
 const H_TAGLIO = 1.40;   // piano di taglio della pianta: oltre si disegna tratteggiato
-const SC_SYNC = ['tipo', 'rot', 'mano', 'b', 'p', 'pian', 'g', 'D', 'ang', 'comune', 'nr', 'ax', 'ay', 'as', 'pw', 'ps'];   // forma comune a tutti i piani; alzate e alzata sono di ogni tratto
+const SC_SYNC = ['tipo', 'rot', 'mano', 'b', 'b2', 'b3', 'b4', 'p', 'pian', 'pianL', 'g', 'pPon', 'pP', 'pPL', 'pAon', 'pA', 'pAL', 'D', 'ang', 'comune', 'nr', 'ax', 'ay', 'as', 'pw', 'ps'];   // forma comune a tutti i piani; alzate e alzata sono di ogni tratto
 const SC_DIR = {sale:'Sale (partenza)', inter:'Sale e scende (piano intermedio)', scende:'Scende (arrivo)'};
 function stP(st) {
   const v = (k, d) => { const x = num(st[k]); return x > 0 ? x : d; };
   const n = Math.max(2, Math.round(v('n', 16))), b = v('b', 0.9);
   const n1 = Math.min(n - 1, Math.max(1, Math.round(v('n1', Math.ceil(n / 2))))), g = num(st.g);
   const out = {n, n1, n2:n - n1, b, a:v('a', 0.18), p:v('p', 0.27), pian:v('pian', b), g:isFinite(g) && g >= 0 ? g : 0.10, D:v('D', 1.6), ang:Math.min(720, v('ang', 360))};
+  // larghezza di ogni rampa (vuota = come la prima) e pianerottoli su misura
+  const B = out.B = [b, v('b2', b), v('b3', b), v('b4', b)], nRm = st.tipo === 'L' || st.tipo === 'U' ? 2 : st.tipo === 'asc' ? ([2, 3, 4].includes(+st.nr) ? +st.nr : 3) : 1;
+  out.nRm = nRm; out.bMin = Math.min(...B.slice(0, nRm));
+  if (st.tipo === 'L') { out.pian = Math.max(B[1], v('pian', B[1])); out.lw = Math.max(B[0], v('pianL', B[0])); }
+  if (st.tipo === 'U') { out.pian = v('pian', Math.max(B[0], B[1])); const W = num(st.pianL); out.gU = W > 0 ? Math.max(0, W - B[0] - B[1]) : out.g; out.lw = B[0] + out.gU + B[1]; }
+  if (st.tipo === 'asc') out.pian = v('pian', Math.max(B[0], B[1]));
+  // pianerottolo di partenza (prima della prima alzata) e di arrivo (dopo l'ultima): profondità e larghezza, vuote = come la rampa
+  const ld = st.tipo !== 'chiocciola' && st.tipo !== 'lift', b0 = B[0], bL = B[nRm - 1];
+  out.pPon = ld && !!st.pPon; out.pP = v('pP', b0); out.pPL = Math.max(b0, v('pPL', b0));
+  out.pAon = ld && !!st.pAon; out.pA = v('pA', bL); out.pAL = Math.max(bL, v('pAL', bL)); out.bLast = out.pAon ? out.pAL : bL;
   if (st.tipo === 'lift') Object.assign(out, {ax:v('ax', 1.5), ay:v('ay', 1.5), as:v('as', 0.20), pw:v('pw', 0.80)});
   if (st.tipo === 'asc') {   // attorno all'ascensore: rampe (2, 3 o 4), alzate per rampa (scritte o divise in parti uguali), vano dell'ascensore
     const nr = [2, 3, 4].includes(+st.nr) ? +st.nr : 3, li = String(st.na || '').split(/[^0-9]+/).filter(Boolean).map(Number).filter(x => x > 0);
@@ -1593,6 +1603,12 @@ function stP(st) {
     Object.assign(out, {nr, ms, list:li.length === nr, ax:v('ax', 1.5), ay:v('ay', 1.5), as:v('as', 0.20), pw:v('pw', 0.80), ps:ASC_PS[st.ps] ? st.ps : 'ing'}); }
   return out;
 }
+// valori proposti (scritti in grigio) per larghezze e pianerottoli lasciati vuoti
+function stPh(st) { const P = stP(st), B = P.B, bL = B[P.nRm - 1], o = {b2:f2(B[0]), b3:f2(B[0]), b4:f2(B[0]), pP:f2(B[0]), pPL:f2(B[0]), pA:f2(bL), pAL:f2(bL)};
+  if (st.tipo === 'L') Object.assign(o, {pian:f2(B[1]), pianL:f2(B[0])});
+  if (st.tipo === 'U') Object.assign(o, {pian:f2(Math.max(B[0], B[1])), pianL:f2(B[0] + P.g + B[1])});
+  if (st.tipo === 'asc') o.pian = f2(Math.max(B[0], B[1]));
+  return o; }
 // blocco dell'ascensore (pareti del vano con il vano porta, cabina con la croce, porta di piano scorrevole) nel riquadro x0,y0 – x0+Wx,y0+Wy;
 // side = lato della porta (giu, su, sx, dx); M(u, v): u lungo il lato della porta, v verso l'interno
 function liftShape(x0, y0, Wx, Wy, t, side, pw) {
@@ -1612,7 +1628,8 @@ function stairRaw(st, sale) {
   const add = (a, c, h, nob) => { segs.push({a, b:c, h, dash:h > 0 && (sale ? h > H_TAGLIO + 1e-9 : h <= H_TAGLIO + 1e-9)}); if (!nob) bbPts.push(a, c); };
   // rampa di m alzate: la prima è la numero k0 + 1; u = verso di salita, v = verso della larghezza
   let arrL = null;   // linea dell'ultima alzata (dove la scala sbarca) e verso di salita
-  const ramp = (O, u, v, m, k0) => {
+  const RI = [];   // rampe disegnate (per i pianerottoli di partenza e di arrivo)
+  const ramp = (O, u, v, m, k0, b = P.b) => { RI.push({O, u, v, m, b});
     const at = (s, t) => [O[0] + u[0] * s + v[0] * t, O[1] + u[1] * s + v[1] * t], RR = [];
     for (let j = 0; j < m; j++) { const k = k0 + j, e = ED[k], A0 = at(j * p, 0), B0 = at(j * p, b); bbPts.push(A0, B0);
       const A = e ? [e[0], e[1]] : A0, B = e ? [e[2], e[3]] : B0; RR.push({A, B}); ris.push({k, j, A, B, u, ed:!!e}); }
@@ -1643,44 +1660,62 @@ function stairRaw(st, sale) {
     arrow = Array.from({length:n}, (_, k) => pol(Rr * 0.55, th(k)));
     area = Math.PI * Rr * Rr;
   } else if (st.tipo === 'L') {
-    const L1 = (n1 - 1) * p, hL = n1 * P.a;
-    ramp([0, 0], [0, 1], [1, 0], n1, 0);
-    add([0, L1], [0, L1 + b], hL); add([0, L1 + b], [b, L1 + b], hL);
-    ramp([b, L1], [1, 0], [0, 1], n2, n1);
-    arrow = [[b / 2, 0], [b / 2, L1 + b / 2], [b + (n2 - 1) * p, L1 + b / 2]];
-    area = b * L1 + b * b + b * (n2 - 1) * p;
+    // pianerottolo d'angolo: larghezza Lw (verso la 2ª rampa) e profondità Ld (verso la 1ª); le rampe stanno sui lati esterni
+    const L1 = (n1 - 1) * p, hL = n1 * P.a, b1 = P.B[0], b2 = P.B[1], Lw = P.lw, Ld = P.pian;
+    ramp([0, 0], [0, 1], [1, 0], n1, 0, b1);
+    add([0, L1], [0, L1 + Ld], hL); add([0, L1 + Ld], [Lw, L1 + Ld], hL);
+    if (Lw > b1 + 1e-6) add([b1, L1], [Lw, L1], hL);
+    if (Ld > b2 + 1e-6) add([Lw, L1], [Lw, L1 + Ld - b2], hL);
+    ramp([Lw, L1 + Ld - b2], [1, 0], [0, 1], n2, n1, b2);
+    const yc = L1 + Ld - b2 / 2; arrow = [[b1 / 2, 0], [b1 / 2, yc], [Lw + (n2 - 1) * p, yc]];
+    area = b1 * L1 + Lw * Ld + b2 * (n2 - 1) * p;
   } else if (st.tipo === 'U') {
-    const L1 = (n1 - 1) * p, hL = n1 * P.a, Pn = P.pian, W = 2 * b + P.g;
-    ramp([0, 0], [0, 1], [1, 0], n1, 0);
+    const L1 = (n1 - 1) * p, hL = n1 * P.a, Pn = P.pian, b1 = P.B[0], b2 = P.B[1], g = P.gU, W = b1 + g + b2;
+    ramp([0, 0], [0, 1], [1, 0], n1, 0, b1);
     add([0, L1], [0, L1 + Pn], hL); add([0, L1 + Pn], [W, L1 + Pn], hL); add([W, L1 + Pn], [W, L1], hL);
-    if (P.g > 0.001) add([b, L1], [b + P.g, L1], hL);
-    ramp([b + P.g, L1], [0, -1], [1, 0], n2, n1);
-    arrow = [[b / 2, 0], [b / 2, L1 + Pn / 2], [b + P.g + b / 2, L1 + Pn / 2], [b + P.g + b / 2, L1 - (n2 - 1) * p]];
-    area = W * (L1 + Pn) + b * Math.max(0, (n2 - 1) * p - L1);
+    if (g > 0.001) add([b1, L1], [b1 + g, L1], hL);
+    ramp([b1 + g, L1], [0, -1], [1, 0], n2, n1, b2);
+    arrow = [[b1 / 2, 0], [b1 / 2, L1 + Pn / 2], [b1 + g + b2 / 2, L1 + Pn / 2], [b1 + g + b2 / 2, L1 - (n2 - 1) * p]];
+    area = W * (L1 + Pn) + b2 * Math.max(0, (n2 - 1) * p - L1);
   } else if (st.tipo === 'lift') {   // ascensore da solo: blocco con la porta in basso (si gira con «Ruota 90°»)
     const Wx = P.ax + 2 * P.as, Wy = P.ay + 2 * P.as; out0.lift = liftShape(0, 0, Wx, Wy, P.as, 'giu', P.pw);
     [[0, 0], [Wx, Wy]].forEach(q => { segs.push({a:q, b:q, h:0, dash:false, ghost:true}); bbPts.push(q); }); arrow = []; area = 0;
   } else if (st.tipo === 'asc') {
     // pozzo dell'ascensore al centro, rampe attorno: 1 a sinistra (sale verso l'alto), 2 in alto, 3 a destra, 4 in basso; pianerottoli negli angoli.
     // la prima rampa finisce all'angolo (lo spazio in più resta all'ingresso), le altre partono dal pianerottolo
-    const {nr, ms} = P, Wx = P.ax + 2 * P.as, Wy = P.ay + 2 * P.as, y0 = nr === 4 ? b : 0, top = y0 + Wy, X1 = b + Wx;
-    const sides = [{O:k => [0, k], u:[0, 1], v:[1, 0], s0:y0, s1:top}, {O:k => [k, top + b], u:[1, 0], v:[0, -1], s0:b, s1:X1}, {O:k => [X1 + b, k], u:[0, -1], v:[-1, 0], s0:top, s1:y0}, {O:k => [k, 0], u:[-1, 0], v:[0, 1], s0:X1, s1:b}];
-    const seq = nr === 2 ? [0, 2] : nr === 3 ? [0, 1, 2] : [0, 1, 2, 3], corner = [[b / 2, top + b / 2], [X1 + b / 2, top + b / 2], [X1 + b / 2, y0 - b / 2], [b / 2, y0 - b / 2]];
+    // ogni lato ha la larghezza della sua rampa (con 2 rampe il lato in fondo è il pianerottolo, profondo «pian»)
+    const {nr, ms} = P, Wx = P.ax + 2 * P.as, Wy = P.ay + 2 * P.as, seq = nr === 2 ? [0, 2] : nr === 3 ? [0, 1, 2] : [0, 1, 2, 3], wS = [0, 0, 0, 0];
+    seq.forEach((si, i) => { wS[si] = P.B[i]; }); if (nr === 2) wS[1] = P.pian;
+    const [wL, wT, wR, wB] = wS, y0 = wB, top = y0 + Wy, X1 = wL + Wx;
+    const sides = [{O:k => [0, k], u:[0, 1], v:[1, 0], s0:y0, s1:top}, {O:k => [k, top + wT], u:[1, 0], v:[0, -1], s0:wL, s1:X1}, {O:k => [X1 + wR, k], u:[0, -1], v:[-1, 0], s0:top, s1:y0}, {O:k => [k, 0], u:[-1, 0], v:[0, 1], s0:X1, s1:wL}];
+    const corner = [[wL / 2, top + wT / 2], [X1 + wR / 2, top + wT / 2], [X1 + wR / 2, y0 - wB / 2], [wL / 2, y0 - wB / 2]];
     let k0 = 0; out0.fit = []; arrow = [];
     seq.forEach((si, i) => { const S = sides[si], m = ms[i], L = (m - 1) * p, side = Math.abs(S.s1 - S.s0), dir = S.s1 >= S.s0 ? 1 : -1;
       if (L > side + 0.005) out0.fit.push({i:i + 1, m, L, side});
       const st0 = i === 0 ? S.s1 - dir * L : S.s0, O = S.O(st0), at = (q, t) => [O[0] + S.u[0] * q + S.v[0] * t, O[1] + S.u[1] * q + S.v[1] * t];
-      ramp(O, S.u, S.v, m, k0); k0 += m; arrow.push(at(0, b / 2), at(L, b / 2));
+      const bw = P.B[i]; ramp(O, S.u, S.v, m, k0, bw); k0 += m; arrow.push(at(0, bw / 2), at(L, bw / 2));
       if (i < seq.length - 1) { if (nr === 2) arrow.push(corner[0], corner[1]); else arrow.push(corner[si]); } });
     const ps = P.ps, sideOf = {ing:'giu', fondo:'su', r1:'sx', rU:nr === 4 ? 'giu' : 'dx'}[ps];
-    out0.lift = liftShape(b, y0, Wx, Wy, P.as, sideOf, P.pw);
+    out0.lift = liftShape(wL, y0, Wx, Wy, P.as, sideOf, P.pw);
     // ingombro: tutto il riquadro (anche i pianerottoli e il pozzo), perché la scala si accosti ai muri del vano
-    [[0, 0], [X1 + b, top + b]].forEach(q => { segs.push({a:q, b:q, h:0, dash:false, ghost:true}); bbPts.push(q); });
-    area = (X1 + b) * (top + b) - Wx * Wy;
+    [[0, 0], [X1 + wR, top + wT]].forEach(q => { segs.push({a:q, b:q, h:0, dash:false, ghost:true}); bbPts.push(q); });
+    area = (X1 + wR) * (top + wT) - Wx * Wy;
   } else {
     ramp([0, 0], [0, 1], [1, 0], n, 0);
     arrow = [[b / 2, 0], [b / 2, (n - 1) * p]];
     area = b * (n - 1) * p;
+  }
+  // pianerottoli di partenza e di arrivo: rettangoli prima della prima alzata e dopo l'ultima; se più larghi della rampa
+  // si allargano verso il centro della scala (dalle due parti nella dritta). Non entrano nell'ingombro: la scala resta dov'è
+  if (RI.length && (P.pPon || P.pAon)) {
+    let c0 = [Infinity, Infinity, -Infinity, -Infinity]; bbPts.forEach(q => { c0 = [Math.min(c0[0], q[0]), Math.min(c0[1], q[1]), Math.max(c0[2], q[0]), Math.max(c0[3], q[1])]; });
+    const C = [(c0[0] + c0[2]) / 2, (c0[1] + c0[3]) / 2];
+    const land = (Q, s0, dir, D, Wd, h) => { const at = (s, t) => [Q.O[0] + Q.u[0] * s + Q.v[0] * t, Q.O[1] + Q.u[1] * s + Q.v[1] * t], ex = Wd - Q.b;
+      const tc = (C[0] - Q.O[0]) * Q.v[0] + (C[1] - Q.O[1]) * Q.v[1], t0 = ex < 1e-6 ? 0 : tc > Q.b / 2 + 0.01 ? 0 : tc < Q.b / 2 - 0.01 ? -ex : -ex / 2, t1 = t0 + Wd, s1 = s0 + dir * D;
+      if (t0 < -1e-6) add(at(s0, t0), at(s0, 0), h, true); if (t1 > Q.b + 1e-6) add(at(s0, Q.b), at(s0, t1), h, true);
+      add(at(s0, t0), at(s1, t0), h, true); add(at(s1, t0), at(s1, t1), h, true); add(at(s0, t1), at(s1, t1), h, true); return {a:at(s1, t0), b:at(s1, t1)}; };
+    if (P.pPon) land(RI[0], 0, -1, P.pP, P.pPL, 0.001);
+    if (P.pAon) { const Q = RI[RI.length - 1], e = land(Q, (Q.m - 1) * p, 1, P.pA, P.pAL, n * P.a); arrL = {a:e.a, b:e.b, u:Q.u}; }
   }
   // specchio (gira a sinistra), rotazione, posizione: (x, y) = angolo in basso a sinistra dell'ingombro
   const mir = st.mano === 'sx' && st.tipo !== 'chiocciola', rot = ((+st.rot || 0) % 360 + 360) % 360;
@@ -1806,7 +1841,7 @@ function copyWalls(src, dst, walls) {
 function rotateStair(st) { const c0 = stairPrims(st).center; st.rot = ((+st.rot || 0) + 90) % 360; const c1 = stairPrims(st).center; st.x = r4(num(st.x) + c0[0] - c1[0]); st.y = r4(num(st.y) + c0[1] - c1[1]); }
 function linkedStairs(st) { const out = []; R.piani.forEach(pp => (pp.stairs || []).forEach(o => { if (o !== st && o.link === st.link) out.push(o); })); return out; }
 function stCheck(st) {
-  const P = stP(st), ch = st.tipo === 'chiocciola', b = ch ? P.D / 2 - 0.08 : P.b, bl = Math.round((2 * P.a + P.p) * 1000) / 10;
+  const P = stP(st), ch = st.tipo === 'chiocciola', b = ch ? P.D / 2 - 0.08 : P.bMin, bl = Math.round((2 * P.a + P.p) * 1000) / 10;
   const pMin = st.comune ? 0.30 : 0.25, bMin = st.comune ? 1.20 : 0.80;
   return {P, b, bl, okBl:bl >= 62 - 1e-9 && bl <= 64 + 1e-9, okP:P.p >= pMin - 1e-9, okB:b >= bMin - 1e-9, pMin, bMin, dz:P.n * P.a};
 }
@@ -3681,6 +3716,7 @@ function renderSide() {
   if (sc) {
     const ch = sc.tipo === 'chiocciola', I = (f, lab, dec = true) => inp(f, sc[f], lab, '', dec, 'data-st'), up = sc.dir !== 'scende', LU = sc.tipo === 'L' || sc.tipo === 'U';
     const IA = (f, lab, dec = true) => inp(f, sc[f] || sc[f.slice(0, -1)], lab, '', dec, 'data-st');
+    const SP = stP(sc), PH = stPh(sc), IP = (f, lab) => inp(f, sc[f] || '', lab, '', true, 'data-st').replace('<input ', `<input placeholder="${PH[f] || ''}" `);
     el.innerHTML = `<div class="cardh">Scala ${TIPI_SC[sc.tipo].toLowerCase()} <span class="sp"></span><button class="sm bad" id="bDelS">Elimina scala</button></div>
       <div class="grid">
         <div><label class="l">Tipo</label><select data-st="tipo" data-re>${opt(TIPI_SCALA, sc.tipo)}</select></div>
@@ -3690,13 +3726,20 @@ function renderSide() {
       </div>
       <h3>Forma (uguale a tutti i piani)</h3>
       <div class="grid">
-        ${ch ? I('D', 'Diametro (m)') + I('ang', 'Giro totale (°)', false) : I('b', 'Larghezza rampa (m)')}
+        ${ch ? I('D', 'Diametro (m)') + I('ang', 'Giro totale (°)', false) : sc.tipo === 'dritta' ? I('b', 'Larghezza rampa (m)') : I('b', 'Larghezza 1ª rampa (m)') + Array.from({length:SP.nRm - 1}, (_, i) => IP('b' + (i + 2), `Larghezza ${i + 2}ª rampa (m)`)).join('')}
         ${I('p', ch ? 'Pedata sulla linea di passo (m)' : 'Pedata (m)')}
-        ${sc.tipo === 'U' ? I('pian', 'Pianerottolo (m)') + I('g', 'Distanza tra le rampe (m)') : ''}
-        ${sc.tipo === 'asc' ? `<div><label class="l">Rampe attorno all'ascensore</label><select data-st="nr" data-re>${opt({2:'2 (a U, pianerottolo in fondo)', 3:'3 (il lato della porta resta libero)', 4:'4 (su tutti i lati)'}, String(stP(sc).nr))}</select></div><div></div>
+        ${sc.tipo === 'L' || sc.tipo === 'U' ? IP('pian', 'Pianerottolo: profondità (m)') + IP('pianL', 'Pianerottolo: larghezza (m)') : ''}
+        ${sc.tipo === 'U' ? `<div><label class="l">Distanza tra le rampe (m)</label><input id="stG" data-st="g" value="${esc(num(sc.pianL) > 0 ? f2(SP.gU) : sc.g)}" inputmode="decimal" ${num(sc.pianL) > 0 ? 'disabled' : ''}></div>` : ''}
+        ${sc.tipo === 'asc' ? `<div><label class="l">Rampe attorno all'ascensore</label><select data-st="nr" data-re>${opt({2:'2 (a U, pianerottolo in fondo)', 3:'3 (il lato della porta resta libero)', 4:'4 (su tutti i lati)'}, String(stP(sc).nr))}</select></div>${SP.nr === 2 ? IP('pian', 'Pianerottolo in fondo: profondità (m)') : '<div></div>'}
         ${I('ax', 'Vano ascensore: larghezza interna (m)')}${I('ay', 'Vano ascensore: profondità interna (m)')}${I('as', 'Spessore pareti del vano (m)')}${I('pw', 'Porta dell\'ascensore (m)')}
         <div><label class="l">Porta dell'ascensore</label><select data-st="ps" data-re>${opt(ASC_PS, stP(sc).ps)}</select></div>` : ''}
       </div>
+      ${ch ? '' : `<h3>Pianerottoli di partenza e di arrivo</h3>
+      <label class="chk" style="margin:4px 0"><input type="checkbox" data-st="pPon" data-re ${sc.pPon ? 'checked' : ''}> Pianerottolo di partenza (prima della prima alzata)</label>
+      ${sc.pPon ? `<div class="grid">${IP('pP', 'Partenza: profondità (m)')}${IP('pPL', 'Partenza: larghezza (m)')}</div>` : ''}
+      <label class="chk" style="margin:4px 0"><input type="checkbox" data-st="pAon" data-re ${sc.pAon ? 'checked' : ''}> Pianerottolo di arrivo (dopo l'ultima alzata)</label>
+      ${sc.pAon ? `<div class="grid">${IP('pA', 'Arrivo: profondità (m)')}${IP('pAL', 'Arrivo: larghezza (m)')}</div>` : ''}
+      <p class="hint">Larghezze delle rampe vuote = come la 1ª. Pianerottoli vuoti = larghi e profondi quanto la rampa che toccano; se li fai più larghi si allargano verso il centro della scala (dalle due parti nella dritta). Il pianerottolo d'angolo e quello intermedio tengono le rampe sui lati esterni. Partenza e arrivo non spostano la scala e vanno nello script come il resto.</p>`}
       ${ch ? '' : (() => { const on = stEdOn() === sc, nEd = Object.keys(sc.ed || {}).length, P = stairPrims(sc), r = on && ui.stK != null ? P.ris.find(x => x.k === ui.stK) : null, e = r ? edPed(P, r) : null;
         const fld = (k, v, lab) => `<div><label class="l">${lab}</label><input data-sk="${k}" value="${f2(v)}" inputmode="decimal"></div>`;
         return `<h3>Gradini</h3><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button id="bStEd" class="${on ? 'pri' : ''}">${on ? '✓ Fine modifica' : '✎ Modifica gradini'}</button>${nEd ? `<button id="bStRstAll">Ripristina tutti (${nEd})</button>` : ''}</div>
@@ -4050,7 +4093,9 @@ document.addEventListener('input', e => {
       else { const u = on(1); if (u) { if (u.dir === 'inter') u[f + 'A'] = sc[f]; else if (u.dir === 'scende') u[f] = sc[f]; } } }
     if (['nA', 'aA', 'n1A', 'naA'].includes(f)) { const d = on(-1); if (d) d[f.slice(0, -1)] = sc[f]; }
     if (f === 'dir' && sc.dir === 'inter' && !sc.nA) { const d = on(-1); Object.assign(sc, d ? {nA:d.n, aA:d.a, n1A:d.n1, naA:d.na || ''} : {nA:sc.n, aA:sc.a, n1A:sc.n1, naA:sc.na || ''}); }
-    if (t.hasAttribute('data-re')) update(true); else { update(false); const si = $('#sInfo'); if (si) si.innerHTML = stInfo(sc); } }
+    if (t.hasAttribute('data-re')) update(true); else { update(false); const si = $('#sInfo'); if (si) si.innerHTML = stInfo(sc);
+      const PH = stPh(sc); document.querySelectorAll('#side input[data-st]').forEach(i => { if (PH[i.dataset.st] != null) i.placeholder = PH[i.dataset.st]; });
+      const gI = $('#stG'); if (gI && f !== 'g') { const on = num(sc.pianL) > 0; gI.disabled = on; gI.value = on ? f2(stP(sc).gU) : (sc.g || ''); } } }
   else if (t.dataset.n) { const n = (pl.notes || []).find(x => ui.sel && x.id === ui.sel.id); if (!n) return; n.t = t.value; draw(); save(); }
   else if (t.dataset.s) { undemo(); R[t.dataset.s] = t.value; recompute(); save(); updExpBadge(); }
   else if (t.id === 'cVano') { ui.copyVano = t.checked; }
