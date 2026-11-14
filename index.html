@@ -292,7 +292,7 @@ const layerOf = w => (w.tipo === 'P' || (w.tipo === 'X' && thick(w) >= P_() - EP
 /* ---- layer dell'app: acceso/spento (👁) e bloccato (🔒), salvati nel rilievo (R.lay). Spento = non si vede e non si tocca;
    bloccato = si vede e gli snap lo agganciano, ma non si seleziona, non si sposta, non si cancella. Lo script esce sempre completo. ---- */
 const LAYS = [['P', 'Muri perimetrali'], ['I', 'Tramezzi'], ['R', 'Porte e finestre'], ['S', 'Scale e ascensore'], ['Q', 'Quote e misure'], ['N', 'Nomi e m²'],
-  ['H', 'Note a mano'], ['D', 'Disegno (linee)'], ['C', 'Linee di costruzione'], ['F', 'Foto'], ['B', 'Sfondo'], ['O', 'Nord']];
+  ['H', 'Note a mano'], ['D', 'Disegno (linee)'], ['C', 'Linee di costruzione'], ['F', 'Foto'], ['B', 'Sfondo'], ['G', 'Sagoma altro piano'], ['O', 'Nord']];
 const lSt = id => ((typeof R !== 'undefined' && R && R.lay) || {})[id] || {};
 const lOff = id => id === 'N' ? !ui.labels : id === 'C' ? !!(lSt('C').off || (R.opt && R.opt.csHide)) : !!lSt(id).off;
 const lLk = id => !!lSt(id).lk;
@@ -1100,6 +1100,7 @@ function solve(pl, extKeys) {
   pl.walls.forEach(w => { const I = T2.info.get(w.id); if (!I || !(I.t > 0)) return; const h = I.t / 2; mx = Math.min(mx, I.H ? I.a.x - I.da : I.a.x - h); my = Math.min(my, I.H ? I.a.y - h : I.a.y - I.da); });
   if (isFinite(mx) && (Math.abs(mx) > 1e-4 || Math.abs(my) > 1e-4)) {
     pl.nodes.forEach(nn => { nn.x = r4(nn.x - mx); nn.y = r4(nn.y - my); });
+    { const o = orgOf(pl); pl.org = {x:r4(o[0] + mx), y:r4(o[1] + my)}; }   // posizione del piano nell'edificio: non cambia
     (pl.rooms || []).forEach(r => { r.px -= mx; r.py -= my; });
     (pl.notes || []).forEach(n => { n.x = r4(n.x - mx); n.y = r4(n.y - my); });
     (pl.ink || []).forEach(k => { k.pts = k.pts.map(q => [r4(q[0] - mx), r4(q[1] - my)]); });
@@ -1831,10 +1832,10 @@ function vanoWalls(pl, st) {
 }
 // copia i muri in un altro piano, nella stessa posizione, con tipo e spessore ma senza misure
 function copyWalls(src, dst, walls) {
-  let n = 0;
+  let n = 0; const o1 = orgOf(src), o0 = orgOf(dst), dx = o1[0] - o0[0], dy = o1[1] - o0[1];   // stessa posizione nell'edificio
   walls.forEach(w => { const a = nd(src, w.a), b = nd(src, w.b); if (!a || !b) return;
     const before = new Set(dst.walls.map(x => x.id));
-    addSegment(dst, {x:a.x, y:a.y}, {x:b.x, y:b.y}, w.tipo);
+    addSegment(dst, {x:r4(a.x + dx), y:r4(a.y + dy)}, {x:r4(b.x + dx), y:r4(b.y + dy)}, w.tipo);
     dst.walls.forEach(x => { if (!before.has(x.id)) { x.sp = w.sp; x.filo = w.filo || ''; n++; } }); });
   return n;
 }
@@ -2421,7 +2422,8 @@ const LY_EYE = on => `<svg viewBox="0 0 24 24">${on ? '<path d="M2 12s3.5-6.5 10
 const LY_LK = on => `<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="${on ? 'M8 11V7a4 4 0 0 1 8 0v4' : 'M8 11V7a4 4 0 0 1 7.5-2'}"/></svg>`;
 function layPanHtml() {
   return `<div class="aph"><span>Layer</span><button data-apx="1" title="Chiudi">✕</button></div>${LAYS.map(([id, n]) => { const off = lOff(id), lk = lLk(id);
-    return `<div class="lyr${off ? ' off' : ''}"><span class="lyn">${esc(n)}</span><button class="lyb${off ? '' : ' on'}" data-lyv="${id}" title="${off ? 'Accendi' : 'Spegni'}">${LY_EYE(!off)}</button>${id === 'N' ? '<span class="lyb"></span>' : `<button class="lyb${lk ? ' lk' : ''}" data-lyl="${id}" title="${lk ? 'Sblocca' : 'Blocca'}">${LY_LK(lk)}</button>`}</div>`; }).join('')}
+    return `<div class="lyr${off ? ' off' : ''}"><span class="lyn">${esc(n)}</span><button class="lyb${off ? '' : ' on'}" data-lyv="${id}" title="${off ? 'Accendi' : 'Spegni'}">${LY_EYE(!off)}</button>${id === 'N' || id === 'G' ? '<span class="lyb"></span>' : `<button class="lyb${lk ? ' lk' : ''}" data-lyl="${id}" title="${lk ? 'Sblocca' : 'Blocca'}">${LY_LK(lk)}</button>`}</div>`; }).join('')}
+    ${sagPanHtml()}
     <div style="display:flex;gap:4px;margin-top:6px"><button class="sm" data-lyall="on" style="flex:1">Accendi tutti</button><button class="sm" data-lyall="free" style="flex:1">Sblocca tutti</button></div>
     <div class="aphint">Spento: non si vede e non si tocca. Bloccato: si vede e le linee ci si agganciano, ma non si seleziona né si sposta. Lo script AutoCAD li ha sempre tutti.</div>`; }
 function apPanHtml(cat) {
@@ -2467,6 +2469,7 @@ function sizeCanvas() { const cv = $('#cv'); if (!cv) return;
 window.addEventListener('resize', () => { if (tab === 'pianta') { sizeCanvas(); draw(); } });
 function fit() {
   const pl = piano(); let bb = G && G.bbox;
+  { const g = sagOn(pl) && sagGeo(pl); if (g) bb = !bb && !pl.nodes.length ? g.bbox : bb ? [Math.min(bb[0], g.bbox[0]), Math.min(bb[1], g.bbox[1]), Math.max(bb[2], g.bbox[2]), Math.max(bb[3], g.bbox[3])] : bb; }   // «Adatta» inquadra anche la sagoma
   if (!bb) { if (!pl.nodes.length) { ui.view = {x:-1, y:-1, s:Math.min(ui.W / 16, ui.H / 12)}; return; } bb = [Math.min(...pl.nodes.map(n => n.x)), Math.min(...pl.nodes.map(n => n.y)), Math.max(...pl.nodes.map(n => n.x)), Math.max(...pl.nodes.map(n => n.y))]; }
   // con il pannello Porte/Finestre aperto (vista non girata) la pianta sta a sinistra del pannello
   const pan = ui.apCat && !((R && R.vrot) || 0) && ui.W > 600 ? 200 : 0, W = ui.W - pan;
@@ -2688,6 +2691,7 @@ function draw() {
     for (let x = x0; x <= x1; x++) s += `<line x1="${X(x)}" y1="0" x2="${X(x)}" y2="${ui.H}" stroke="var(--grid)" stroke-opacity=".64"/>`;
     for (let y = y0; y <= y1; y++) s += `<line x1="0" y1="${Y(y)}" x2="${ui.W}" y2="${Y(y)}" stroke="var(--grid)" stroke-opacity=".64"/>`; }
   if (!lOff('B')) s += bgSvg(pl);
+  s += sagSvg(pl);
   if (ui.bgCal && ui.bgCal.a) s += `<circle cx="${X(ui.bgCal.a[0])}" cy="${Y(ui.bgCal.a[1])}" r="6" fill="none" stroke="var(--bad)" stroke-width="2.5"/>`;
   const selRoom = ui.sel && ui.sel.k === 'r' ? (pl.rooms || []).find(r => r.id === ui.sel.id) : null;
   if (selRoom && G.comps[selRoom._c]) { /* evidenzia l'ambiente */ const cc = G.comps[selRoom._c]; s += `<g fill="var(--accbg)">` + roomRects(cc) + '</g>'; }
@@ -2924,6 +2928,7 @@ function bindCanvas() {
     if (ptrs.size > 2) return;
     // «Sistema inclinando un muro»: il tocco sceglie il muro o l'estremo; trascinando sposti la vista
     if (ui.incl && !ui.incl.done && ptrs.size === 1) { inclTap = p; pan = {p, vx:ui.view.x, vy:ui.view.y, moved:false}; return; }
+    if (ui.alli && ptrs.size === 1) { inclTap = p; pan = {p, vx:ui.view.x, vy:ui.view.y, moved:false}; return; }
     if ((ui.mode === 'taglia' || ui.mode === 'estendi') && ptrs.size === 1 && !(ui.penSeen && e.pointerType === 'touch')) { e.preventDefault(); ptrs.delete(e.pointerId); (ui.mode === 'taglia' ? tagliaTap : estendiTap)(p); return; }
     if (ui.mode === 'paral' && ptrs.size === 1 && !(ui.penSeen && e.pointerType === 'touch')) { e.preventDefault(); ptrs.delete(e.pointerId); parTap(p); return; }
     if ((ui.mode === 'linea' || ui.mode === 'costr') && ptrs.size === 1 && !(ui.penSeen && e.pointerType === 'touch')) { e.preventDefault();
@@ -3038,7 +3043,7 @@ function bindCanvas() {
       hit(p); if (!ui.sel || (ui.sel.k === 'r' && w0.pt !== 'touch')) { ui.winA = p; winShow(p, [p[0] + 1, p[1] + 1]);
         if (!ui.sel) toast('Primo angolo della selezione: tocca l\'altro angolo (verso destra: solo ciò che sta tutto dentro; verso sinistra: anche ciò che tocca).'); }
       return; }
-    if (inclTap) { const q = inclTap; inclTap = null; if (pan && !pan.moved) { pan = null; inclPick(q); return; } }
+    if (inclTap) { const q = inclTap; inclTap = null; if (pan && !pan.moved) { pan = null; if (ui.alli) alliPick(q); else inclPick(q); return; } }
     if (pan) { const wasMoved = pan.moved; pan = null; if (!wasMoved && ui.mode === 'select') hit(p); else if (!wasMoved && ui.mode === 'text') newNote(p); }
   };
   svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); inclTap = null; inkS = null; lnS = null; lnLive(null); clearTimeout(inkT); gom = null; inkLive(null); bgTap = null; bgDrag = null; win = null; winShow(null); dimTap = null; dmDrag = null; stroke = null; ui.trk = null; scDrag = null; fotoTap = null; nordTap = null; ndDrag = null; ui.scGhost = null; pan = null; pinch = null; drag = null; apDrag = null; boxTap = null; ui.ghost = null; draw(); });
@@ -3057,15 +3062,18 @@ function rdp(pts, tol) {
 }
 function snapCoord(pl, v, axis, tol) {
   let best = null, bd = tol; pl.nodes.forEach(n => { const d = Math.abs(n[axis] - v); if (d < bd) { bd = d; best = n[axis]; } });
+  if (best == null) best = sagCoord(pl, v, axis, tol);   // spigoli della sagoma dell'altro piano
   return best != null ? best : Math.round(v / 0.05) * 0.05;
 }
 function snapPoint(pl, x, y, tol) {
   let best = null, bd = tol; pl.nodes.forEach(n => { const d = Math.hypot(n.x - x, n.y - y); if (d < bd) { bd = d; best = {x:n.x, y:n.y}; } });
   if (best) return best;
+  const sg = sagNode(pl, x, y, tol); if (sg) return sg;
   for (const w of pl.walls) { const a = nd(pl, w.a), b = nd(pl, w.b);
     if (isObl(w)) { const dx = b.x - a.x, dy = b.y - a.y, t = ((x - a.x) * dx + (y - a.y) * dy) / (dx * dx + dy * dy || 1e-12); if (t > 0 && t < 1 && Math.hypot(x - a.x - t * dx, y - a.y - t * dy) < tol) return {x:a.x + t * dx, y:a.y + t * dy}; continue; }
     if (isH(a, b)) { if (Math.abs(y - a.y) < tol && x > a.x && x < b.x) return {x:snapCoord(pl, x, 'x', tol), y:a.y}; }
     else if (Math.abs(x - a.x) < tol && y > a.y && y < b.y) return {x:a.x, y:snapCoord(pl, y, 'y', tol)}; }
+  const sl = sagLine(pl, x, y, tol); if (sl) return sl;
   return {x:snapCoord(pl, x, 'x', tol), y:snapCoord(pl, y, 'y', tol)};
 }
 function finishStroke(sp) {
@@ -3371,6 +3379,95 @@ function dropGhost(gh) {
   toast(apLab(ap.tipo, ap) + (gh.ap ? ' spostata.' : ' posata.') + (ap.tipo === 'porta' ? ' Girala con i tasti tondi ⇄ e ⇅.' : '') + ' Tocca le caselle accanto per scrivere parziali e larghezza misurate.');
   return true;
 }
+/* ---- sagoma di un altro piano: i muri perimetrali di un piano già rilevato, chiari sotto il disegno, per partire dallo stesso punto.
+   Ogni piano ha la sua posizione nell'edificio (pl.org, metri): le coordinate del piano partono dallo spigolo in basso a sinistra
+   e l'origine si sposta con lui, così il piano resta fermo nell'edificio. pl.sagP = piano scelto come sagoma (vuoto = il più vicino).
+   La sagoma non è un vincolo: la penna ci si aggancia solo mentre disegni, poi i muri vanno dove dicono le misure. Non va nello script. ---- */
+const orgOf = pl => [(pl && pl.org && +pl.org.x) || 0, (pl && pl.org && +pl.org.y) || 0];
+const sagHas = pp => !!pp && (pp.walls || []).some(w => layerOf(w) === 'P');
+function sagRef(pl) {
+  const i = R.piani.indexOf(pl); if (i < 0) return null;
+  const s = pl.sagP && R.piani.find(pp => pp.id === pl.sagP && pp !== pl); if (s) return s;
+  for (let d = 1; d < R.piani.length; d++) for (const j of [i - d, i + d]) if (sagHas(R.piani[j])) return R.piani[j];   // prima quello sotto
+  return null;
+}
+let SAGC = null;
+function sagGeo(pl) {
+  const ref = sagRef(pl); if (!sagHas(ref)) return null;
+  const o1 = orgOf(ref), o0 = orgOf(pl), dx = r4(o1[0] - o0[0]), dy = r4(o1[1] - o0[1]);
+  const key = ref.id + '|' + dx + '|' + dy + '|' + R.P + '|' + R.T + '|' + JSON.stringify([ref.nodes, ref.walls]);
+  if (SAGC && SAGC.key === key) return SAGC.g;
+  let g = null;
+  try {
+    const GG = geometry(ref), sh = q => [q[0] + dx, q[1] + dy], isP = l => (l || 'P') === 'P';
+    const polys = GG.walls.filter(w => isP(w.l)).map(w => ({pts:w.pts.map(sh), closed:w.closed}));
+    const fills = GG.fills.filter(b => isP(b[4])).map(b => [b[0] + dx, b[1] + dy, b[2] + dx, b[3] + dy]);
+    const fpolys = (GG.fpolys || []).filter(poly => isP(poly.l)).map(poly => poly.map(r => r.map(sh)));
+    const nodes = [], segs = [];
+    ref.walls.forEach(w => { if (layerOf(w) !== 'P') return; const a = nd(ref, w.a), b = nd(ref, w.b); if (!a || !b) return; const t = thick(w);
+      [a, b].forEach(n => nodes.push({x:n.x + dx, y:n.y + dy, t}));
+      if (!isObl(w)) { const H = isH(a, b); segs.push({H, t, c:H ? a.y + dy : a.x + dx, lo:H ? Math.min(a.x, b.x) + dx : Math.min(a.y, b.y) + dy, hi:H ? Math.max(a.x, b.x) + dx : Math.max(a.y, b.y) + dy}); } });
+    const pts = polys.flatMap(w => w.pts); if (!pts.length) return null;
+    const bbox = [Math.min(...pts.map(q => q[0])), Math.min(...pts.map(q => q[1])), Math.max(...pts.map(q => q[0])), Math.max(...pts.map(q => q[1]))];
+    g = {ref, polys, fills, fpolys, nodes, segs, corners:pts, bbox};
+  } catch (er) { g = null; }
+  SAGC = {key, g}; return g;
+}
+const sagOn = pl => pl === piano() && !lOff('G');
+function sagSvg(pl) {
+  const g = sagOn(pl) && sagGeo(pl); if (!g) return '';
+  const X = SX, Y = SY, v = ui.view, P2 = q => X(q[0]).toFixed(1) + ' ' + Y(q[1]).toFixed(1);
+  let s = '<g fill="var(--acc)" fill-opacity=".10">' + g.fills.map(b => `<rect x="${X(b[0])}" y="${Y(b[3])}" width="${(b[2] - b[0]) * v.s + 0.3}" height="${(b[3] - b[1]) * v.s + 0.3}"/>`).join('')
+    + g.fpolys.map(poly => `<path fill-rule="evenodd" d="${poly.map(r => 'M' + r.map(P2).join(' L') + ' Z').join(' ')}"/>`).join('') + '</g>';
+  s += g.polys.map(w => `<path d="M${w.pts.map(P2).join(' L')}${w.closed ? ' Z' : ''}" fill="none" stroke="var(--acc)" stroke-width="1.3" stroke-dasharray="6 4" stroke-opacity=".8"/>`).join('');
+  s += `<text x="${X(g.bbox[0])}" y="${Y(g.bbox[3]) - 6}" font-size="11" fill="var(--acc)" opacity=".85">Sagoma: ${esc(g.ref.nome || '')}</text>`;
+  if (ui.alli && ui.alli.a) s += `<circle cx="${X(ui.alli.a[0])}" cy="${Y(ui.alli.a[1])}" r="7" fill="none" stroke="var(--bad)" stroke-width="2.5"/>`;
+  return s;
+}
+// aggancio della penna alla sagoma (solo muri perimetrali): prima gli spigoli, poi la linea del muro
+function sagNode(pl, x, y, tol) {
+  if (!sagOn(pl) || ui.newType !== 'P') return null; const g = sagGeo(pl); if (!g) return null;
+  let best = null, bd = Infinity;
+  g.nodes.forEach(n => { const h = n.t / 2 + tol * 0.5; if (Math.abs(x - n.x) <= h && Math.abs(y - n.y) <= h) { const d = Math.hypot(x - n.x, y - n.y); if (d < bd) { bd = d; best = {x:n.x, y:n.y}; } } });
+  return best;
+}
+function sagLine(pl, x, y, tol) {
+  if (!sagOn(pl) || ui.newType !== 'P') return null; const g = sagGeo(pl); if (!g) return null;
+  for (const s of g.segs) { const h = s.t / 2 + tol * 0.5;
+    if (s.H) { if (Math.abs(y - s.c) <= h && x > s.lo && x < s.hi) return {x:snapCoord(pl, x, 'x', tol), y:s.c}; }
+    else if (Math.abs(x - s.c) <= h && y > s.lo && y < s.hi) return {x:s.c, y:snapCoord(pl, y, 'y', tol)}; }
+  return null;
+}
+function sagCoord(pl, v, axis, tol) {
+  if (!sagOn(pl) || ui.newType !== 'P') return null; const g = sagGeo(pl); if (!g) return null;
+  let best = null, bd = Infinity; g.nodes.forEach(n => { const d = Math.abs(n[axis] - v); if (d <= n.t / 2 + tol * 0.5 && d < bd) { bd = d; best = n[axis]; } });
+  return best;
+}
+// «Allinea piano»: tocchi uno spigolo del piano aperto e lo stesso spigolo sulla sagoma; si sposta la posizione del piano, le misure non cambiano
+const sagNear = (list, p, px) => { let b = null, bd = px / ui.view.s; list.forEach(q => { const d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d < bd) { bd = d; b = q; } }); return b; };
+function alliPick(sp) {
+  const pl = piano(), g = sagGeo(pl), p = [WX(sp[0]), WY(sp[1])];
+  if (!g) { ui.alli = null; toast('Non c\'è una sagoma da usare.'); updApPan(); draw(); return; }
+  if (!ui.alli.a) { const c = sagNear((G.walls || []).flatMap(w => w.pts), p, 30);
+    if (!c) { toast('Tocca uno spigolo dei muri di questo piano.'); return; }
+    ui.alli.a = c; toast('Ora tocca lo stesso spigolo sulla sagoma (tratteggiata).'); draw(); return; }
+  const b = sagNear(g.corners, p, 30); if (!b) { toast('Tocca uno spigolo della sagoma (tratteggiata).'); return; }
+  const a = ui.alli.a, dx = r4(b[0] - a[0]), dy = r4(b[1] - a[1]); ui.alli = null;
+  if (Math.abs(dx) < 1e-4 && Math.abs(dy) < 1e-4) { toast('Il piano è già allineato su quello spigolo.'); updApPan(); draw(); return; }
+  pushUndo(); const o = orgOf(pl); pl.org = {x:r4(o[0] + dx), y:r4(o[1] + dy)};
+  ui.view.x -= dx; ui.view.y -= dy;   // sullo schermo la sagoma resta ferma e il piano le va sopra
+  toast(`Piano spostato di ${f2(dx)} m in orizzontale e ${f2(dy)} m in verticale. Le misure non cambiano. Per tornare indietro usa Annulla.`);
+  updApPan(); update(false);
+}
+function sagPanHtml() {
+  const pl = piano(), others = R.piani.filter(pp => pp !== pl), ref = sagRef(pl), off = lOff('G');
+  if (!others.length) return '<div class="aphint">Sagoma: aggiungi un altro piano con «+ Piano» per vedere qui i suoi muri perimetrali.</div>';
+  const opt = others.map(pp => `<option value="${pp.id}" ${ref === pp ? 'selected' : ''}>${esc(pp.nome)}${sagHas(pp) ? '' : ' (senza muri perimetrali)'}</option>`).join('');
+  return `<div class="sagb"><label class="aphint" style="margin:6px 0 2px;display:block">Sagoma di:</label><select data-sag="1" style="width:100%"${off ? ' disabled' : ''}>${ref ? '' : '<option value="" selected>—</option>'}${opt}</select>
+    <button class="sm${ui.alli ? ' on' : ''}" id="bAlli" style="width:100%;margin-top:4px"${off || !sagGeo(pl) || !pl.walls.length ? ' disabled' : ''}>${ui.alli ? 'Annulla allineamento' : 'Allinea questo piano alla sagoma'}</button>
+    <div class="aphint">La sagoma mostra i muri perimetrali dell'altro piano, tratteggiati. Disegnando i muri perimetrali la penna si aggancia ai suoi spigoli, ma non li blocca: con le misure i muri vanno dove devono, così vedi le differenze tra un piano e l'altro. «Allinea» sposta tutto il piano su uno spigolo della sagoma, senza toccare le misure.</div></div>`;
+}
+
 /* ---- planimetria di sfondo (JPEG): carta da lucido sotto il disegno, una per piano ----
    pl.bg = {id, pw, ph (pixel), ox, oy (angolo in alto a sinistra, in metri), m (metri per pixel), rot (gradi, orario), op, hide, lock} */
 const bgGet = id => ftx('readonly', st => st.get(id), 'sfondi'), bgPut = rec => ftx('readwrite', st => st.put(rec), 'sfondi'), bgDel = id => ftx('readwrite', st => st.delete(id), 'sfondi');
@@ -3911,13 +4008,13 @@ function selLayerCheck() { const sl = ui.sel; if (!sl) return; const pl = piano(
   else if (sl.k === 'n') ok = lUse('H'); else if (sl.k === 'q') ok = lUse('Q'); else if (sl.k === 'ink') { const k = (pl.ink || []).find(x => x.id === sl.id); ok = !k || lUse(inkLay(k)); }
   else if (sl.k === 'm') ok = false; else if (sl.k === 'nord') ok = lUse('O'); else if (sl.k === 'bg') ok = lUse('B');
   if (!ok) { ui.sel = null; ui.selAp = null; ui.stEd = null; } }
-function panClose() { if (ui.apCat === 'scale') ui.placeSc = false; else if (ui.place && AP_KIND[ui.place]) ui.place = null; ui.apCat = null; }
+function panClose() { ui.alli = null; if (ui.apCat === 'scale') ui.placeSc = false; else if (ui.place && AP_KIND[ui.place]) ui.place = null; ui.apCat = null; }
 function panToast() { if (ui.placeSc) toast((ui.placeSc === 'lift' ? 'Ascensore' : 'Scala ' + (TIPI_SC[ui.placeSc] || '').toLowerCase()) + ': tocca dentro il vano e trascina; solleva per posarla. Nel pannello a destra scegli un altro tipo.');
   else if (ui.place) toast(apLab(ui.place) + ': appoggia la penna sul muro e trascina; solleva per posarla.' + (AP_KIND[ui.place] && AP_KIND[ui.place].inc ? ' La parte larga va verso la stanza.' : '') + ' Nel pannello a destra scegli un altro tipo.'); }
 document.addEventListener('click', e => {
   // pannello Porte / Finestre / Scale
   const cb = e.target.closest('[data-cat]'); if (cb) { const c = cb.dataset.cat; closeFly();
-    if (c === 'layer') { if (ui.apCat === 'layer') ui.apCat = null; else { panClose(); ui.apCat = 'layer'; } ui.ghost = null; ui.scGhost = null; updTools(); draw(); return; }
+    if (c === 'layer') { if (ui.apCat === 'layer') { ui.apCat = null; ui.alli = null; } else { panClose(); ui.apCat = 'layer'; } ui.ghost = null; ui.scGhost = null; updTools(); draw(); return; }
     if (ui.apCat === c) panClose();
     else { panClose(); ui.apCat = c; ui.placeDim = false; ui.dimA = null; ui.dimHover = null; ui.placeFoto = false; ui.placeNord = false; ui.winArm = false; ui.winA = null; winShow(null);
       const k = (ui.apLast || {})[c] || panItems(c)[0]; panPick(k); }
@@ -3928,6 +4025,7 @@ document.addEventListener('click', e => {
     else if (lyb.dataset.lyall === 'on') { LAYS.forEach(([id]) => { if (id === 'N') { ui.labels = true; try { localStorage.setItem('rilievo-etichette', '1'); } catch (er) {} } else lSet(id, 'off', false); }); }
     else LAYS.forEach(([id]) => lSet(id, 'lk', false));
     selLayerCheck(); updTools(); draw(); renderSide(); save(); return; }
+  if (e.target.closest('#appan #bAlli')) { if (ui.alli) { ui.alli = null; toast('Allineamento annullato.'); } else { ui.alli = {a:null}; toast('Tocca uno spigolo dei muri di questo piano, poi lo stesso spigolo sulla sagoma.'); } updApPan(); draw(); return; }
   if (e.target.closest('#appan [data-apx]')) { panClose(); ui.ghost = null; ui.scGhost = null; updTools(); draw(); return; }
   const pk = e.target.closest('#appan [data-ap]'); if (pk) { panPick(pk.dataset.ap); (ui.apLast = ui.apLast || {})[ui.apCat] = pk.dataset.ap; ui.ghost = null; updTools(); draw(); panToast(); return; }
   if (e.target.closest('#appan')) return;
@@ -4041,7 +4139,7 @@ document.addEventListener('click', e => {
       let made = 0, nw = 0, prev = scs;
       const step = (ti, dir, vals) => { const tp = R.piani[ti]; let o = (tp.stairs || []).find(x => x.link === scs.link);
         if (o) { if (dir === 'inter' && o.dir === 'scende') { Object.assign(o, {dir:'inter', nA:o.n, aA:o.a, n1A:o.n1}); made++; } return o; }
-        o = Object.assign({}, scs, {id:uid(), dir, anc:null, nA:'', aA:'', n1A:''}, vals); if (scs.ed) o.ed = JSON.parse(JSON.stringify(scs.ed)); made++;
+        o = Object.assign({}, scs, {id:uid(), dir, anc:null, nA:'', aA:'', n1A:''}, vals); { const o1 = orgOf(pl), o0 = orgOf(tp); o.x = r4(num(scs.x) + o1[0] - o0[0]); o.y = r4(num(scs.y) + o1[1] - o0[1]); } if (scs.ed) o.ed = JSON.parse(JSON.stringify(scs.ed)); made++;
         if (vano.length) nw += copyWalls(pl, tp, vano);
         (tp.stairs = tp.stairs || []).push(o); anchorStair(tp, o); return o; };
       if (!up) step(last, 'sale', fl(scs));
@@ -4105,7 +4203,9 @@ document.addEventListener('input', e => {
   else if (t.dataset.pref === 'mclassic') { ui.mnew = !t.checked; try { localStorage.setItem('rilievo-mstile', t.checked ? 'classico' : 'nuovo'); } catch (e) {} }
   else if (t.dataset.o) { R.opt[t.dataset.o] = t.checked; save(); }
 });
-$('#selPiano').onchange = e => { R.cur = +e.target.value; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); save(); };
+document.addEventListener('change', e => { const sg = e.target.closest && e.target.closest('#appan [data-sag]'); if (!sg) return;
+  const pl = piano(); if (sg.value) pl.sagP = sg.value; else delete pl.sagP; ui.alli = null; updApPan(); if (!pl.walls.length) fit(); draw(); save(); });
+$('#selPiano').onchange = e => { R.cur = +e.target.value; ui.alli = null; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); save(); };
 $('#bAddPiano').onclick = () => { const n = prompt('Nome del nuovo piano:', 'Piano primo'); if (!n) return; R.piani.push({id:uid(), nome:n, ver:0, nodes:[], walls:[], rooms:[]}); R.cur = R.piani.length - 1; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); save(); };
 $('#bRenPiano').onclick = () => { const n = prompt('Nuovo nome del piano:', piano().nome); if (!n) return; piano().nome = n; render(); save(); };
 $('#bDelPiano').onclick = () => { if (R.piani.length < 2) { alert('Deve restare almeno un piano.'); return; } if (!confirm('Eliminare il piano «' + piano().nome + '» con tutti i suoi muri e le sue foto?')) return; { const pid = piano().id; (ui.fotos || []).filter(f => f.piano === pid).forEach(f => fDel(f.id).catch(() => {})); ui.fotos = (ui.fotos || []).filter(f => f.piano !== pid); } R.piani.splice(R.cur, 1); R.cur = 0; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); save(); };
