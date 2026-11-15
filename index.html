@@ -173,6 +173,27 @@ ol.help li{margin-bottom:4px}
 #fview .fvimg{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:0 8px}
 #fview .fvimg img{max-width:100%;max-height:100%;object-fit:contain}
 #fview input{flex:1;min-width:200px}
+#scheda{display:none}
+@media print{
+  @page{size:A4 portrait;margin:12mm}
+  body>*:not(#scheda){display:none!important}
+  body{background:#fff!important}
+  #scheda{display:block;color:#1c2230;font:11pt Arial,sans-serif;--ink:#1c2230;--mut:#687185;--line:#dde1e8;--acc:#1f5fbf;--accbg:#e6efff;--warn:#a86a12;--warnbg:#fff3dc;--bad:#c0392b;--badbg:#fde8e5;--ok:#2f855a;--okbg:#e3f5ea;--wall:#d6d9e1;--wP:#1c2230;--wI:#b8860b;--wR:#d0342c;--grid:transparent;--cv:#fff;--note:#c99a06;--todo:#e8890c;--inkc:#7c3aed;--notebg:#fff8d9;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #scheda .spg{break-after:page;height:271mm;display:flex;flex-direction:column}
+  #scheda .spg:last-child{break-after:auto}
+  #scheda .shd{display:flex;justify-content:space-between;gap:10mm;border-bottom:1.5px solid #1c2230;padding-bottom:3mm;margin-bottom:4mm}
+  #scheda .sst{white-space:pre-line;font-size:9.5pt;line-height:1.35}
+  #scheda .sst::first-line{font-weight:bold;font-size:11pt}
+  #scheda .sti{text-align:right;font-size:9.5pt}
+  #scheda .sti b{display:block;font-size:13pt}
+  #scheda table{border-collapse:collapse;width:100%;margin-bottom:5mm}
+  #scheda td{border:1px solid #c8ccd4;padding:1.6mm 2.5mm;vertical-align:top}
+  #scheda td:first-child{width:32%;color:#687185}
+  #scheda h2{font-size:12pt;margin:0 0 2mm}
+  #scheda .spl{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+  #scheda .spl svg{max-width:100%;max-height:100%}
+  #scheda .snote{font-size:8.5pt;color:#687185;margin-top:2mm}
+}
 </style>
 </head>
 <body>
@@ -185,6 +206,7 @@ ol.help li{margin-bottom:4px}
   <button id="bDelPiano" class="bad">Elimina piano</button>
   <span class="sp"></span>
   <button id="bScr" class="pri">Genera script AutoCAD</button>
+  <button id="bScheda">Scheda PDF</button>
   <button id="bExp">Esporta</button>
   <button id="bImp">Importa</button>
   <button id="bNew">Nuovo rilievo</button>
@@ -4215,6 +4237,43 @@ $('#bAddPiano').onclick = () => { const n = prompt('Nome del nuovo piano:', 'Pia
 $('#bRenPiano').onclick = () => { const n = prompt('Nuovo nome del piano:', piano().nome); if (!n) return; piano().nome = n; render(); save(); };
 $('#bDelPiano').onclick = () => { if (R.piani.length < 2) { alert('Deve restare almeno un piano.'); return; } if (!confirm('Eliminare il piano «' + piano().nome + '» con tutti i suoi muri e le sue foto?')) return; { const pid = piano().id; (ui.fotos || []).filter(f => f.piano === pid).forEach(f => fDel(f.id).catch(() => {})); ui.fotos = (ui.fotos || []).filter(f => f.piano !== pid); } R.piani.splice(R.cur, 1); R.cur = 0; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); save(); };
 $('#bNew').onclick = () => { const n = blank(); n.id = uid(); n.unexp = true; n.mod = new Date().toISOString(); arcPut(n); ui.mode = 'draw'; ui.newType = 'P'; openRilievo(n); toast('Nuovo rilievo: il precedente resta nell\'Archivio.'); };
+/* ---- scheda del rilievo: pagine A4 (dati della pratica, una pianta per piano) da salvare in PDF con «Stampa» ---- */
+function schedaPiante() {   // disegna ogni piano su un foglio fisso, senza selezioni, senza rotazione e senza griglia
+  const keep = {cur:R.cur, vrot:R.vrot, sel:ui.sel, view:ui.view, tab}, PW = 1000, PH = 1150, out = [];
+  if (tab !== 'pianta') { tab = 'pianta'; render(); }
+  const svg = $('#svg');
+  try {
+    R.piani.forEach((pl, i) => {
+      R.cur = i; R.vrot = 0; ui.sel = null; recompute();
+      ui.Wr = ui.W = PW; ui.Hr = ui.H = PH; svg.setAttribute('width', PW); svg.setAttribute('height', PH); svg.setAttribute('viewBox', `0 0 ${PW} ${PH}`);
+      fit(); draw();
+      const vuoto = !pl.walls.length && !(pl.notes || []).length && !(pl.stairs || []).length;
+      out.push({nome:pl.nome, vuoto, svg:`<svg viewBox="0 0 ${PW} ${PH}" width="${PW}" height="${PH}">${svg.innerHTML.replace(/ id="[^"]*"/g, '')}</svg>`});
+    });
+  } finally {
+    R.cur = keep.cur; R.vrot = keep.vrot; ui.sel = keep.sel; ui.view = keep.view; tab = keep.tab; render();
+  }
+  return out;
+}
+function schedaHTML() {
+  const d = /^(\d{4})-(\d\d)-(\d\d)$/.exec(R.data || ''), data = d ? `${d[3]}/${d[2]}/${d[1]}` : (R.data || '');
+  const tit = `<div class="sti"><b>Scheda di rilievo</b>${esc(R.nome || '')}${R.nome ? '<br>' : ''}rilievo del ${esc(data)}</div>`;
+  const head = `<div class="shd"><div class="sst">${esc(studioTxt())}</div>${tit}</div>`;
+  const riga = (l, v) => `<tr><td>${l}</td><td>${esc(v || '') || '—'}</td></tr>`;
+  const piante = schedaPiante().filter(p => !p.vuoto);
+  const dati = `<h2>Dati della pratica</h2><table>${riga('Nome / cliente', R.nome)}${riga('Indirizzo', R.indirizzo)}${riga('Data del rilievo', data)}
+    ${riga('Foglio', R.fg)}${riga('Particella', R.pla)}${riga('Subalterno', R.sub)}${riga('Piani rilevati', R.piani.map(p => p.nome).join(', '))}</table>`;
+  const pag = (p, i) => `<div class="spg">${head}${i === 0 ? dati : ''}<h2>Pianta — ${esc(p.nome)}</h2><div class="spl">${p.svg}</div>
+    <div class="snote">Schizzo di rilievo, non in scala: valgono le misure scritte (in metri).</div></div>`;
+  return piante.length ? piante.map(pag).join('') : `<div class="spg">${head}${dati}<p>Nessun piano disegnato.</p></div>`;
+}
+function stampaScheda() {
+  let el = $('#scheda'); if (!el) { el = document.createElement('div'); el.id = 'scheda'; document.body.appendChild(el); }
+  el.innerHTML = schedaHTML();
+  window.addEventListener('afterprint', () => { el.innerHTML = ''; }, {once:true});
+  window.print();
+}
+$('#bScheda').onclick = () => stampaScheda();
 $('#bExp').onclick = () => { if (R.demo) { exportR(R); return; } exportR(R); R.unexp = false; arcPut(R); updExpBadge(); };
 $('#bArch').onclick = showArchive;
 const onFoto = async e => { const fs = [...e.target.files]; e.target.value = ''; const pt = ui.fotoPt; ui.fotoPt = null; if (!fs.length) return;

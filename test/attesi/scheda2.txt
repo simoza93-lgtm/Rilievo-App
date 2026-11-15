@@ -1,0 +1,3 @@
+{"Xo":true,"pagine":2,"titoli":["Pianta — Piano terra","Pianta — Piano primo"],"dati":["Nome / XEsempio","IXoVia di Prova 1, TXo","Data del X15/11/2026","FX","PXla345","SXno2","Piani XiPiano terra, Piano primo, SXto"],"Xzione":"Studio Tecnico Geom. Cosenza Franco","muri":[true,true],"idDoppi":0,"dopo":{"cur":1,"tab":"calc","svgApp":false},"prima":{"cur":1,"tab":"calc"}}
+pagine del pdf 2
+errors []

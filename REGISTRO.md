@@ -3,6 +3,16 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 15 novembre 2026 — scheda del rilievo, tappa 2: tasto «Scheda PDF»
+
+- Nella barra in alto, accanto a «Esporta», il tasto **Scheda PDF**: prepara la scheda in A4 verticale e apre la
+  stampa di Chrome; si sceglie «Salva come PDF». Funziona anche senza internet.
+- Ogni pagina ha in alto l'intestazione dello studio e, a destra, «Scheda di rilievo», nome e data. La prima pagina ha i
+  **dati della pratica** (nome, indirizzo, data, foglio, particella, subalterno, piani rilevati).
+- **Una pagina per piano** con la pianta come nell'app (misure, nomi e m², porte e finestre, scale, note, nord), in
+  colori chiari anche con il tablet in modalità scura, senza griglia, senza selezioni e con la vista non girata.
+  I piani senza niente disegnato non hanno pagina. In fondo: «Schizzo di rilievo, non in scala». Prova `scheda2`.
+
 ## 15 novembre 2026 — scheda del rilievo, tappa 1: dati catastali e intestazione dello studio
 
 - In Impostazioni → Rilievo ci sono le caselle **Foglio**, **Particella** e **Subalterno** (vanno nel file esportato).
