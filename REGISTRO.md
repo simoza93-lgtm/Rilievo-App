@@ -3,6 +3,15 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 15 novembre 2026 — scheda del rilievo, tappa 1: dati catastali e intestazione dello studio
+
+- In Impostazioni → Rilievo ci sono le caselle **Foglio**, **Particella** e **Subalterno** (vanno nel file esportato).
+  Nei rilievi già salvati restano vuote.
+- Nuovo riquadro **Intestazione dello studio**: il testo che andrà in alto nella scheda. Parte già scritto con i dati
+  dello studio; si cambia lì e vale per tutti i rilievi di questo dispositivo. Prova `scheda`.
+- Tolte le prove `sfalsa` e `tasti`: provavano due funzioni («Sfalsa il muro» e i tastini a filo/in asse) che non sono
+  mai entrate nell'app. Restano nello storico di GitHub.
+
 ## 14 novembre 2026 — sagoma di un altro piano e «Allinea questo piano alla sagoma»
 
 - Nuovo layer **Sagoma altro piano** (👁 acceso/spento, senza lucchetto): mostra tratteggiati e chiari, sotto il

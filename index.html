@@ -263,10 +263,12 @@ let R, G = null, tab = 'pianta';
 const ui = {mnew:(() => { try { return localStorage.getItem('rilievo-mstile') !== 'classico'; } catch (e) { return true; } })(), labels:(() => { try { return localStorage.getItem('rilievo-etichette') !== '0'; } catch (e) { return true; } })(), mode:'draw', newType:'P', view:{x:-2, y:-2, s:45}, sel:null, W:800, H:560, undo:[], nbb:new Map()};
 
 function blank() {
-  return {nome:'', indirizzo:'', data:today(), P:'0,30', T:'0,10', incP:'0,15', rai:'8', hA:'2,70', hC:'2,40',
+  return {nome:'', indirizzo:'', data:today(), fg:'', pla:'', sub:'', P:'0,30', T:'0,10', incP:'0,15', rai:'8', hA:'2,70', hC:'2,40',
     opt:{qInt:true, qExt:true, testi:true, porte:true, note:false, vani:true},
     piani:[{id:uid(), nome:'Piano terra', ver:0, nodes:[], walls:[], rooms:[]}], cur:0, demo:false};
 }
+const STUDIO0 = 'Studio Tecnico Geom. Cosenza Franco\nvia Sicilia 8, Tortoreto\ngeom.cosenzafranco@gmail.com\n+39 3472537595';
+function studioTxt() { try { const v = localStorage.getItem('rilievo-studio'); return v === null ? STUDIO0 : v; } catch (e) { return STUDIO0; } }
 const piano = () => R.piani[R.cur] || R.piani[0];
 const P_ = () => num(R.P), T_ = () => num(R.T);
 /* ---- finestre incassate (palazzi antichi): luce stretta da una faccia (ap.l, è l'infisso), parte larga dall'altra (ap.l2).
@@ -3985,7 +3987,9 @@ function renderCalc() {
 function renderSet() {
   const i = (k, l, dec = true, cls = '') => `<div class="${cls}"><label class="l">${l}</label><input data-s="${k}" value="${esc(R[k])}" ${dec ? 'inputmode="decimal"' : ''}></div>`;
   const c = (k, l) => `<label class="chk"><input type="checkbox" data-o="${k}" ${R.opt[k] ? 'checked' : ''}> ${l}</label>`;
-  return `<div class="card"><div class="cardh">Rilievo</div><div class="grid">${i('nome', 'Nome / cliente', false)}${i('data', 'Data', false)}${i('indirizzo', 'Indirizzo', false, 'c2')}</div></div>
+  return `<div class="card"><div class="cardh">Rilievo</div><div class="grid">${i('nome', 'Nome / cliente', false)}${i('data', 'Data', false)}${i('indirizzo', 'Indirizzo', false, 'c2')}${i('fg', 'Foglio', false)}${i('pla', 'Particella', false)}${i('sub', 'Subalterno', false)}</div></div>
+  <div class="card"><div class="cardh">Intestazione dello studio</div><textarea data-pref="studio" rows="4" style="width:100%;box-sizing:border-box;font:inherit">${esc(studioTxt())}</textarea>
+  <p class="hint">Va in alto nella scheda del rilievo. Vale per questo dispositivo, per tutti i rilievi.</p></div>
   <div class="card"><div class="cardh">Spessori dei muri</div><div class="grid">${i('P', 'Perimetrali (m)')}${i('T', 'Tramezzi (m)')}${i('incP', 'Finestre incassate: profondità della luce stretta (m)')}</div>
   <p class="hint">Per un muro diverso (portante interno, muro vecchio più spesso) selezionalo e scegli «Spessore diverso».</p></div>
   <div class="card"><div class="cardh">Limiti dei controlli</div><div class="grid">${i('rai', 'RAI minimo 1/…')}${i('hA', 'Altezza min. abitabili (m)')}${i('hC', 'Altezza min. accessori (m)')}${i('pedInt', 'Scale: pedata minima sul lato interno dei gradini ritoccati (m)')}</div>
@@ -4200,6 +4204,7 @@ document.addEventListener('input', e => {
   else if (t.id === 'iBgOp' && pl.bg) { pl.bg.op = +t.value; draw(); save(); }
   else if ((t.id === 'cBgHide' || t.id === 'cBgLock') && pl.bg) { pushUndo(); pl.bg[t.id === 'cBgHide' ? 'hide' : 'lock'] = t.checked; if (pl.bg.lock) { ui.bgMove = false; ui.bgCal = null; } save(); draw(); renderSide(); }
   else if (t.id === 'cLab') { ui.labels = t.checked; try { localStorage.setItem('rilievo-etichette', t.checked ? '1' : '0'); } catch (e) {} draw(); }
+  else if (t.dataset.pref === 'studio') { try { localStorage.setItem('rilievo-studio', t.value); } catch (e) {} }
   else if (t.dataset.pref === 'mclassic') { ui.mnew = !t.checked; try { localStorage.setItem('rilievo-mstile', t.checked ? 'classico' : 'nuovo'); } catch (e) {} }
   else if (t.dataset.o) { R.opt[t.dataset.o] = t.checked; save(); }
 });

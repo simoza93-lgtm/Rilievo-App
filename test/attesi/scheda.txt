@@ -1,0 +1,3 @@
+{"X":{"fg":"","pla":"","sub":""},"X":"Studio Tecnico Geom. Cosenza Franco\nvia Sicilia 8, TXo\ngeom.Xfranco@gmail.com\n+39 X595","campi":{"fg":"12","pla":"345","sub":"2-3"},"nuovo":{"fg":"","pla":"","sub":""}}
+dopo Xura: "Studio prova\nvia Roma 1"
+errors []
