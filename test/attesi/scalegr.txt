@@ -1,0 +1,82 @@
+{
+ "prima": {
+  "bbox": [
+   0.3,
+   0.3,
+   2.55,
+   3.09
+  ],
+  "alzate": 14
+ },
+ "Xa": {
+  "on": true,
+  "hint": true
+ },
+ "Xio": {
+  "Xte": [
+   "7"
+  ],
+  "a": [
+   0.3,
+   2.74
+  ],
+  "b": [
+   1.2,
+   2.19
+  ],
+  "bbox": [
+   0.3,
+   0.3,
+   2.55,
+   3.09
+  ],
+  "X": true
+ },
+ "intera": {
+  "dy": [
+   0.89,
+   0.89
+  ]
+ },
+ "asse": {
+  "centroX": 0,
+  "avanti": 0.61
+ },
+ "fuoriAsse": {
+  "centroX": 0.4,
+  "avanti": 1.69
+ },
+ "campi": [
+  "Pedata lato Xo (m)=0,27",
+  "Pedata lato destro (m)=0,27"
+ ],
+ "pedate": [
+  0.3,
+  0.22,
+  0.26
+ ],
+ "Xli": [
+  "Gradino tra le alzate 1 e 2: sulla linea di passo 2a + p = 67 cm (62–64).",
+  "Gradino tra le alzate 3 e 4: sulla linea di passo 2a + p = 58 cm (62–64).",
+  "Gradino tra le alzate 5 e 6: sulla linea di passo 2a + p = 87,2 cm (62–64).",
+  "Gradino tra le alzate 6 e 7: sulla linea di passo 2a + p = 82,1 cm (62–64).",
+  "Gradino tra le alzate 7 e 8: sulla linea di passo 2a + p = 90,5 cm (62–64)."
+ ],
+ "sopra": {
+  "stessi": true,
+  "copia": true
+ },
+ "script": true,
+ "dopoRXno": [
+  "1",
+  "4",
+  "5",
+  "7"
+ ],
+ "cambioTipo": {
+  "ed": null,
+  "toast": "CX il tipo: i X Xti sono X alla forma Xica (Annulla per Xi).",
+  "Xa": false
+ }
+}
+errors []

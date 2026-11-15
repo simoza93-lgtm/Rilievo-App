@@ -1,0 +1,53 @@
+{
+ "posato": {
+  "tipo": "lift",
+  "Xo": [
+   0.3,
+   0.3,
+   2.2,
+   2.2
+  ],
+  "pareti": 12,
+  "frecce": 0,
+  "numeri": 0,
+  "porta": "sotto",
+  "Xcie": 17.48,
+  "foro": 3.61
+ },
+ "toast": "AXe posato. Con «SXa» X per le misure del vano e per girare la porta.",
+ "Xo": {
+  "titolo": "AXe Elimina Xre",
+  "campi": "ax,ay,as,pw",
+  "tipoScala": false
+ },
+ "X": "destra",
+ "largo": {
+  "tipo": "lift",
+  "Xo": [
+   0.3,
+   0.3,
+   2.2,
+   2.5
+  ],
+  "pareti": 12,
+  "frecce": 0,
+  "numeri": 0,
+  "porta": "destra",
+  "Xcie": 16.91,
+  "foro": 4.18
+ },
+ "script": {
+  "Xre": true,
+  "layer": "PLAN_MURI_PERIM",
+  "dopo": "CLAYER"
+ },
+ "X": true,
+ "sopra": true,
+ "Xto": {
+  "toast": "AXe Xto in «Piano primo», con i muri del vano senza misure. CX i muri che in un piano non ci sono.",
+  "sopra": [
+   "lift"
+  ]
+ }
+}
+errors []

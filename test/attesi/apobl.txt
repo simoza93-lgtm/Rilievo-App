@@ -1,0 +1,106 @@
+{
+ "Xa": {
+  "X": true,
+  "ok": true
+ },
+ "posata": {
+  "Xe": 1,
+  "tipo": "Xa",
+  "quad": true,
+  "dallaFaccia": 1.16,
+  "Xza": 1.2,
+  "lati": 1,
+  "tratti": [
+   [
+    1.16,
+    null
+   ],
+   [
+    1.45,
+    null
+   ]
+  ],
+  "avvisi": [],
+  "errori": [],
+  "area": 19.223
+ },
+ "XP": "PX · tratto di muro",
+ "XW": "LXa del vano",
+ "Xa": {
+  "Xe": 1,
+  "tipo": "Xa",
+  "quad": true,
+  "dallaFaccia": 0.8,
+  "Xza": 1.2,
+  "lati": 1,
+  "tratti": [
+   [
+    0.8,
+    0.8
+   ],
+   [
+    1.81,
+    null
+   ]
+  ],
+  "avvisi": [],
+  "errori": [],
+  "area": 19.223
+ },
+ "XL": "PX · ultimo tratto del lato",
+ "ultimaSXa": [],
+ "ultimaGiusta": [],
+ "script": {
+  "Xa": 5,
+  "angolo": "14.03"
+ },
+ "Xta": {
+  "parteLarga": true,
+  "larga": 1.6,
+  "errori": 0,
+  "cuneiTornanoMuro": 0.03
+ },
+ "porta": {
+  "anta": true,
+  "raggio": 0.9,
+  "archi": 1
+ },
+ "primaDritto": 1.1,
+ "dopoObliquo": {
+  "X": true,
+  "chiave": true,
+  "dallaFaccia": 1.1,
+  "Xo": true,
+  "toast": "Ora il muro è X: Xli e Xze ne Xo l'Xzione."
+ },
+ "dopoDritto": {
+  "X": false,
+  "Xne": false,
+  "Xa": true,
+  "Xe": 1
+ },
+ "Xo": {
+  "X": true,
+  "lati": 2,
+  "stanze": "0,1",
+  "daMX": 5,
+  "dalLato2": 1,
+  "anta": true,
+  "primoTrattoLato1": false,
+  "errori": 0
+ },
+ "catena": {
+  "prima": 3.818,
+  "faccia": 4.1,
+  "avvisi": [],
+  "XzaRX": "d"
+ },
+ "Xlo": {
+  "faccia": 3.921,
+  "dopo": 3.921,
+  "avvisi": [
+   "Muro X (Xrale): ultima Xe Xa 1,00 m, dal X viene 1,92 m (+92 cm). CXa le Xi e le Xze dei vani di questo muro."
+  ]
+ }
+}
+errors []

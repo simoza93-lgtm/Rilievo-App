@@ -9,10 +9,10 @@ const { chromium } = require('playwright'); const fs=require('fs');
     const pts=[[0,0],[5,0],[5,4],[0,4],[0,0]]; for(let i=0;i<pts.length-1;i++) addSegment(pl,{x:pts[i][0],y:pts[i][1]},{x:pts[i+1][0],y:pts[i+1][1]},'P'); update(true); fit(); draw(); });
   const S = (x,y)=>p.evaluate(([x,y])=>{ const r=document.querySelector('#svg').getBoundingClientRect(); return {x:r.left+SX(x), y:r.top+SY(y)}; },[x,y]);
   // ingresso sul muro in basso
-  await p.$eval('[data-ap="ingresso"]', b => b.click()); let q = await S(1.8,0);
+  await p.click('[data-cat="porte"]'); await p.click('#appan [data-ap="ingresso"]'); let q = await S(1.8,0);
   await p.mouse.move(q.x,q.y); await p.mouse.down(); await p.mouse.move(q.x+3,q.y,{steps:3}); await p.mouse.up();
   // finestra sul muro in basso a destra
-  await p.$eval('[data-ap="finestra"]', b => b.click()); q = await S(3.9,0);
+  await p.click('[data-cat="finestre"]'); await p.click('#appan [data-ap="finestra"]'); q = await S(3.9,0);
   await p.mouse.move(q.x,q.y); await p.mouse.down(); await p.mouse.move(q.x+3,q.y,{steps:3}); await p.mouse.up();
   await p.$eval('[data-mode="select"]', b => b.click());
   const boxes = () => p.evaluate(()=>{ const r=document.querySelector('#svg').getBoundingClientRect(); return ui.pbb.map(x=>({hb:x.hb, x:r.left+x.box[0]+x.box[2]/2, y:r.top+x.box[1]+x.box[3]/2})); });
@@ -30,14 +30,14 @@ const { chromium } = require('playwright'); const fs=require('fs');
   let st = await p.evaluate(()=>({nodes:piano().nodes.map(n=>[n.x,n.y]), aps:piano().walls.flatMap(w=>w.ap||[]).map(a=>({d:a.d,l:a.l,pos:a.pos,dp:a.dp,lp:a.lp})), fl:piano().fl, warns:G.warns.map(w=>w.t)}));
   console.log(JSON.stringify(st));
   // altezza interna con quota libera tra spigoli interni del muro sinistro
-  await p.click('[data-dim]');
+  await p.click('[data-fly="quota"]'); await p.click('[data-dim]');
   let a1 = await S(0.31,0.31), a2 = await S(0.31,3.83);
   await p.mouse.click(a1.x,a1.y); await p.waitForTimeout(80); await p.mouse.click(a2.x,a2.y); await p.waitForTimeout(150);
   await p.keyboard.type('3,62'); await p.keyboard.press('Enter'); await p.waitForTimeout(150);
   st = await p.evaluate(()=>({dims:piano().dims, nodes:piano().nodes.map(n=>[n.x,n.y]), mord:piano().mord, gd:G.dims.map(q=>[q.len,q.meas,q.known,q.tied]), warns:G.warns.map(w=>w.t)}));
   console.log(JSON.stringify(st));
   // un totale interno in conflitto sulla parete in basso (5,00 contro 1,25+1,05+1,10+1,20+0,73=5,33)
-  await p.click('[data-dim]');
+  await p.click('[data-fly="quota"]'); await p.click('[data-dim]');
   a1 = await S(0.31,0.31); a2 = await S(4.89,0.31);
   await p.mouse.click(a1.x,a1.y); await p.waitForTimeout(80); await p.mouse.click(a2.x,a2.y); await p.waitForTimeout(150);
   await p.keyboard.type('5,00'); await p.keyboard.press('Enter'); await p.waitForTimeout(150);

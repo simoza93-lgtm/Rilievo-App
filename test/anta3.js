@@ -28,7 +28,7 @@ const vc=await p.evaluate(()=>{const o=G.ops.find(o=>o.door); return o.at((o.s0+
 out.sel=await p.evaluate(()=>({selAp:ui.selAp, sel:ui.sel&&ui.sel.k, btn:document.querySelectorAll('[data-flip]').length}));
 // 5) posa nuova porta: tasti subito
 await p.evaluate(()=>{ fit(); draw(); });
-await p.$eval('[data-ap="porta"]', b=>b.click());
+await p.click('[data-cat="porte"]'); await p.click('#appan [data-ap="porta"]');
 const wpt=await p.evaluate(()=>{ const w=piano().walls.find(w=>w.l==='T'||w.tipo==='T')||piano().walls[5]; const I=G.T.info.get(w.id); const r=document.querySelector('#svg').getBoundingClientRect(); const x=I.H?(I.a.x+I.b.x)/2:I.a.x+I.o, y=I.H?I.a.y+I.o:(I.a.y+I.b.y)/2; return {x:r.left+SX(x),y:r.top+SY(y)}; });
 await p.mouse.move(wpt.x,wpt.y); await p.mouse.down(); await p.mouse.move(wpt.x+1,wpt.y+1); await p.mouse.up(); await p.waitForTimeout(200);
 out.place=await p.evaluate(()=>({selAp:ui.selAp, btn:document.querySelectorAll('[data-flip]').length, toast:(document.querySelector('#toast')||{}).textContent}));

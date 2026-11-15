@@ -1,0 +1,130 @@
+{
+ "Xo": {
+  "aperto": true,
+  "titolo": "Porte",
+  "tipi": [
+   "porta",
+   "porta:2a",
+   "porta:am",
+   "porta:sce",
+   "porta:sco",
+   "porta:lib",
+   "Xo",
+   "varco"
+  ],
+  "scelto": "porta"
+ },
+ "posate": {
+  "aperto": true,
+  "scelto": "porta:lib",
+  "porte": [
+   [
+    "porta",
+    "",
+    "0,80"
+   ],
+   [
+    "porta",
+    "2a",
+    "1,20"
+   ],
+   [
+    "porta",
+    "am",
+    "1,20"
+   ],
+   [
+    "porta",
+    "sce",
+    "0,80"
+   ],
+   [
+    "porta",
+    "sco",
+    "0,80"
+   ],
+   [
+    "porta",
+    "lib",
+    "0,80"
+   ]
+  ],
+  "segni": [
+   [
+    1,
+    1,
+    0
+   ],
+   [
+    2,
+    2,
+    0
+   ],
+   [
+    2,
+    2,
+    0
+   ],
+   [
+    3,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    4
+   ],
+   [
+    1,
+    0,
+    0
+   ]
+  ],
+  "avvisi": []
+ },
+ "X": "LXa del vano",
+ "tasti": {
+  "2a": "vx",
+  "sce": "cxvx",
+  "sco": "cx",
+  "versoSXle": 0,
+  "XsaCorta": [
+   "Porta a Xsa: da quella parte del vano ci sono 0,30 m di muro, il Xelaio per l'anta (0,80 m) non ci sta. CXa il verso con ⇄."
+  ]
+ },
+ "cambio": {
+  "X": "BX|Doppia anta|Anta e mezza|SXle X|A Xsa|A libro",
+  "dopo": [
+   "2a",
+   2,
+   "Porta doppia anta Elimina"
+  ]
+ },
+ "script": {
+  "plinee": 9,
+  "archi": 5,
+  "linee": 12
+ },
+ "Xe": [
+  "FX",
+  "Porta-Xa",
+  "IXa a X",
+  "IXa Xta"
+ ],
+ "Xta": [
+  "strom",
+  true
+ ],
+ "chiuso": {
+  "aperto": false,
+  "place": null
+ },
+ "ultimo": "porta:lib",
+ "altroSXo": {
+  "aperto": false,
+  "place": null,
+  "quota": true
+ }
+}
+errors []

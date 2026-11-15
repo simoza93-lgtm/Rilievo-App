@@ -1,0 +1,69 @@
+{
+ "Xo": {
+  "aperto": true,
+  "voci": [
+   "Muri Xrali",
+   "TX",
+   "Porte e Xe",
+   "Scale e Xre",
+   "Quote e misure",
+   "Nomi e m²",
+   "Note a mano",
+   "Disegno (linee)",
+   "Linee di Xione",
+   "Foto",
+   "Sfondo",
+   "Sagoma altro piano",
+   "Nord"
+  ],
+  "Xti": 11
+ },
+ "prima": {
+  "nota": true,
+  "muri": 2,
+  "Xi": 50
+ },
+ "XoBX": {
+  "tocco": null,
+  "vista": true
+ },
+ "XraliSpenti": {
+  "vista": 0,
+  "tocco": null
+ },
+ "notaSpenta": false,
+ "lineaBX": "r",
+ "gomma": [
+  2,
+  2
+ ],
+ "Xione": {
+  "Xe": true,
+  "tasto": true
+ },
+ "scalaBX": "r",
+ "restaAperto": true,
+ "X": {
+  "I": {
+   "lk": true
+  },
+  "P": {
+   "off": true
+  },
+  "H": {
+   "off": true
+  },
+  "D": {
+   "lk": true
+  },
+  "C": {
+   "off": true
+  },
+  "S": {
+   "lk": true
+  }
+ },
+ "tutti": ",,,,,,,,,,,,",
+ "scriptUguale": true
+}
+errors []

@@ -12,7 +12,7 @@ const { chromium } = require('playwright');
   const toast = ()=>p.evaluate(()=>document.querySelector('#toast').textContent);
   const nodes = await p.evaluate(()=>piano().nodes.map(n=>[n.x,n.y]));
   console.log('nodi', JSON.stringify(nodes));
-  await p.click('[data-dim]');
+  await p.click('[data-fly="quota"]'); await p.click('[data-dim]');
   // 1) dentro lo spessore del muro sinistro (asse): si aggancia alla faccia più vicina, non all'asse
   let q = await S(0.15, 2.0); await p.mouse.click(q.x, q.y); await p.waitForTimeout(80);
   console.log('A asse muro ->', JSON.stringify(await p.evaluate(()=>ui.dimA)));
@@ -31,7 +31,7 @@ const { chromium } = require('playwright');
   const r = await p.evaluate(()=>({d:piano().dims.map(d=>({a:d.a,b:d.b,H:d.H})), g:G.dims.map(q=>[f2(q.len),q.meas,q.tied,q.known]), nodes:piano().nodes.map(n=>[n.x,n.y]), warns:G.warns.map(w=>w.t)}));
   console.log(JSON.stringify(r));
   // anteprima: tengo premuto con il mouse
-  await p.click('[data-dim]'); q = await S(5.85, 3.0); await p.mouse.move(q.x+3,q.y); await p.mouse.down(); await p.mouse.move(q.x, q.y, {steps:3});
+  await p.click('[data-fly="quota"]'); await p.click('[data-dim]'); q = await S(5.85, 3.0); await p.mouse.move(q.x+3,q.y); await p.mouse.down(); await p.mouse.move(q.x, q.y, {steps:3});
   await p.screenshot({path:require('path').join(OUT, 'filo.png'), clip:{x:20,y:200,width:1000,height:640}}); await p.mouse.up();
   console.log('errors',errs); await b.close();
 })();

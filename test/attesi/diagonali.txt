@@ -1,0 +1,2 @@
+{"Xino":"DXe tra due X","prima":{"len":5.561,"avviso":true,"tasto":true},"dopo":{"len":5.8,"X":3,"misure":"3,40 4,40 3,40","facce":"3,40 4,40 3,40","area":14.898,"avvisi":[]},"script":4,"Xo":{"diag":6.1,"avvisi":0,"X":1,"asse":"x","avvisiR":0},"Xo":{"X":{"obl":true,"titolo":"Muro X"},"dritto":{"obl":false,"Xi":1}}}
+errors []

@@ -1,0 +1,116 @@
+{
+ "terra": {
+  "org": {
+   "x": -0.15,
+   "y": -0.15
+  },
+  "nodi": [
+   [
+    0,
+    0
+   ],
+   [
+    0,
+    8
+   ],
+   [
+    4.85,
+    0
+   ],
+   [
+    4.85,
+    8
+   ],
+   [
+    10,
+    0
+   ],
+   [
+    10,
+    8
+   ]
+  ]
+ },
+ "primo": {
+  "sagoma": true,
+  "vista": [
+   -3.31,
+   -1.65
+  ],
+  "rif": "Piano terra"
+ },
+ "Xo": {
+  "nodiSullaSagoma": "2/4",
+  "primo": [
+   [
+    0,
+    0
+   ],
+   [
+    0,
+    8
+   ],
+   [
+    5.9,
+    0
+   ],
+   [
+    5.9,
+    8
+   ]
+  ],
+  "org": {
+   "x": -0.15,
+   "y": -0.15
+  }
+ },
+ "misura": {
+  "sagomaFerma": true,
+  "alto": {
+   "primo": 7.6,
+   "terra": 8
+  }
+ },
+ "spento": {
+  "Xe": false,
+  "XoSpento": null,
+  "XoTX": null
+ },
+ "Xo": {
+  "riga": true,
+  "scelte": [
+   "Piano terra"
+  ],
+  "X": "Allinea questo piano alla sagoma"
+ },
+ "terraSagoma": {
+  "rif": "Piano primo",
+  "scelte": [
+   "Piano primo"
+  ]
+ },
+ "prima": {
+  "rif": "Piano terra",
+  "sagP": true,
+  "org": {
+   "x": 2.85,
+   "y": 1.85
+  }
+ },
+ "primoTocco": [
+  true,
+  "Ora tocca lo stesso X sulla sagoma (Xgiata)."
+ ],
+ "Xto": {
+  "alli": null,
+  "toast": "Piano Xo di -3,00 m in Xtale e -2,00 m in Xle. Le misure non Xo. Per X Xo usa Annulla.",
+  "XSulPianoTerra": "4/4",
+  "misure": "7,70 7,70 9,70 9,70"
+ },
+ "X": {
+  "x": 2.85,
+  "y": 1.85
+ },
+ "script": false
+}
+errors []

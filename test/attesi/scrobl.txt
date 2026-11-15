@@ -1,0 +1,60 @@
+{
+ "senza": {
+  "quote": [],
+  "testa": [
+   "; ATTENZIONE: 2 muri senza misure su nessun lato (Xza da X o Xa).",
+   "; Quote Xi: 2 tratti senza misura non X (si Xo solo dallo X)."
+  ]
+ },
+ "Xo": {
+  "quote": [
+   [
+    4.1,
+    0.4
+   ]
+  ],
+  "testa": [
+   "; ATTENZIONE: 1 muri senza misure su nessun lato (Xza da X o Xa).",
+   "; ---- muri X: quote Xte lungo la faccia X (tutta la faccia o i tratti tra X e vani)"
+  ]
+ },
+ "vani": {
+  "quote": [
+   [
+    0.8,
+    0.4
+   ],
+   [
+    2.1,
+    0.4
+   ]
+  ],
+  "testa": [
+   "; ATTENZIONE: 1 muri senza misure su nessun lato (Xza da X o Xa).",
+   "; ---- muri X: quote Xte lungo la faccia X (tutta la faccia o i tratti tra X e vani)"
+  ]
+ },
+ "Xo": {
+  "quote": [
+   [
+    4.14,
+    0.4
+   ],
+   [
+    4.14,
+    0.4
+   ]
+  ],
+  "testa": [
+   "; ATTENZIONE: 1 muri senza misure su nessun lato (Xza da X o Xa).",
+   "; ---- muri X: quote Xte lungo la faccia X (tutta la faccia o i tratti tra X e vani)"
+  ],
+  "facce": [
+   [
+    4.14,
+    4.14
+   ]
+  ]
+ }
+}
+errors []

@@ -1,0 +1,91 @@
+{
+ "prima": {
+  "diag": 5.197,
+  "avvisi": [
+   "DXe 5,28 m: nel X X viene 5,20 m, Xnza -8 cm. Se le misure sono giuste la stanza è fuori X: Xna la Xle e scegli «Sistema Xndo un muro» (scegli tu il muro e quale X si sposta), oppure tocca il muro che non è a 90° e scegli «Rendi X»."
+  ],
+  "X": 0,
+  "rossi": 0
+ },
+ "tasto": true,
+ "Xiati": 4,
+ "fuoriStanza": [
+  "Tocca un muro della stanza.",
+  false
+ ],
+ "scelte": [
+  "Estremo in basso: Xdolo la Xle non torna lo stesso (lo X che si muove non è un X della Xle).",
+  "Sposta l'X in alto: scorre di 13 cm lungo il muro che Xa • AX 2: lato da 3,65 a 3,77 m (X Xo) • AX 1: lato da 3,95 a 3,83 m (X Xo) • AX 2: la misura del muro 3,70 m si toglie (il muro X ha una sola Xza)"
+ ],
+ "Xto": {
+  "diag": 5.28,
+  "avvisi": [],
+  "X": 1,
+  "rossi": 0
+ },
+ "Xo": "Muro Xto Lo X si è Xo di 13 cm e la Xle ora torna. In pianta vedi già il Xto. • AX 2: lato da 3,65 a 3,77 m (X Xo)• AX 1: lato da 3,95 a 3,83 m (X Xo)• AX 2: la misura del muro 3,70 m si toglie (il muro X ha una sola Xza) CX Annulla",
+ "misure": "d 3,77 | d 3,83 | m 3,65 | m 3,95",
+ "Xto": {
+  "diag": 5.197,
+  "avvisi": [
+   "DXe 5,28 m: nel X X viene 5,20 m, Xnza -8 cm. Se le misure sono giuste la stanza è fuori X: Xna la Xle e scegli «Sistema Xndo un muro» (scegli tu il muro e quale X si sposta), oppure tocca il muro che non è a 90° e scegli «Rendi X»."
+  ],
+  "X": 0,
+  "rossi": 0
+ },
+ "dopoAnnulla": 2,
+ "Xato": {
+  "diag": 5.28,
+  "avvisi": [],
+  "X": 1,
+  "rossi": 0,
+  "incl": null,
+  "Xza": "3,70"
+ },
+ "script": true,
+ "porta": {
+  "prima": {
+   "diag": 5.197,
+   "avvisi": [
+    "DXe 5,28 m: nel X X viene 5,20 m, Xnza -8 cm. Se le misure sono giuste la stanza è fuori X: Xna la Xle e scegli «Sistema Xndo un muro» (scegli tu il muro e quale X si sposta), oppure tocca il muro che non è a 90° e scegli «Rendi X»."
+   ],
+   "X": 0,
+   "rossi": 0
+  },
+  "scelte": [
+   "Estremo in basso: Xdolo la Xle non torna lo stesso (lo X che si muove non è un X della Xle).",
+   "Sposta l'X in alto: scorre di 13 cm lungo il muro che Xa • AX 2: lato da 3,65 a 3,77 m (X Xo) • AX 2: ultima Xe 2,00 m (X Xa) • AX 1: lato da 3,95 a 3,83 m (X Xo) • AX 2: la misura del muro 3,70 m si toglie (il muro X ha una sola Xza)"
+  ],
+  "dopo": {
+   "diag": 5.28,
+   "avvisi": [],
+   "X": 1,
+   "rossi": 0
+  }
+ },
+ "Xa": {
+  "prima": {
+   "diag": 5.197,
+   "avvisi": [
+    "DXe 5,28 m: nel X X viene 5,20 m, Xnza -8 cm. Se le misure sono giuste la stanza è fuori X: Xna la Xle e scegli «Sistema Xndo un muro» (scegli tu il muro e quale X si sposta), oppure tocca il muro che non è a 90° e scegli «Rendi X»."
+   ],
+   "X": 0,
+   "rossi": 0
+  },
+  "scelte": [
+   "Sposta l'X in basso: scorre di 13 cm lungo il muro che Xa • AX 2: lato da 3,65 a 3,77 m (X Xo) • Xa (totale X): 7,70 m (X Xo)",
+   "Estremo in alto: Xdolo la Xle non torna lo stesso (lo X che si muove non è un X della Xle)."
+  ],
+  "dopo": {
+   "diag": 5.28,
+   "avvisi": [],
+   "X": 1,
+   "rossi": 0
+  }
+ },
+ "girata": [
+  "Estremo a Xa",
+  "Sposta l'X a destra"
+ ]
+}
+errors []

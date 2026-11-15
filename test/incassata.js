@@ -11,11 +11,20 @@ const { chromium } = require('playwright');
   await p.evaluate(()=>{ R = blank(); R.id='inc'; R.P = '0,50'; tab='pianta'; render(); const pl = piano(); ui.view={x:-1,y:-1,s:80}; G = geometry(pl);
     const st = (pts, tipo) => { ui.newType = tipo; const sp = []; for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], c = pts[i+1]; for (let k = 0; k < 6; k++) sp.push([SX(a[0] + (c[0]-a[0])*k/6), SY(a[1] + (c[1]-a[1])*k/6)]); } sp.push([SX(pts[pts.length-1][0]), SY(pts[pts.length-1][1])]); finishStroke(sp); };
     st([[0,0],[6,0],[6,5],[0,5],[0,0]], 'P');
-    const bot = pl.walls.filter(w => isH(nd(pl,w.a),nd(pl,w.b))).sort((a,c)=>nd(pl,a.a).y-nd(pl,c.a).y)[0];
-    bot.ap = [{id:'f1', tipo:'finestra', d:'2,00', l:'1,00', h:'1,40', dav:'0,90', inv:false}]; update(true);
-    ui.sel = {k:'a', id:bot.id, ap:'f1'}; ui.focusAp = 'f1'; draw(); renderSide(); });
-  // dal pannello: forma a scalino
-  await p.selectOption('select[data-w="ap.f1.inc"]', 'scal'); await p.waitForTimeout(100);
+    ui.mode = 'select'; updTools(); });
+  // «Incassata» tra le aperture: si posa sul muro in basso come le altre
+  await p.click('[data-cat="finestre"]');
+  out.tasto = await p.evaluate(()=>{ const b = document.querySelector('[data-ap="incassata"]'); return b ? b.textContent : null; });
+  await p.evaluate(()=>{ ui.place = 'incassata'; updTools(); });
+  const at = await p.evaluate(()=>{ const r = svg.getBoundingClientRect(); return [r.left + SX(2.8), r.top + SY(0.25)]; });
+  await p.mouse.move(at[0], at[1]); await p.mouse.down(); await p.mouse.move(at[0] + 2, at[1]); await p.mouse.up(); await p.waitForTimeout(100);
+  out.posata = await p.evaluate(()=>{ const pl = piano(), w = pl.walls.find(w => (w.ap||[]).length), ap = w.ap[0]; ap.id = 'f1'; ap.l = '1,00'; ap.d = '2,00'; delete ap.lp; ap.l2 = '1,40'; update(true);
+    ui.sel = {k:'a', id:w.id, ap:'f1'}; ui.focusAp = 'f1'; draw(); renderSide();
+    return {tipo:ap.tipo, inc:ap.inc, lw:ap.lw, titolo:document.querySelector('#side .cardh') && document.querySelector('#side .cardh').textContent.trim().split(' ').slice(0,2).join(' ')}; });
+  // la forma si sceglie solo sulle incassate: una finestra normale non ha la casella
+  out.normaleSenzaForma = await p.evaluate(()=>{ const pl = piano(), w = pl.walls.find(w => (w.ap||[]).length); w.ap.push({id:'f2', tipo:'finestra', d:'0,20', l:'0,60', h:'1,40', dav:'0,90', inv:false}); update(true);
+    ui.sel = {k:'a', id:w.id, ap:'f2'}; ui.focusAp = 'f2'; renderSide(); const r = !document.querySelector('select[data-w="ap.f2.inc"]');
+    w.ap = w.ap.filter(a => a.id !== 'f2'); update(true); ui.sel = {k:'a', id:w.id, ap:'f1'}; ui.focusAp = 'f1'; renderSide(); return r; });
   const info = () => p.evaluate(()=>{ const pl = piano(), w = pl.walls.find(w => (w.ap||[]).some(a=>a.id==='f1')), ap = w.ap[0], o = G.ops.find(o=>o.ap===ap), r4b = v => +v.toFixed(3);
     const r = G.runs.find(r => !r.ext && r.walls.includes(w));
     return {lw:ap.lw, l2:ap.l2, l2p:!!ap.l2p, inc:o.inc ? {w0:r4b(o.inc.w0), w1:r4b(o.inc.w1), p:o.inc.p, strom:o.inc.strom} : null, luce:[r4b(o.s0), r4b(o.s1)],

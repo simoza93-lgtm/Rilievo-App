@@ -1,0 +1,109 @@
+{
+ "posata": {
+  "tipo": "asc",
+  "rampe": 3,
+  "alzate": 18,
+  "perRampa": "6-6-6",
+  "Xo": [
+   3.9,
+   2.9
+  ],
+  "vano": 3.61,
+  "pareti": 12,
+  "fuori": [],
+  "foro": 3.61,
+  "ok": true
+ },
+ "campi": "nr,ax,ay,as,pw,ps,na",
+ "due": {
+  "tipo": "asc",
+  "rampe": 2,
+  "alzate": 18,
+  "perRampa": "9-9",
+  "Xo": [
+   3.9,
+   3.16
+  ],
+  "vano": 3.61,
+  "pareti": 12,
+  "fuori": [
+   [
+    1,
+    2.16,
+    1.9
+   ],
+   [
+    2,
+    2.16,
+    1.9
+   ]
+  ],
+  "foro": 3.61,
+  "ok": true
+ },
+ "X": {
+  "tipo": "asc",
+  "rampe": 4,
+  "alzate": 18,
+  "perRampa": "5-5-4-4",
+  "Xo": [
+   3.9,
+   3.9
+  ],
+  "vano": 3.61,
+  "pareti": 12,
+  "fuori": [],
+  "foro": 3.61,
+  "ok": true
+ },
+ "lista": {
+  "tipo": "asc",
+  "rampe": 3,
+  "alzate": 18,
+  "perRampa": "7-4-7",
+  "Xo": [
+   3.9,
+   2.9
+  ],
+  "vano": 3.61,
+  "pareti": 12,
+  "fuori": [],
+  "foro": 3.61,
+  "ok": true
+ },
+ "troppoLunga": {
+  "tipo": "asc",
+  "rampe": 3,
+  "alzate": 18,
+  "perRampa": "9-4-5",
+  "Xo": [
+   3.9,
+   3.16
+  ],
+  "vano": 3.61,
+  "pareti": 12,
+  "fuori": [
+   [
+    1,
+    2.16,
+    1.9
+   ]
+  ],
+  "foro": 3.61,
+  "ok": true
+ },
+ "avviso": true,
+ "ps": [
+  "r1",
+  "r1"
+ ],
+ "porta": "lato Xle",
+ "script": {
+  "Xre": true,
+  "layer": "PLAN_MURI_PERIM",
+  "plinea": "_.PLINE",
+  "punti": 12,
+  "vanoInter": true
+ }
+}
+errors []

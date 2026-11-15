@@ -1,0 +1,37 @@
+{
+ "Xo": {
+  "aperto": true,
+  "titolo": "Scale e Xre",
+  "tipi": [
+   "Dritta",
+   "A L",
+   "A U",
+   "A Xola",
+   "Attorno all'Xre",
+   "AXe"
+  ],
+  "scelto": "dritta",
+  "on": true
+ },
+ "posate": {
+  "tipi": [
+   "dritta",
+   "L",
+   "U",
+   "Xola"
+  ],
+  "aperto": true,
+  "scelto": "Xola"
+ },
+ "chiuso": {
+  "aperto": false,
+  "placeSc": false
+ },
+ "ultimo": "Xola",
+ "passaAPorte": {
+  "cat": "porte",
+  "placeSc": false,
+  "place": "porta"
+ }
+}
+errors []

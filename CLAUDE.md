@@ -21,7 +21,8 @@ studio tecnico, non da informatico. Misure sempre in **metri con due decimali** 
 
 ## File
 
-- `index.html` — **tutta l'app** in un solo file (HTML, CSS e JavaScript, senza librerie e senza build).
+- `index.html` — **tutta l'app** in un solo file (HTML, CSS e JavaScript, senza build). L'unica libreria, incollata dentro, è polygon-clipping 0.15.7 (MIT):
+  serve solo quando nel piano c'è un muro obliquo (ambienti e contorni a poligoni); i rilievi tutti dritti usano la griglia.
   Contiene anche il collegamento al manifest e la registrazione del service worker (attiva solo in https o localhost).
 - `sw.js` — service worker: l'app funziona anche offline. Per la pagina usa `fetch(..., {cache:'no-cache'})`,
   quindi un nuovo `index.html` arriva da solo. Cambia `CACHE` (oggi `rilievo-v2`) solo se cambiano icone o manifest.
@@ -46,7 +47,7 @@ finiscono in `test/out/` (non va nel repository).
 - Per ogni funzione nuova o bug corretto aggiungi una prova nuova (copia lo schema di `split.js` o `apfit.js`).
 - Le prove `shot35`–`shot41` riguardano le scale, `p1`–`p5` le parziali, `ang*` gli angoli disegnati in due
   tratti, `balc*` i balconi e i parapetti a filo, `rot` la rotazione della vista, `mano` le note a mano, `orto` le linee a mano raddrizzate,
-  `scp` le parziali delle scale, `split*` i muri divisi, `incrocio` i tramezzi attaccati a un incrocio, `nodi` gli incroci doppi, `linea` la posizione dei muri dritti, `spessore` i muri resi di un altro spessore, `incassata` le finestre incassate, `linee` Linea e Costruzione, `paral` la Parallela, `apfit` le aperture che non entrano nel muro.
+  `scp` le parziali delle scale, `split*` i muri divisi, `incrocio` i tramezzi attaccati a un incrocio, `nodi` gli incroci doppi, `linea` la posizione dei muri dritti, `spessore` i muri resi di un altro spessore, `incassata` le finestre incassate, `linee` Linea e Costruzione, `paral` la Parallela, `taglia` Taglia ed Estendi, `obliqui` i muri obliqui, `gradini` i tratti obliqui senza gradini, `diagonali` diagonali, rientro e fuori squadra, `apobl` porte e finestre sui muri obliqui, `scrobl` le quote allineate dei muri obliqui nello script, `porte` i tipi di porta e i pannelli Porte/Finestre, `scalepan` il pannello Scale, `scasc` la scala attorno all'ascensore, `lift` l'ascensore da solo, `scalegr` i gradini ritoccati a mano, `layer` i layer (acceso, spento, bloccato), `apfit` le aperture che non entrano nel muro, `inclina` la diagonale sistemata inclinando un muro, `pianer` rampe di larghezza diversa e pianerottoli su misura, `sagoma` la sagoma di un altro piano e l'allineamento dei piani.
 
 ## Regole del rilievo (non cambiarle senza chiedere)
 
