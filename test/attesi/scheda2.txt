@@ -1,3 +1,17 @@
-{"Xo":true,"pagine":2,"titoli":["Pianta — Piano terra","Pianta — Piano primo"],"dati":["Nome / XEsempio","IXoVia di Prova 1, TXo","Data del X15/11/2026","FX","PXla345","SXno2","Piani XiPiano terra, Piano primo, SXto"],"Xzione":"Studio Tecnico Geom. Cosenza Franco","muri":[true,true],"idDoppi":0,"dopo":{"cur":1,"tab":"calc","svgApp":false},"prima":{"cur":1,"tab":"calc"}}
-pagine del pdf 2
+Xo: true
+pagine: ["spg: Dati della X, Pianta — Piano terra","stab: Piano terra, AX, Porte e Xe, Note","spg: Pianta — Piano primo","stab: Piano primo, AX, Porte e Xe","spg: Foto","spg: Foto (segue)"]
+dati: ["Nome / XEsempio","IXoVia di Prova 1, TXo","Data del X15/11/2026","FX","PXla345","SXno2","Piani XiPiano terra, Piano primo, SXto"]
+Xzione: "Studio Tecnico Geom. Cosenza Franco"
+muri: [true,true]
+idDoppi: 0
+Xi: ["AX | DXione | Sup. netta (m²) | PXo (m) | Altezza (m) | Volume (m³) | Sup. Xata (m²) | RX | RAI | Alt.","SXo | SXo | 18,34 | 17,24 | 2,70 | 49,51 | 4,60 | 1/4,0 | ok | ok","Cucina | Cucina | 16,43 | 16,24 | 2,70 | 44,35 | 1,68 | 1/9,8 | no | ok","Camera | Camera | 10,89 | 13,20 | 2,70 | 29,40 | 1,68 | 1/6,5 | ok | ok","Bagno | Bagno | 7,26 | 11,00 | 2,70 | 19,60 | 0,48 | 1/15,1 | — | ok","Camera 2 | Camera | 11,55 | 13,60 | 2,70 | 31,19 | 1,68 | 1/6,9 | ok | ok","Totale piano | 64,46 |  |  | 174,05 | "]
+Xe: ["Tra | Tipo | LXa (m) | Altezza (m) | DXe (m)","Bagno / X | FX | 0,60 | 0,80 | 1,50","Bagno / SXo | Porta | 0,70 | — | —","Camera / X | FX | 1,20 | 1,40 | 0,90","Camera / SXo | Porta | 0,80 | — | —","Camera 2 / Cucina | Porta | 0,80 | — | —","Camera 2 / X | FX | 1,20 | 1,40 | 0,90","Cucina / X | FX | 1,20 | 1,40 | 0,90","Cucina / SXo | Porta | 0,80 | — | —","SXo / X | FX | 1,40 | 1,40 | 0,90","SXo / X | IX | 1,00 | 2,10 | —","SXo / X | Porta-Xa | 1,20 | 2,20 | —"]
+note: ["CXe del gas in cucina\Xcare canna X"]
+noteP2: null
+foto: ["1 · Piano terra · Cucina — parete nord","2 · Piano terra","3 · Piano terra — Xa","4 · Piano terra","1 · Piano primo — X"]
+fotoOk: [1400,1400,1400,1400,1400]
+tasto: "Scheda PDF"
+dopo: {"cur":1,"tab":"calc","svgApp":false}
+prima: {"cur":1,"tab":"calc"}
+pagine del pdf 6
 errors []

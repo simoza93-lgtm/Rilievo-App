@@ -179,8 +179,9 @@ ol.help li{margin-bottom:4px}
   body>*:not(#scheda){display:none!important}
   body{background:#fff!important}
   #scheda{display:block;color:#1c2230;font:11pt Arial,sans-serif;--ink:#1c2230;--mut:#687185;--line:#dde1e8;--acc:#1f5fbf;--accbg:#e6efff;--warn:#a86a12;--warnbg:#fff3dc;--bad:#c0392b;--badbg:#fde8e5;--ok:#2f855a;--okbg:#e3f5ea;--wall:#d6d9e1;--wP:#1c2230;--wI:#b8860b;--wR:#d0342c;--grid:transparent;--cv:#fff;--note:#c99a06;--todo:#e8890c;--inkc:#7c3aed;--notebg:#fff8d9;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  #scheda .spg{break-after:page;height:271mm;display:flex;flex-direction:column}
-  #scheda .spg:last-child{break-after:auto}
+  #scheda>div{break-before:page}
+  #scheda>div:first-child{break-before:auto}
+  #scheda .spg{height:271mm;display:flex;flex-direction:column}
   #scheda .shd{display:flex;justify-content:space-between;gap:10mm;border-bottom:1.5px solid #1c2230;padding-bottom:3mm;margin-bottom:4mm}
   #scheda .sst{white-space:pre-line;font-size:9.5pt;line-height:1.35}
   #scheda .sst::first-line{font-weight:bold;font-size:11pt}
@@ -193,6 +194,15 @@ ol.help li{margin-bottom:4px}
   #scheda .spl{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
   #scheda .spl svg{max-width:100%;max-height:100%}
   #scheda .snote{font-size:8.5pt;color:#687185;margin-top:2mm}
+  #scheda .stab table{font-size:8.5pt}
+  #scheda .stab td,#scheda .stab td:first-child,#scheda .stab th{border:1px solid #c8ccd4;padding:1.2mm 1.8mm;width:auto;color:#1c2230;text-align:left}
+  #scheda .stab th{background:#eef0f4;font-weight:bold;font-size:8pt;text-transform:none;letter-spacing:0;white-space:normal}
+  #scheda .stab .n{text-align:right}
+  #scheda .stab tr{break-inside:avoid}
+  #scheda .sfg{display:grid;grid-template-columns:1fr 1fr;gap:5mm;flex:1;min-height:0}
+  #scheda .sfg figure{margin:0;display:flex;flex-direction:column;min-height:0;break-inside:avoid}
+  #scheda .sfg img{flex:1;min-height:0;width:100%;object-fit:contain;object-position:center top}
+  #scheda .sfg figcaption{font-size:8.5pt;margin-bottom:1.5mm;order:-1}
 }
 </style>
 </head>
@@ -1403,7 +1413,7 @@ function geometry(pl) {
   ops.forEach(o => {
     const {I, s0, s1} = o, h = I.t / 2, sm = (s0 + s1) / 2, tv = I.obl ? I.u : I.H ? [1, 0] : [0, 1], pn = I.obl ? I.n : I.H ? [0, 1] : [1, 0];
     const mid = [I.a.x + tv[0] * sm + pn[0] * (I.o || 0), I.a.y + tv[1] * sm + pn[1] * (I.o || 0)], probe = sg => compAt(mid[0] + pn[0] * sg * (h + 0.03), mid[1] + pn[1] * sg * (h + 0.03));
-    const cp = probe(1), cm = probe(-1);
+    const cp = probe(1), cm = probe(-1); o.cs = [cp, cm];
     [cp, cm].forEach(c => { if (c >= 0 && (o.ap.tipo === 'finestra' || o.ap.tipo === 'uscita') && num(o.ap.h) > 0) comps[c].Af += num(o.ap.l) * num(o.ap.h); });
     o.sides = [cp, cm]; o.side = cp >= 0 ? 1 : cm >= 0 ? -1 : 1;   // lato dove si scrive la larghezza: verso l'ambiente
     let sg = (cp === -1 && cm !== -1) ? 1 : (cm === -1 && cp !== -1) ? -1 : 1;
@@ -4248,14 +4258,38 @@ function schedaPiante() {   // disegna ogni piano su un foglio fisso, senza sele
       ui.Wr = ui.W = PW; ui.Hr = ui.H = PH; svg.setAttribute('width', PW); svg.setAttribute('height', PH); svg.setAttribute('viewBox', `0 0 ${PW} ${PH}`);
       fit(); draw();
       const vuoto = !pl.walls.length && !(pl.notes || []).length && !(pl.stairs || []).length;
-      out.push({nome:pl.nome, vuoto, svg:`<svg viewBox="0 0 ${PW} ${PH}" width="${PW}" height="${PH}">${svg.innerHTML.replace(/ id="[^"]*"/g, '')}</svg>`});
+      out.push({nome:pl.nome, vuoto, tab:schedaTab(pl), svg:`<svg viewBox="0 0 ${PW} ${PH}" width="${PW}" height="${PH}">${svg.innerHTML.replace(/ id="[^"]*"/g, '')}</svg>`});
     });
   } finally {
     R.cur = keep.cur; R.vrot = keep.vrot; ui.sel = keep.sel; ui.view = keep.view; tab = keep.tab; render();
   }
   return out;
 }
-function schedaHTML() {
+function schedaTab(pl) {   // ambienti, porte e finestre e note del piano aperto (G è già calcolato)
+  const nomeC = c => { if (!(c >= 0)) return 'esterno'; const r = (pl.rooms || []).find(x => x._c === c); return r ? r.nome || 'ambiente senza nome' : 'esterno'; };
+  const ok = v => v === null ? '—' : v ? 'ok' : 'no';
+  const rows = calcoli(pl);
+  let h = '';
+  if (rows.length) h += `<h2>Ambienti</h2><table><thead><tr><th>Ambiente</th><th>Destinazione</th><th class="n">Sup. netta (m²)</th><th class="n">Perimetro (m)</th><th class="n">Altezza (m)</th><th class="n">Volume (m³)</th><th class="n">Sup. finestrata (m²)</th><th class="n">Rapporto</th><th>RAI</th><th>Alt.</th></tr></thead><tbody>`
+    + rows.map(r => `<tr><td>${esc(r.r.nome)}</td><td>${esc(r.r.dest)}</td><td class="n">${f2(r.S)}</td><td class="n">${f2(r.per)}</td><td class="n">${f2(r.H)}</td><td class="n">${f2(r.V)}</td><td class="n">${f2(r.Af)}</td><td class="n">${isFinite(r.ratio) ? '1/' + r.ratio.toFixed(1).replace('.', ',') : '—'}</td><td>${ok(r.raiOk)}</td><td>${ok(r.hOk)}</td></tr>`).join('')
+    + `<tr><td colspan="2"><b>Totale piano</b></td><td class="n"><b>${f2(rows.reduce((t, r) => t + (isFinite(r.S) ? r.S : 0), 0))}</b></td><td></td><td></td><td class="n"><b>${f2(rows.reduce((t, r) => t + (isFinite(r.V) ? r.V : 0), 0))}</b></td><td colspan="4"></td></tr></tbody></table>`;
+  const ops = (G.ops || []).map(o => ({o, tra:[...new Set((o.cs || []).map(nomeC))].sort((x, y) => (x === 'esterno') - (y === 'esterno')).join(' / ')})).sort((a, b) => a.tra.localeCompare(b.tra, 'it'));
+  if (ops.length) h += `<h2>Porte e finestre</h2><table><thead><tr><th>Tra</th><th>Tipo</th><th class="n">Larghezza (m)</th><th class="n">Altezza (m)</th><th class="n">Davanzale (m)</th></tr></thead><tbody>`
+    + ops.map(({o, tra}) => `<tr><td>${esc(tra)}</td><td>${esc(TIPI_AP[o.ap.tipo] || o.ap.tipo || '')}</td><td class="n">${String(o.ap.l || '').trim() ? f2(num(o.ap.l)) : 'da misurare'}</td><td class="n">${f2(num(o.ap.h))}</td><td class="n">${f2(num(o.ap.dav))}</td></tr>`).join('') + '</tbody></table>';
+  const nt = (pl.notes || []).filter(n => String(n.t || '').trim());
+  if (nt.length) h += `<h2>Note</h2><table><tbody>${nt.map(n => `<tr><td style="white-space:pre-line">${esc(n.t)}</td></tr>`).join('')}</tbody></table>`;
+  return h;
+}
+async function schedaFoto(f) {   // foto ridotta a 1400 px per la stampa (la miniatura è troppo piccola, l'originale troppo pesante)
+  if (!f.blob) return f.thumb || '';
+  const url = URL.createObjectURL(f.blob);
+  try { const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+    const k = Math.min(1, 1400 / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(img.naturalWidth * k)); c.height = Math.max(1, Math.round(img.naturalHeight * k));
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); return c.toDataURL('image/jpeg', 0.8); }
+  catch (e) { return f.thumb || ''; } finally { URL.revokeObjectURL(url); }
+}
+async function schedaHTML() {
   const d = /^(\d{4})-(\d\d)-(\d\d)$/.exec(R.data || ''), data = d ? `${d[3]}/${d[2]}/${d[1]}` : (R.data || '');
   const tit = `<div class="sti"><b>Scheda di rilievo</b>${esc(R.nome || '')}${R.nome ? '<br>' : ''}rilievo del ${esc(data)}</div>`;
   const head = `<div class="shd"><div class="sst">${esc(studioTxt())}</div>${tit}</div>`;
@@ -4264,14 +4298,26 @@ function schedaHTML() {
   const dati = `<h2>Dati della pratica</h2><table>${riga('Nome / cliente', R.nome)}${riga('Indirizzo', R.indirizzo)}${riga('Data del rilievo', data)}
     ${riga('Foglio', R.fg)}${riga('Particella', R.pla)}${riga('Subalterno', R.sub)}${riga('Piani rilevati', R.piani.map(p => p.nome).join(', '))}</table>`;
   const pag = (p, i) => `<div class="spg">${head}${i === 0 ? dati : ''}<h2>Pianta — ${esc(p.nome)}</h2><div class="spl">${p.svg}</div>
-    <div class="snote">Schizzo di rilievo, non in scala: valgono le misure scritte (in metri).</div></div>`;
-  return piante.length ? piante.map(pag).join('') : `<div class="spg">${head}${dati}<p>Nessun piano disegnato.</p></div>`;
+    <div class="snote">Schizzo di rilievo, non in scala: valgono le misure scritte (in metri).</div></div>`
+    + (p.tab ? `<div class="stab">${head}<h2 style="font-size:13pt">${esc(p.nome)}</h2>${p.tab}</div>` : '');
+  // foto: numerate per piano come i segnaposto in pianta, quattro per pagina
+  const fs = [];
+  R.piani.forEach(pl => { (ui.fotos || []).filter(f => f.piano === pl.id).forEach((f, i) => fs.push({f, cap:`${i + 1} · ${pl.nome}${fRoom(f) ? ' · ' + fRoom(f) : ''}${f.nome ? ' — ' + f.nome : ''}`})); });
+  const fig = []; for (const x of fs) fig.push(`<figure><img src="${await schedaFoto(x.f)}" alt=""><figcaption>${esc(x.cap)}</figcaption></figure>`);
+  let foto = ''; for (let i = 0; i < fig.length; i += 4) foto += `<div class="spg">${head}<h2>Foto${i ? ' (segue)' : ''}</h2><div class="sfg">${fig.slice(i, i + 4).join('')}</div></div>`;
+  return (piante.length ? piante.map(pag).join('') : `<div class="spg">${head}${dati}<p>Nessun piano disegnato.</p></div>`) + foto;
 }
-function stampaScheda() {
-  let el = $('#scheda'); if (!el) { el = document.createElement('div'); el.id = 'scheda'; document.body.appendChild(el); }
-  el.innerHTML = schedaHTML();
-  window.addEventListener('afterprint', () => { el.innerHTML = ''; }, {once:true});
-  window.print();
+async function stampaScheda() {
+  const b = $('#bScheda'); if (b.disabled) return; b.disabled = true; b.textContent = 'Preparo la scheda…';
+  try {
+    await loadFotos(true);   // le foto servono anche ai segnaposto in pianta
+    let el = $('#scheda'); if (!el) { el = document.createElement('div'); el.id = 'scheda'; document.body.appendChild(el); }
+    el.innerHTML = await schedaHTML();
+    await Promise.all([...el.querySelectorAll('img')].map(i => i.decode().catch(() => {})));
+    window.addEventListener('afterprint', () => { el.innerHTML = ''; }, {once:true});
+    window.print();
+  } catch (e) { toast('Non riesco a preparare la scheda: ' + (e && e.message || e)); }
+  finally { b.disabled = false; b.textContent = 'Scheda PDF'; }
 }
 $('#bScheda').onclick = () => stampaScheda();
 $('#bExp').onclick = () => { if (R.demo) { exportR(R); return; } exportR(R); R.unexp = false; arcPut(R); updExpBadge(); };

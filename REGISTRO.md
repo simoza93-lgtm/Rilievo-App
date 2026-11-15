@@ -3,6 +3,18 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 15 novembre 2026 — scheda del rilievo, tappa 3: ambienti, porte e finestre, note e foto
+
+- Dopo la pianta di ogni piano, una pagina con le tabelle del piano:
+  - **Ambienti**, come nella scheda Calcoli: superficie netta, perimetro, altezza, volume, superficie finestrata,
+    rapporto, RAI e altezza (ok / no), con il totale del piano.
+  - **Porte e finestre**: tra quali ambienti stanno (o verso l'esterno), tipo, larghezza, altezza e davanzale.
+    Una larghezza non ancora scritta compare come «da misurare».
+  - **Note** scritte con «Testo» (le note a mano restano nella pianta).
+- In fondo le **foto**, quattro per pagina, ridotte a 1400 px. Didascalia: numero (lo stesso del segnaposto in pianta,
+  contato piano per piano), piano, ambiente e nome della foto.
+- Mentre prepara la scheda il tasto dice «Preparo la scheda…». Prova `scheda2` aggiornata (5 foto finte e una nota).
+
 ## 15 novembre 2026 — scheda del rilievo, tappa 2: tasto «Scheda PDF»
 
 - Nella barra in alto, accanto a «Esporta», il tasto **Scheda PDF**: prepara la scheda in A4 verticale e apre la
