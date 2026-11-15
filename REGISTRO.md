@@ -3,6 +3,15 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 15 novembre 2026 — sezione, tappa 1: solaio di calpestio e altezza di tutti i vani
+
+- Impostazioni, nuova scheda **Solai**: per ogni piano lo spessore del solaio di calpestio (quello su cui si
+  cammina in quel piano). Il soffitto di un piano è il calpestio del piano sopra. Serve per la sezione.
+- **Altezza** anche per porte, ingressi e varchi (prima solo finestre e porte-finestre). Entra nella tabella
+  della scheda PDF; la superficie finestrata resta solo di finestre e porte-finestre.
+- Rilievi vecchi: le caselle nuove partono vuote, nessuna conversione.
+- Prova nuova `solai`.
+
 ## 15 novembre 2026 — scheda del rilievo, tappa 3: ambienti, porte e finestre, note e foto
 
 - Dopo la pianta di ogni piano, una pagina con le tabelle del piano:

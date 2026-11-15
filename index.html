@@ -3709,7 +3709,7 @@ function setFull(on) {
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && ui.full) setFull(false); else if (tab === 'pianta') setTimeout(() => { sizeCanvas(); draw(); }, 60); });
 function apFields(x) { return `        <div><label class="l">Tipo</label><select data-w="ap.${x.id}.tipo" data-re>${opt(TIPI_AP, x.tipo)}</select></div>
         ${inp('ap.' + x.id + '.d', x.d, 'Distanza (m)')}${inp('ap.' + x.id + '.l', x.l, 'Larghezza (m)')}
-        ${x.tipo === 'finestra' || x.tipo === 'uscita' ? inp('ap.' + x.id + '.h', x.h, 'Altezza (m)') : ''}
+        ${inp('ap.' + x.id + '.h', x.h, 'Altezza (m)')}
         ${x.tipo === 'finestra' ? inp('ap.' + x.id + '.dav', x.dav, 'Davanzale (m)') : ''}
         ${x.tipo === 'finestra' && x.inc ? `<div><label class="l">Forma</label><select data-w="ap.${x.id}.inc" data-re>${opt({scal:'A scalino', strom:'Strombata', '':'Normale (non incassata)'}, x.inc)}</select></div>` : ''}
         ${x.tipo === 'finestra' && x.inc ? (() => { const f = dimAp(piano(), x.id), I = f && G.T && G.T.info.get(f.w.id), rs = (num(x.l2) - num(x.l)) / 2;
@@ -4020,6 +4020,8 @@ function renderSet() {
   const i = (k, l, dec = true, cls = '') => `<div class="${cls}"><label class="l">${l}</label><input data-s="${k}" value="${esc(R[k])}" ${dec ? 'inputmode="decimal"' : ''}></div>`;
   const c = (k, l) => `<label class="chk"><input type="checkbox" data-o="${k}" ${R.opt[k] ? 'checked' : ''}> ${l}</label>`;
   return `<div class="card"><div class="cardh">Rilievo</div><div class="grid">${i('nome', 'Nome / cliente', false)}${i('data', 'Data', false)}${i('indirizzo', 'Indirizzo', false, 'c2')}${i('fg', 'Foglio', false)}${i('pla', 'Particella', false)}${i('sub', 'Subalterno', false)}</div></div>
+  <div class="card"><div class="cardh">Solai</div><div class="grid">${R.piani.map(p => `<div><label class="l">${esc(p.nome)}: solaio di calpestio (m)</label><input data-sol="${p.id}" value="${esc(p.sol || '')}" inputmode="decimal"></div>`).join('')}</div>
+  <p class="hint">Spessore del solaio su cui si cammina in quel piano. Serve per la sezione: il soffitto di un piano è il calpestio del piano sopra.</p></div>
   <div class="card"><div class="cardh">Intestazione dello studio</div><textarea data-pref="studio" rows="4" style="width:100%;box-sizing:border-box;font:inherit">${esc(studioTxt())}</textarea>
   <p class="hint">Va in alto nella scheda del rilievo. Vale per questo dispositivo, per tutti i rilievi.</p></div>
   <div class="card"><div class="cardh">Spessori dei muri</div><div class="grid">${i('P', 'Perimetrali (m)')}${i('T', 'Tramezzi (m)')}${i('incP', 'Finestre incassate: profondità della luce stretta (m)')}</div>
@@ -4236,6 +4238,7 @@ document.addEventListener('input', e => {
   else if (t.id === 'iBgOp' && pl.bg) { pl.bg.op = +t.value; draw(); save(); }
   else if ((t.id === 'cBgHide' || t.id === 'cBgLock') && pl.bg) { pushUndo(); pl.bg[t.id === 'cBgHide' ? 'hide' : 'lock'] = t.checked; if (pl.bg.lock) { ui.bgMove = false; ui.bgCal = null; } save(); draw(); renderSide(); }
   else if (t.id === 'cLab') { ui.labels = t.checked; try { localStorage.setItem('rilievo-etichette', t.checked ? '1' : '0'); } catch (e) {} draw(); }
+  else if (t.dataset.sol) { const pl = R.piani.find(x => x.id === t.dataset.sol); if (pl) { undemo(); pl.sol = t.value; save(); } }
   else if (t.dataset.pref === 'studio') { try { localStorage.setItem('rilievo-studio', t.value); } catch (e) {} }
   else if (t.dataset.pref === 'mclassic') { ui.mnew = !t.checked; try { localStorage.setItem('rilievo-mstile', t.checked ? 'classico' : 'nuovo'); } catch (e) {} }
   else if (t.dataset.o) { R.opt[t.dataset.o] = t.checked; save(); }
