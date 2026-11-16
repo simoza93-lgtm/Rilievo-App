@@ -3,6 +3,16 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 16 novembre 2026 — Importa DXF, tappa 3: scale, balconi e pergolato
+
+- **Scale**: i gradini in fila (3 o più coppie uguali, a passo regolare, sul layer dei tramezzi) diventano una **scala dritta** del rilievo, nello stesso posto,
+  con larghezza, passo e numero di alzate del disegno (solo proposte). Il verso di salita non si legge dal DXF: si gira dal pannello della scala.
+  Solo scale dritte e con le linee sugli assi; scale a L, a U o curve per ora no.
+- **Balconi e pergolato** (muri dei tramezzi fuori dalla casa): non sono più lasciati da parte, entrano come muri col loro spessore (0,15, 0,20, 0,25…).
+  Nell'anteprima sono **viola** e si scartano con un tocco come gli altri; le scale sono in verde acqua e si scartano allo stesso modo.
+- Pezzi sciolti (travi, pilastri) restano muri non collegati: vanno scartati a mano se non servono.
+- Prova `dxf`: attesi rigenerati (balcone dentro, scala dritta con 5 gradini).
+
 ## 16 novembre 2026 — Importa DXF, tappa 2: porte, finestre e varchi
 
 - L'importazione legge anche **archi** e **blocchi** (INSERT, aperti come linee; scala e rotazione rispettate) e riconosce le aperture sul layer degli infissi:

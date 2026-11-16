@@ -17,7 +17,7 @@ const FILE = process.argv[2] || require('path').join(__dirname, 'casa-finta.dxf'
   out.pannello = await p.evaluate(() => ({unita:[...document.querySelectorAll('#dDxf input[name=dxu]')].map(i => i.value + (i.checked ? '*' : '')).join(' '), righe:document.querySelectorAll('#dDxf .dxl').length}));
   await p.click('#dxAv'); await p.waitForSelector('#dxCrea');
   out.muri = await p.evaluate(() => { const r = dxfS.res, t = w => +w.th.toFixed(2), c = v => +v.toFixed(2);
-    return {n:r.muri.length, perim:r.muri.filter(w => w.g === 'P').length, tram:r.muri.filter(w => w.g === 'T').length, obliqui:r.muri.filter(w => w.obl).length, scartate:r.sole.length, gradini:r.gradini.length, fuori:r.fuori.length,
+    return {n:r.muri.length, perim:r.muri.filter(w => w.g === 'P').length, tram:r.muri.filter(w => w.g === 'T').length, obliqui:r.muri.filter(w => w.obl).length, scartate:r.sole.length, gradini:r.gradini.length, scale:r.scale.map(c => c.k + " gr passo " + c.th.toFixed(2) + " n" + c.n), fuori:r.fuori.length,
       spessori:[...new Set(r.muri.map(t))].sort(),
       elenco:r.muri.map(w => `${w.g} ${t(w)} (${c(w.p[0])};${c(w.p[1])})-(${c(w.q[0])};${c(w.q[1])})`).sort()}; });
   await p.screenshot({path:OUT + '/dxf_anteprima.png'});

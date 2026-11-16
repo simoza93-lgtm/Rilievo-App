@@ -4356,7 +4356,7 @@ $('#bScr').onclick = () => {
 
 /* ================= Importa DXF — tappa 1: muri e tramezzi =================
    Il DXF fa solo da schizzo: nasce un rilievo nuovo con i muri al loro posto e le caselle «mis» vuote (le misure le scrive Simone sul posto).
-   Porte, finestre, scale e balconi arrivano nelle tappe 2 e 3: per ora gradini e cose fuori dalla casa si lasciano da parte. */
+   Tappa 2: porte, finestre e varchi. Tappa 3: scale dritte dai gradini in fila; balconi e pergolato (fuori dalla casa) entrano come muri marcati w.fu. */
 const DXF_GR = [['P', 'Muri perimetrali'], ['T', 'Tramezzi e scale'], ['F', 'Infissi e ringhiere'], ['-', 'Ignora']];
 const DXF_COL = {1:'#e02020', 2:'#d6a800', 3:'#1fa84a', 4:'#14b8c8', 5:'#2a55e0', 6:'#c030c0', 7:'#222222', 8:'#808080', 9:'#b0b0b0'};
 // legge un DXF di testo: layer (nome, colore, spento) e segmenti di LINE, LWPOLYLINE, POLYLINE; i blocchi (INSERT) si contano e basta
@@ -4481,12 +4481,18 @@ function dxfMuri(segs, grp, f, arcs) {
   const T = walls.filter(w => w.g === 'T'), isGr = new Set();
   T.forEach(w => { const m = T.filter(x => x.F === w.F && Math.abs(x.th - w.th) < 0.02 && Math.abs(x.t0 - w.t0) < 0.05 && Math.abs(x.t1 - w.t1) < 0.05); if (m.length >= 3) m.forEach(x => isGr.add(x)); });
   walls = walls.filter(w => { if (!isGr.has(w)) return true; res.gradini.push(w); return false; });
+  // scale: i gradini in fila (stessa famiglia, stesso spessore e stessa lunghezza, a passo regolare) diventano una scala dritta
+  res.scale = []; res.gradini.slice().sort((x, y) => x.s - y.s).forEach(w => { if (!w.F.ortho) return;
+    const c = res.scale.find(c => c.F === w.F && Math.abs(c.th - w.th) < 0.02 && Math.abs(c.t0 - w.t0) < 0.05 && Math.abs(c.t1 - w.t1) < 0.05 && w.s - c.s1 < w.th * 2.5 + 0.05);
+    if (c) { c.s1 = w.s; c.k++; } else res.scale.push({F:w.F, th:w.th, t0:w.t0, t1:w.t1, s0:w.s, s1:w.s, k:1}); });
+  res.scale = res.scale.filter(c => c.k >= 3).map((c, i) => { const {u, n} = c.F, sa = c.s0 - c.th / 2, sb = c.s1 + c.th / 2, q = [[c.t0, sa], [c.t0, sb], [c.t1, sa], [c.t1, sb]].map(([t, s]) => [u[0] * t + n[0] * s, u[1] * t + n[1] * s]);
+    return Object.assign(c, {id:1e6 + i, bb:[Math.min(...q.map(p => p[0])), Math.min(...q.map(p => p[1])), Math.max(...q.map(p => p[0])), Math.max(...q.map(p => p[1]))], n:Math.round((sb - sa) / c.th) + 1}); });
   const P = walls.filter(w => w.g === 'P'); dxfRicuci(P);
-  // fuori dal perimetro (balconi, travi del pergolato): il punto di mezzo cade fuori dalla casa
+  // fuori dal perimetro (balconi, travi del pergolato): il punto di mezzo cade fuori dalla casa; entrano come muri col loro spessore, marcati (w.fu)
   const inside = pt => { let out = 0; [0.31, 1.9, 4.4].forEach(a => { const d = [Math.cos(a), Math.sin(a)]; let n = 0;
     P.forEach(w => { const e = [w.q[0] - w.p[0], w.q[1] - w.p[1]], cr = cross2(d, e); if (Math.abs(cr) < 1e-9) return; const r = [w.p[0] - pt[0], w.p[1] - pt[1]], lam = cross2(r, e) / cr, mu = cross2(r, d) / cr; if (lam > 0 && mu >= 0 && mu < 1) n++; }); if (n % 2 === 0) out++; });
     return out < 2; };
-  if (P.length >= 3) walls = walls.filter(w => { if (w.g === 'P' || [0.25, 0.5, 0.75].some(t => inside([w.p[0] + (w.q[0] - w.p[0]) * t, w.p[1] + (w.q[1] - w.p[1]) * t]))) return true; res.fuori.push(w); return false; });
+  if (P.length >= 3) walls.forEach(w => { if (w.g !== 'P' && ![0.25, 0.5, 0.75].some(t => inside([w.p[0] + (w.q[0] - w.p[0]) * t, w.p[1] + (w.q[1] - w.p[1]) * t]))) { w.fu = true; res.fuori.push(w); } });
   dxfRicuci(walls);
   res.muri = walls; res.inf = dxfInfissi(segs, arcs || [], grp, f, walls); return res;
 }
@@ -4515,9 +4521,9 @@ function dxfInfissi(segs, arcs, grp, f, walls) {
   return out;
 }
 // crea il rilievo nuovo: un solo piano, muri al loro posto, nessuna misura scritta
-function dxfCrea(walls, nome, aps) {
-  const n = blank(), pl = n.piani[0], old = R; n.id = uid(); n.nome = nome; n.unexp = true; n.mod = new Date().toISOString(); n.demo = false;
-  const x0 = Math.min(...walls.map(w => Math.min(w.p[0], w.q[0]))), y0 = Math.min(...walls.map(w => Math.min(w.p[1], w.q[1])));
+function dxfCrea(walls, nome, aps, scale) {
+  const n = blank(), pl = n.piani[0], old = R; n.id = uid(); n.nome = nome; n.unexp = true; n.mod = new Date().toISOString(); n.demo = false; scale = scale || [];
+  const x0 = Math.min(...walls.map(w => Math.min(w.p[0], w.q[0])), ...scale.map(c => c.bb[0])), y0 = Math.min(...walls.map(w => Math.min(w.p[1], w.q[1])), ...scale.map(c => c.bb[1]));
   R = n;   // P_(), T_() e thick() leggono R
   try { walls.slice().sort((a, b) => (a.g === 'P' ? 0 : 1) - (b.g === 'P' ? 0 : 1)).forEach(w => {
       const std = w.g === 'P' ? P_() : T_(), tipo = Math.abs(w.th - std) <= 0.02 ? w.g : 'X', sp = f2(w.th), before = new Set(pl.walls);
@@ -4532,7 +4538,11 @@ function dxfCrea(walls, nome, aps) {
       if ((w.ap || []).some(o => { const o0 = I.da + num(o.d); return Math.min(o0 + num(o.l), a0 + l) - Math.max(o0, a0) > 0.005; })) return;
       const df = DEF_AP[a.tipo] || {}, ap = {id:uid(), tipo:a.tipo, d:f2(d), l:f2(l), h:df.h || '', dav:df.dav || '', inv:false, dp:true, lp:true};
       if (a.tipo === 'porta') { const al = p => I.H ? p[0] - x0 - I.a.x : p[1] - y0 - I.a.y, sd = p => I.H ? p[1] - y0 - I.a.y - I.o : p[0] - x0 - I.a.x - I.o; ap.pt = ''; ap.cx = al(a.H) > al(a.Ec); ap.vx = sd(a.Eo) > 0; }
-      w.ap = w.ap || []; w.ap.push(ap); }); }
+      w.ap = w.ap || []; w.ap.push(ap); });
+    // scale: dritta con la larghezza, il passo e il numero di alzate del disegno (proposte); il verso di salita non si legge dal DXF: si gira dal pannello
+    scale.forEach(c => { const st = newStair('dritta', 0, 0), tw = c.bb[2] - c.bb[0], th = c.bb[3] - c.bb[1]; Object.assign(st, {b:f2(c.t1 - c.t0), n:String(c.n), p:f2(c.th)});
+      let best = 1e9; [0, 90].forEach(r => { st.rot = r; const b = stairPrims(st).bbox, e = Math.abs(b[2] - b[0] - tw) + Math.abs(b[3] - b[1] - th); if (e < best) { best = e; st.rotB = r; } }); st.rot = st.rotB; delete st.rotB;
+      const b = stairPrims(st).bbox; st.x = r4(num(st.x) + c.bb[0] - x0 - b[0]); st.y = r4(num(st.y) + c.bb[1] - y0 - b[1]); anchorStair(pl, st); (pl.stairs = pl.stairs || []).push(st); }); }
   finally { R = old; }
   return n;
 }
@@ -4559,7 +4569,7 @@ function dxfPasso2() {
   S.res = dxfMuri(S.P.segs, S.grp, S.f, S.P.arcs); S.off = new Set(); dxfDisegna(); if (!dlg.open) dlg.showModal();
 }
 function dxfDisegna() {
-  const S = dxfS, r = S.res, dlg = $('#dDxf'), all = r.muri.concat(r.gradini, r.fuori), pts = [];
+  const S = dxfS, r = S.res, dlg = $('#dDxf'), all = r.muri.concat(r.gradini), pts = [];
   all.forEach(w => pts.push(w.p, w.q)); r.sole.forEach(w => pts.push(w.p, w.q));
   const x0 = Math.min(...pts.map(p => p[0]), 0) - 0.5, x1 = Math.max(...pts.map(p => p[0]), 1) + 0.5, y0 = Math.min(...pts.map(p => p[1]), 0) - 0.5, y1 = Math.max(...pts.map(p => p[1]), 1) + 0.5;
   const X = p => (p[0] - x0).toFixed(3), Y = p => (y1 - p[1]).toFixed(3);
@@ -4567,18 +4577,20 @@ function dxfDisegna() {
     return `<polygon points="${[[w.p[0] + n[0], w.p[1] + n[1]], [w.q[0] + n[0], w.q[1] + n[1]], [w.q[0] - n[0], w.q[1] - n[1]], [w.p[0] - n[0], w.p[1] - n[1]]].map(p => X(p) + ',' + Y(p)).join(' ')}" ${col} ${extra || ''}/>`; };
   const svg = `<svg viewBox="0 0 ${(x1 - x0).toFixed(2)} ${(y1 - y0).toFixed(2)}" style="width:100%;height:56vh;background:#fff;border:1px solid var(--line);border-radius:8px;touch-action:manipulation">
     ${r.sole.map(w => `<line x1="${X(w.p)}" y1="${Y(w.p)}" x2="${X(w.q)}" y2="${Y(w.q)}" stroke="#aaa" stroke-width="1" vector-effect="non-scaling-stroke"/>`).join('')}
-    ${r.gradini.concat(r.fuori).map(w => poly(w, 'fill="#e8b0b0" fill-opacity=".6"')).join('')}
-    ${r.muri.map(w => { const off = S.off.has(w.id), c = off ? 'fill="none" stroke="#999" stroke-dasharray="4 3" stroke-width="1" vector-effect="non-scaling-stroke"' : `fill="${w.g === 'P' ? '#1f5fbf' : '#e07a10'}" fill-opacity=".85"`;
+    ${r.scale.map(c => { const off = S.off.has(c.id), q = [[c.bb[0], c.bb[1]], [c.bb[2], c.bb[1]], [c.bb[2], c.bb[3]], [c.bb[0], c.bb[3]]].map(p => X(p) + ',' + Y(p)).join(' ');
+      return `<polygon data-dw="${c.id}" points="${q}" fill="${off ? 'none' : '#0d9488'}" fill-opacity=".55" stroke="${off ? '#999' : '#0d9488'}" ${off ? 'stroke-dasharray="4 3"' : ''} stroke-width="1.5" vector-effect="non-scaling-stroke" style="cursor:pointer"/>`; }).join('')}
+    ${r.muri.map(w => { const off = S.off.has(w.id), c = off ? 'fill="none" stroke="#999" stroke-dasharray="4 3" stroke-width="1" vector-effect="non-scaling-stroke"' : `fill="${w.fu ? '#8b5cc6' : w.g === 'P' ? '#1f5fbf' : '#e07a10'}" fill-opacity=".85"`;
       return poly(w, c) + `<line data-dw="${w.id}" x1="${X(w.p)}" y1="${Y(w.p)}" x2="${X(w.q)}" y2="${Y(w.q)}" stroke="transparent" stroke-width="18" vector-effect="non-scaling-stroke" pointer-events="stroke" style="cursor:pointer"/>`; }).join('')}__AP__</svg>`;
   const kid = new Set(r.muri.filter(w => !S.off.has(w.id)).map(w => w.id)), inf = r.inf.filter(o => kid.has(o.w)), wById = new Map(r.muri.map(w => [w.id, w])), AC = {finestra:'#16a34a', uscita:'#0d9488', porta:'#dc2626', varco:'#f59e0b'};
   const apSvg = inf.map(o => { const w = wById.get(o.w), F = w.F, h = w.th / 2 + 0.04, c = o.c, a = [c[0] - F.u[0] * o.l / 2, c[1] - F.u[1] * o.l / 2], b = [c[0] + F.u[0] * o.l / 2, c[1] + F.u[1] * o.l / 2];
     return `<polygon points="${[[a[0] + F.n[0] * h, a[1] + F.n[1] * h], [b[0] + F.n[0] * h, b[1] + F.n[1] * h], [b[0] - F.n[0] * h, b[1] - F.n[1] * h], [a[0] - F.n[0] * h, a[1] - F.n[1] * h]].map(p => X(p) + ',' + Y(p)).join(' ')}" fill="#fff" fill-opacity=".85" stroke="${AC[o.tipo]}" stroke-width="2" vector-effect="non-scaling-stroke"/>`; }).join('');
   const ni = k => inf.filter(o => o.tipo === k).length;
   const svgF = svg.replace('__AP__', apSvg);
-  const keep = r.muri.filter(w => !S.off.has(w.id)), nP = keep.filter(w => w.g === 'P').length, th = {}; keep.forEach(w => { const k = f2(w.th); th[k] = (th[k] || 0) + 1; });
+  const keep = r.muri.filter(w => !S.off.has(w.id)), nP = keep.filter(w => w.g === 'P').length, nF = keep.filter(w => w.fu).length, nS = r.scale.filter(c => !S.off.has(c.id)).length, th = {}; keep.forEach(w => { const k = f2(w.th); th[k] = (th[k] || 0) + 1; });
   dlg.innerHTML = `<div class="cardh">Muri trovati <small>${esc(S.name)}</small></div>${svgF}
-    <p style="margin:8px 0 0"><b>${keep.length}</b> muri (${nP} perimetrali, ${keep.length - nP} tramezzi o altro) · spessori: ${Object.keys(th).sort().map(k => k + ' m ×' + th[k]).join(', ') || '—'}<br>
-    <span class="mut"><b>${r.sole.length}</b> linee senza coppia scartate (grigie) · ${r.gradini.length} elementi di scala e ${r.fuori.length} fuori dalla casa lasciati da parte (rosa, tappa 3)${S.off.size ? ' · ' + S.off.size + ' muri scartati da te' : ''}</span></p>
+    <p style="margin:8px 0 0"><b>${keep.length}</b> muri (${nP} perimetrali, ${keep.length - nP - nF} tramezzi o altro, ${nF} fuori dalla casa: balconi, pergolato, in viola) · spessori: ${Object.keys(th).sort().map(k => k + ' m ×' + th[k]).join(', ') || '—'}<br>
+    <span class="mut"><b>${r.sole.length}</b> linee senza coppia scartate (grigie)${S.off.size ? ' · ' + S.off.size + ' scartati da te' : ''}</span></p>
+    <p style="margin:6px 0 0"><b>${nS}</b> scale (verde acqua): gradini in fila diventati una scala dritta con larghezza e passo del disegno; il verso di salita lo giri dal pannello della scala.</p>
     <p style="margin:6px 0 0"><b>${inf.length}</b> aperture: ${ni('finestra')} finestre, ${ni('uscita')} porte-finestre, ${ni('porta')} porte, ${ni('varco')} varchi senza infisso <span class="mut">(riquadri colorati: verde finestra, verde acqua porta-finestra, rosso porta, arancio varco)</span></p>
     <p class="hint">Tocca un muro per scartarlo (tratteggiato); toccalo ancora per rimetterlo. Le larghezze delle aperture sono solo proposte: le misure le scrivi tu sul posto.</p>
     <div class="btns" style="margin-top:10px"><button id="dxCrea" class="pri" ${keep.length ? '' : 'disabled'}>Crea rilievo</button><button id="dxInd">Indietro</button><button id="dxNo">Annulla</button></div>`;
@@ -4597,7 +4609,7 @@ $('#dDxf').addEventListener('click', e => {
   if (t.id === 'dxAv') { dxfPasso2(); return; }
   if (t.id === 'dxInd') { dxfPasso1(); return; }
   if (t.id === 'dxCrea') { const keep = dxfS.res.muri.filter(w => !dxfS.off.has(w.id)); if (!keep.length) return;
-    const kid = new Set(keep.map(w => w.id)), n = dxfCrea(keep, 'Da DXF ' + dxfS.name.replace(/\.dxf$/i, ''), dxfS.res.inf.filter(o => kid.has(o.w))); dlg.close(); dxfS = null; arcPut(n); openRilievo(n); toast('Rilievo creato dal DXF: ora scrivi le misure sul posto.'); return; }
+    const kid = new Set(keep.map(w => w.id)), n = dxfCrea(keep, 'Da DXF ' + dxfS.name.replace(/\.dxf$/i, ''), dxfS.res.inf.filter(o => kid.has(o.w)), dxfS.res.scale.filter(c => !dxfS.off.has(c.id))); dlg.close(); dxfS = null; arcPut(n); openRilievo(n); toast('Rilievo creato dal DXF: ora scrivi le misure sul posto.'); return; }
   const w = t.closest && t.closest('[data-dw]'); if (w) { const id = +w.dataset.dw; if (dxfS.off.has(id)) dxfS.off.delete(id); else dxfS.off.add(id); dxfDisegna(); }
 });
 $('#dDxf').addEventListener('change', e => {
