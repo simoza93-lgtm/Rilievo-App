@@ -3,6 +3,15 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 16 novembre 2026 — Importa DXF, correzione: scale a righe singole
+
+- Le scale disegnate come **righe singole** a passo 0,18–0,40 m (come nel disegno vero: righe larghe quanto la scala, linea di mezzo, taglio obliquo)
+  non venivano riconosciute: a passo 0,30 le coppie di righe sembravano muri perimetrali. Ora ≥3 righe con un estremo in comune diventano una scala dritta;
+  linea di mezzo, lati e taglio obliquo entrano nella scala e non sono più muri.
+- Due tratti con la stessa larghezza a meno di 2 m (scala disegnata con il pezzo di mezzo mancante) diventano **una scala sola**: se erano due, si divide dal pannello.
+- Nel disegno di prova: scale riconosciute da 1 a 3, muri da 55 a 45 (le righe delle scale non sono più muri).
+- Prova `dxf`: attesi rigenerati.
+
 ## 16 novembre 2026 — Importa DXF, tappa 3: scale, balconi e pergolato
 
 - **Scale**: i gradini in fila (3 o più coppie uguali, a passo regolare, sul layer dei tramezzi) diventano una **scala dritta** del rilievo, nello stesso posto,
