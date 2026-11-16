@@ -4444,12 +4444,12 @@ function dxfMuri(segs, grp, f) {
     const M = merge(X, 0.012, null, 0.02); M.sort((p, q) => p.s - q.s); M.forEach(m => m.fr = [[m.t0, m.t1]]);
     const cand = []; for (let i = 0; i < M.length; i++) for (let j = i + 1; j < M.length && M[j].s - M[i].s <= 0.6; j++) { const d = M[j].s - M[i].s; if (d < 0.05) continue;
       const lo = Math.max(M[i].t0, M[j].t0), hi = Math.min(M[i].t1, M[j].t1); if (hi - lo >= 0.05) cand.push({i, j, d, ov:Math.round((hi - lo) * 100)}); }
-    const dref = g === 'P' ? Pn : Tn, std = c => Math.abs(c.d - dref) < TOLS ? 0 : 1;
+    const std = c => Math.abs(c.d - Pn) < TOLS || Math.abs(c.d - Tn) < TOLS ? 0 : 1, dref = g === 'P' ? Pn : Tn;
     cand.sort((p, q) => std(p) - std(q) || q.ov - p.ov || Math.round(Math.abs(p.d - dref) * 100) - Math.round(Math.abs(q.d - dref) * 100));
     const mine = [];
     cand.forEach(c => { const A = M[c.i], B = M[c.j], lo = Math.max(A.t0, B.t0), hi = Math.min(A.t1, B.t1), pcs = [];
       ivCut(A.fr, lo, hi).forEach(([a, b]) => ivCut(B.fr, a, b).forEach(p => pcs.push(p)));
-      pcs.forEach(([a, b]) => { A.fr = ivSub(A.fr, a, b); B.fr = ivSub(B.fr, a, b); mine.push({F, g, s:(A.s + B.s) / 2, th:c.d, t0:a, t1:b}); }); });
+      pcs.forEach(([a, b]) => { A.fr = ivSub(A.fr, a, b); B.fr = ivSub(B.fr, a, b); mine.push({F, g:Math.abs(c.d - Pn) < 0.015 ? 'P' : Math.abs(c.d - Tn) < 0.015 ? 'T' : g, s:(A.s + B.s) / 2, th:c.d, t0:a, t1:b}); }); });
     merge(mine, 0.02, 0.02, 3.0).forEach(w => walls.push(w));   // il buco di una porta o di una finestra: il muro resta continuo
     // linee rimaste senza coppia (i pezzetti sotto 0,65 m sono code agli spigoli: non si contano)
     M.forEach(m => m.fr.forEach(([a, b]) => { if (b - a >= 0.65) res.sole.push({p:[F.u[0] * a + F.n[0] * m.s, F.u[1] * a + F.n[1] * m.s], q:[F.u[0] * b + F.n[0] * m.s, F.u[1] * b + F.n[1] * m.s]}); }));
@@ -4468,7 +4468,7 @@ function dxfMuri(segs, grp, f) {
   const inside = pt => { let out = 0; [0.31, 1.9, 4.4].forEach(a => { const d = [Math.cos(a), Math.sin(a)]; let n = 0;
     P.forEach(w => { const e = [w.q[0] - w.p[0], w.q[1] - w.p[1]], cr = cross2(d, e); if (Math.abs(cr) < 1e-9) return; const r = [w.p[0] - pt[0], w.p[1] - pt[1]], lam = cross2(r, e) / cr, mu = cross2(r, d) / cr; if (lam > 0 && mu >= 0 && mu < 1) n++; }); if (n % 2 === 0) out++; });
     return out < 2; };
-  if (P.length >= 3) walls = walls.filter(w => { if (w.g === 'P' || inside([(w.p[0] + w.q[0]) / 2, (w.p[1] + w.q[1]) / 2])) return true; res.fuori.push(w); return false; });
+  if (P.length >= 3) walls = walls.filter(w => { if (w.g === 'P' || [0.25, 0.5, 0.75].some(t => inside([w.p[0] + (w.q[0] - w.p[0]) * t, w.p[1] + (w.q[1] - w.p[1]) * t]))) return true; res.fuori.push(w); return false; });
   dxfRicuci(walls);
   res.muri = walls; return res;
 }
