@@ -3,6 +3,17 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 16 novembre 2026 — Importa DXF, tappa 2: porte, finestre e varchi
+
+- L'importazione legge anche **archi** e **blocchi** (INSERT, aperti come linee; scala e rotazione rispettate) e riconosce le aperture sul layer degli infissi:
+  **finestre** (le linee del layer dentro lo spessore del muro, riunite), **porte-finestre** (la finestra con una linea che attraversa il muro),
+  **porte** (arco di circa 90°: cerniera e verso di apertura dall'arco) e **varchi** (buco del muro senza nessun infisso).
+- Posizione come quando si posa a mano; **larghezza e distanza restano solo proposte** (nessuna misura scritta). Aperture sui muri obliqui: per ora non importate.
+- Anteprima con riquadri colorati e conteggio; le aperture dei muri scartati non vengono create.
+- Il **tipo di muro si decide dallo spessore** (0,30 perimetrale, 0,10 tramezzo, altri spessori restano con il loro valore), non più solo dal layer: va bene anche
+  quando i muri spessi stanno sul layer giallo. Il controllo «fuori dalla casa» usa tre punti del muro. Corretto un errore con i muri cortissimi (pilastri).
+- Prova `dxf` estesa: finestra, porta-finestra, porta ad arco, varco e un blocco nel DXF inventato.
+
 ## 16 novembre 2026 — Importa DXF, tappa 1: muri e tramezzi
 
 - Nuovo tasto **Importa DXF** (accanto a «Importa»). Carichi un DXF di una pianta e l'app crea un **rilievo nuovo** nell'Archivio, con un solo piano:

@@ -24,10 +24,11 @@ const FILE = process.argv[2] || require('path').join(__dirname, 'casa-finta.dxf'
   // tocco un muro: viene scartato, poi lo rimetto
   await p.click('[data-dw]', {force:true}); out.scartato = await p.evaluate(() => dxfS.off.size); await p.click('[data-dw]', {force:true}); out.rimesso = await p.evaluate(() => dxfS.off.size);
   const nR = await p.evaluate(() => arcIndex().length);
+  out.infissi = await p.evaluate(() => dxfS.res.inf.map(o => `${o.tipo} ${o.l.toFixed(2)} (${o.c[0].toFixed(2)};${o.c[1].toFixed(2)})`).sort());
   await p.click('#dxCrea'); await p.waitForTimeout(300);
   out.rilievo = await p.evaluate(nR => { const pl = piano(), w = pl.walls; G = geometry(pl);
     return {archivio:[nR, arcIndex().length], piani:R.piani.length, nome:R.nome, muri:w.length, nodi:pl.nodes.length, perimetrali:w.filter(x => x.tipo === 'P').length, tramezzi:w.filter(x => x.tipo === 'T').length, altro:w.filter(x => x.tipo === 'X').map(x => x.sp),
-      obliqui:w.filter(x => x.obl).length, misureScritte:w.filter(x => String(x.mis || '').trim() !== '').length, aperture:w.filter(x => (x.ap || []).length).length, scale:(pl.stairs || []).length, errori:G.errs.map(e => e.t), avvisi:G.warns.map(e => e.t), ambienti:G.comps.length,
+      obliqui:w.filter(x => x.obl).length, misureScritte:w.filter(x => String(x.mis || '').trim() !== '').length, aperture:w.filter(x => (x.ap || []).length).length, apList:w.flatMap(x => (x.ap || []).map(a => `${a.tipo} d${a.d} l${a.l}${a.tipo === 'porta' ? ' cx' + (a.cx ? 1 : 0) + ' vx' + (a.vx ? 1 : 0) : ''}`)).sort(), scale:(pl.stairs || []).length, errori:G.errs.map(e => e.t), avvisi:G.warns.map(e => e.t), ambienti:G.comps.length,
       scollegati:pl.nodes.filter(n => w.filter(x => x.a === n.id || x.b === n.id).length < 2).length}; }, nR);
   await p.click('text=Adatta').catch(() => {}); await p.waitForTimeout(200); await p.screenshot({path:OUT + '/dxf_rilievo.png'});
   // le scelte dei layer restano sul dispositivo
@@ -39,4 +40,9 @@ const FILE = process.argv[2] || require('path').join(__dirname, 'casa-finta.dxf'
     const r = dxfMuri(P.segs, dxfProposta(P.layers), u.sug); return {fattore:u.sug, muri:r.muri.length, gradini:r.gradini.length}; }, require("fs").readFileSync(FILE, "utf8"));
   out.sp25 = await p.evaluate(() => { const L = (a, b) => ({l:"PLAN_MURI_PERIM", a, b}), s = [L([0, 0], [6, 0]), L([0, 0.25], [6, 0.25]), L([6, 0], [6, 4]), L([5.75, 0.25], [5.75, 3.75]), L([6, 4], [0, 4]), L([5.75, 3.75], [0.25, 3.75]), L([0, 4], [0, 0]), L([0.25, 3.75], [0.25, 0.25])];
     const r = dxfMuri(s, {PLAN_MURI_PERIM:"P"}, 1), n = dxfCrea(r.muri, "x"), w = n.piani[0].walls; return {muri:r.muri.length, tipi:w.map(x => x.tipo + ":" + x.sp).join(" ")}; });
+  // un blocco inserito (scala 2, ruotato di 90°) si apre nel disegno sul layer dell'inserimento
+  out.blocco = await p.evaluate(() => { const t = ['0','SECTION','2','BLOCKS','0','BLOCK','2','W','10','0','20','0','0','LINE','8','0','10','0','20','0','11','1','21','0','0','ENDBLK','0','ENDSEC','0','SECTION','2','ENTITIES','0','INSERT','8','INF','2','W','10','5','20','2','41','2','42','2','50','90','0','ENDSEC','0','EOF'].join(String.fromCharCode(10));
+    return dxfParse(t).segs.map(s => s.l + ' ' + s.a.map(v => +v.toFixed(2)) + '>' + s.b.map(v => +v.toFixed(2))); });
+  // un buco di 1 m nel muro senza infissi diventa un varco
+  out.varco = await p.evaluate(() => { const L = (a, b) => ({l:'M', a, b}), s = [L([0, 0], [3, 0]), L([0, 0.3], [3, 0.3]), L([4, 0], [8, 0]), L([4, 0.3], [8, 0.3])], r = dxfMuri(s, {M:'P'}, 1); return r.inf.map(o => o.tipo + ' ' + o.l.toFixed(2) + ' (' + o.c.map(v => v.toFixed(2)) + ')'); });
   console.log(JSON.stringify(out, null, 1)); console.log('errors', errs); await b.close(); })();

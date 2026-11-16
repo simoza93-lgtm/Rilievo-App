@@ -4361,19 +4361,24 @@ const DXF_GR = [['P', 'Muri perimetrali'], ['T', 'Tramezzi e scale'], ['F', 'Inf
 const DXF_COL = {1:'#e02020', 2:'#d6a800', 3:'#1fa84a', 4:'#14b8c8', 5:'#2a55e0', 6:'#c030c0', 7:'#222222', 8:'#808080', 9:'#b0b0b0'};
 // legge un DXF di testo: layer (nome, colore, spento) e segmenti di LINE, LWPOLYLINE, POLYLINE; i blocchi (INSERT) si contano e basta
 function dxfParse(txt) {
-  const L = txt.split(/\r?\n/), layers = {}, segs = [], info = {insert:0, archi:0};
-  let sec = '', e = null, poly = null;
+  const L = txt.split(/\r?\n/), layers = {}, main = {segs:[], arcs:[], ins:[]}, blocks = {}, info = {insert:0, archi:0};
+  let sec = '', e = null, poly = null, blk = null;
   const lay = n => layers[n] || (layers[n] = {col:7, off:false, n:0});
-  const addPts = (pts, closed, l) => { lay(l).n++; for (let i = 0; i + 1 < pts.length; i++) segs.push({l, a:pts[i], b:pts[i + 1]}); if (closed && pts.length > 2) segs.push({l, a:pts[pts.length - 1], b:pts[0]}); };
+  const tgt = () => sec === 'BLOCKS' ? (blk && blocks[blk]) : main;
+  const addPts = (pts, closed, l) => { const T = tgt(); if (!T) return; if (T === main) lay(l).n++; for (let i = 0; i + 1 < pts.length; i++) T.segs.push({l, a:pts[i], b:pts[i + 1]}); if (closed && pts.length > 2) T.segs.push({l, a:pts[pts.length - 1], b:pts[0]}); };
   const flush = () => { if (!e) return;
     if (e.t === 'LAYER' && sec === 'TABLES') { const o = lay(e.name || '0'); o.col = Math.abs(e.col || 7); o.off = (e.col || 0) < 0 || !!(e.fl & 1); }
-    else if (sec === 'ENTITIES') {
+    else if (sec === 'BLOCKS' && e.t === 'BLOCK') { blk = e.name; blocks[blk] = {segs:[], arcs:[], ins:[], base:[e.v[10] || 0, e.v[20] || 0]}; }
+    else if (sec === 'BLOCKS' && e.t === 'ENDBLK') blk = null;
+    else if (sec === 'ENTITIES' || (sec === 'BLOCKS' && blk)) {
+      const T = tgt();
       if (e.t === 'LINE') { if (e.v[10] !== undefined && e.v[11] !== undefined) addPts([[e.v[10], e.v[20] || 0], [e.v[11], e.v[21] || 0]], false, e.layer); }
       else if (e.t === 'LWPOLYLINE') addPts(e.pts, !!(e.fl & 1), e.layer);
       else if (e.t === 'POLYLINE') poly = {pts:[], closed:!!(e.fl & 1), l:e.layer};
       else if (e.t === 'VERTEX') { if (poly && e.v[10] !== undefined && !(e.fl & 16)) poly.pts.push([e.v[10], e.v[20] || 0]); }
       else if (e.t === 'SEQEND') { if (poly) addPts(poly.pts, poly.closed, poly.l); poly = null; }
-      else if (e.t === 'INSERT') info.insert++;
+      else if (e.t === 'ARC') { if (e.v[10] !== undefined && e.v[40] > 0) { T.arcs.push({l:e.layer, c:[e.v[10], e.v[20] || 0], r:e.v[40], s:e.v[50] || 0, f:e.v[51] === undefined ? 360 : e.v[51]}); info.archi++; } }
+      else if (e.t === 'INSERT') { if (T === main) info.insert++; if (e.v[10] !== undefined) T.ins.push({l:e.layer, name:e.name, p:[e.v[10], e.v[20] || 0], sx:e.v[41] === undefined ? 1 : e.v[41], sy:e.v[42] === undefined ? (e.v[41] === undefined ? 1 : e.v[41]) : e.v[42], rot:e.v[50] || 0}); }
     }
     e = null; };
   for (let k = 0; k + 1 < L.length; k += 2) {
@@ -4382,10 +4387,23 @@ function dxfParse(txt) {
     if (!e) continue;
     if (e.t === 'SECTION') { if (c === 2) sec = v; continue; }
     if (c === 8) e.layer = v; else if (c === 2) e.name = v; else if (c === 62) e.col = parseInt(v, 10); else if (c === 70) e.fl = parseInt(v, 10) || 0;
-    else if (c === 42) { if (parseFloat(v)) info.archi++; }
+    else if (c === 42) { if (e.t === 'INSERT') e.v[42] = parseFloat(v); else if (parseFloat(v)) info.archi++; }
+    else if (c === 40 || c === 41 || c === 50 || c === 51) e.v[c] = parseFloat(v);
     else if (c === 10 || c === 20 || c === 11 || c === 21) { const x = parseFloat(v); if (e.t === 'LWPOLYLINE') { if (c === 10) e.pts.push([x, 0]); else if (c === 20 && e.pts.length) e.pts[e.pts.length - 1][1] = x; } else e.v[c] = x; }
   }
-  flush(); return {layers, segs, info};
+  flush();
+  // i blocchi inseriti si aprono nel disegno (anche uno dentro l'altro, una volta); le entità del blocco sul layer 0 prendono il layer dell'inserimento
+  const segs = main.segs.slice(), arcs = main.arcs.slice();
+  const open = (ins, M, depth) => ins.forEach(I => { const B = blocks[I.name]; if (!B) return;
+    const at = q => { const x = (q[0] - B.base[0]) * I.sx, y = (q[1] - B.base[1]) * I.sy, ux = x * Math.cos(I.rot * Math.PI / 180) - y * Math.sin(I.rot * Math.PI / 180), uy = x * Math.sin(I.rot * Math.PI / 180) + y * Math.cos(I.rot * Math.PI / 180);
+      return M.f([ux + I.p[0], uy + I.p[1]]); };
+    const lyr = l => l === '0' ? I.l : l;
+    B.segs.forEach(g => segs.push({l:lyr(g.l), a:at(g.a), b:at(g.b)}));
+    B.arcs.forEach(g => { const c = at(g.c), r = g.r * Math.abs(I.sx) * M.k, mir = I.sx * I.sy < 0, rot = I.rot + M.rot; let s0 = g.s, f0 = g.f; if (mir) { const t = 180 - f0; f0 = 180 - s0; s0 = t; }
+      arcs.push({l:lyr(g.l), c, r, s:s0 + rot, f:f0 + rot}); });
+    if (depth < 1) open(B.ins, {rot:I.rot + M.rot, k:Math.abs(I.sx) * M.k, f:at}, depth + 1); });
+  open(main.ins, {rot:0, k:1, f:q => q}, 0);
+  return {layers, segs, arcs, info};
 }
 function dxfBox(segs) { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   segs.forEach(s => [s.a, s.b].forEach(p => { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }));
@@ -4422,7 +4440,7 @@ function dxfRicuci(list) {
   ort.forEach(w => [0, 1].forEach(k => { if (moved.has(w.id + ':' + k)) return; const b = best(w, k, obl); if (b) set(w, k, b.x); }));
 }
 // riconosce i muri: coppie di linee parallele a 0,05–0,60 m che si sovrappongono; il muro è la linea di mezzo
-function dxfMuri(segs, grp, f) {
+function dxfMuri(segs, grp, f, arcs) {
   const Pn = P_(), Tn = T_(), TOLS = 0.035, res = {muri:[], sole:[], gradini:[], fuori:[]};
   const ls = []; segs.forEach(s => { const g = grp[s.l]; if (g !== 'P' && g !== 'T') return;
     const a = [s.a[0] * f, s.a[1] * f], b = [s.b[0] * f, s.b[1] * f]; if (Math.hypot(b[0] - a[0], b[1] - a[1]) >= 0.05) ls.push({g, a, b, th:((Math.atan2(b[1] - a[1], b[0] - a[0]) % Math.PI) + Math.PI) % Math.PI}); });
@@ -4437,7 +4455,7 @@ function dxfMuri(segs, grp, f) {
     for (let i = 0; i < A.length && !ch; i++) for (let j = i + 1; j < A.length; j++) { const p = A[i], q = A[j];
       if (Math.abs(p.s - q.s) <= tolS && (tolT === null || Math.abs(p.th - q.th) <= tolT) && q.t0 <= p.t1 + gap && q.t1 >= p.t0 - gap) {
         const wp = p.t1 - p.t0, wq = q.t1 - q.t0; p.s = (p.s * wp + q.s * wq) / (wp + wq); if (tolT !== null) p.th = (p.th * wp + q.th * wq) / (wp + wq);
-        p.t0 = Math.min(p.t0, q.t0); p.t1 = Math.max(p.t1, q.t1); A.splice(j, 1); ch = true; break; } } } return A; };
+        p.pc = (p.pc || [[p.t0, p.t1]]).concat(q.pc || [[q.t0, q.t1]]); p.t0 = Math.min(p.t0, q.t0); p.t1 = Math.max(p.t1, q.t1); A.splice(j, 1); ch = true; break; } } } return A; };
   fam.forEach(F => ['P', 'T'].forEach(g => {
     const X = F.ls.filter(l => l.g === g).map(l => { const sa = l.a[0] * F.n[0] + l.a[1] * F.n[1], sb = l.b[0] * F.n[0] + l.b[1] * F.n[1], ta = l.a[0] * F.u[0] + l.a[1] * F.u[1], tb = l.b[0] * F.u[0] + l.b[1] * F.u[1];
       return {s:(sa + sb) / 2, t0:Math.min(ta, tb), t1:Math.max(ta, tb)}; });
@@ -4470,17 +4488,51 @@ function dxfMuri(segs, grp, f) {
     return out < 2; };
   if (P.length >= 3) walls = walls.filter(w => { if (w.g === 'P' || [0.25, 0.5, 0.75].some(t => inside([w.p[0] + (w.q[0] - w.p[0]) * t, w.p[1] + (w.q[1] - w.p[1]) * t]))) return true; res.fuori.push(w); return false; });
   dxfRicuci(walls);
-  res.muri = walls; return res;
+  res.muri = walls; res.inf = dxfInfissi(segs, arcs || [], grp, f, walls); return res;
+}
+// aperture: finestre (linee del layer infissi dentro il muro, riunite), portefinestre (con una linea che attraversa il muro), porte (archi di 90°), varchi (buchi del muro senza infisso)
+function dxfInfissi(segs, arcs, grp, f, walls) {
+  const out = [], ls = [], ar = [], dot = (a, b) => a[0] * b[0] + a[1] * b[1], used = new Set();
+  segs.forEach(s => { if (grp[s.l] !== 'F') return; const a = [s.a[0] * f, s.a[1] * f], b = [s.b[0] * f, s.b[1] * f], len = Math.hypot(b[0] - a[0], b[1] - a[1]); if (len >= 0.05) ls.push({a, b, d:[(b[0] - a[0]) / len, (b[1] - a[1]) / len]}); });
+  arcs.forEach(a => { if (grp[a.l] !== 'F') return; const sw = ((a.f - a.s) % 360 + 360) % 360, r = a.r * f; if (sw < 60 || sw > 120 || r < 0.4 || r > 1.6) return;
+    const E = g => [a.c[0] * f + r * Math.cos(g * Math.PI / 180), a.c[1] * f + r * Math.sin(g * Math.PI / 180)]; ar.push({c:[a.c[0] * f, a.c[1] * f], E:[E(a.s), E(a.f)]}); });
+  walls.forEach(w => { if (!w.F.ortho) return;
+    const {u, n} = w.F, T = p => dot(p, u), S = p => dot(p, n) - w.s, hw = w.th / 2 + 0.06, inB = p => Math.abs(S(p)) <= hw, at = t => [u[0] * t + n[0] * w.s, u[1] * t + n[1] * w.s];
+    const lo = Math.min(T(w.p), T(w.q)) - 0.05, hi = Math.max(T(w.p), T(w.q)) + 0.05, mine = [];
+    const par = ls.filter(l => Math.abs(dot(l.d, n)) < 0.02 && inB(l.a) && inB(l.b)).map(l => ({a:Math.min(T(l.a), T(l.b)), b:Math.max(T(l.a), T(l.b))})).filter(i => i.a >= lo && i.b <= hi && i.b - i.a >= 0.1).sort((x, y) => x.a - y.a), cl = [];
+    par.forEach(i => { const c = cl[cl.length - 1]; if (c && i.a <= c.b + 0.03) { c.b = Math.max(c.b, i.b); c.n++; } else cl.push({a:i.a, b:i.b, n:1}); });
+    const perp = ls.filter(l => Math.abs(dot(l.d, u)) < 0.02);
+    cl.forEach(c => { if (c.n < 2 || c.b - c.a < 0.3 || c.b - c.a > 4.5) return;
+      const cr = perp.some(l => { const t = T(l.a), s0 = Math.min(S(l.a), S(l.b)), s1 = Math.max(S(l.a), S(l.b)); return t > c.a + 0.08 && t < c.b - 0.08 && s0 <= -w.th / 2 + 0.05 && s1 >= w.th / 2 - 0.05 && s1 - s0 > w.th + 0.15; });
+      mine.push({tipo:cr ? 'uscita' : 'finestra', c:at((c.a + c.b) / 2), l:c.b - c.a, w:w.id, a:c.a, b:c.b}); });
+    ar.forEach(a => { if (used.has(a) || !inB(a.c)) return; const e = a.E.map(inB); if (e[0] === e[1]) return; const Ec = e[0] ? a.E[0] : a.E[1], Eo = e[0] ? a.E[1] : a.E[0], t0 = T(a.c), t1 = T(Ec);
+      if (Math.min(t0, t1) < lo - 0.1 || Math.max(t0, t1) > hi + 0.1) return; used.add(a);
+      mine.push({tipo:'porta', c:at((t0 + t1) / 2), l:Math.abs(t1 - t0), w:w.id, a:Math.min(t0, t1), b:Math.max(t0, t1), H:a.c, Ec, Eo}); });
+    const pc = (w.pc || [[w.t0, w.t1]]).slice().sort((x, y) => x[0] - y[0]); let run = pc[0][1];
+    for (let k = 1; k < pc.length; k++) { const h0 = run, h1 = pc[k][0]; run = Math.max(run, pc[k][1]);
+      if (h1 - h0 > 0.4 && !mine.some(o => Math.min(o.b, h1) - Math.max(o.a, h0) > 0.1)) mine.push({tipo:'varco', c:at((h0 + h1) / 2), l:h1 - h0, w:w.id, a:h0, b:h1}); }
+    mine.forEach(o => out.push(o)); });
+  return out;
 }
 // crea il rilievo nuovo: un solo piano, muri al loro posto, nessuna misura scritta
-function dxfCrea(walls, nome) {
+function dxfCrea(walls, nome, aps) {
   const n = blank(), pl = n.piani[0], old = R; n.id = uid(); n.nome = nome; n.unexp = true; n.mod = new Date().toISOString(); n.demo = false;
   const x0 = Math.min(...walls.map(w => Math.min(w.p[0], w.q[0]))), y0 = Math.min(...walls.map(w => Math.min(w.p[1], w.q[1])));
   R = n;   // P_(), T_() e thick() leggono R
   try { walls.slice().sort((a, b) => (a.g === 'P' ? 0 : 1) - (b.g === 'P' ? 0 : 1)).forEach(w => {
       const std = w.g === 'P' ? P_() : T_(), tipo = Math.abs(w.th - std) <= 0.02 ? w.g : 'X', sp = f2(w.th), before = new Set(pl.walls);
       addSegment(pl, {x:w.p[0] - x0, y:w.p[1] - y0}, {x:w.q[0] - x0, y:w.q[1] - y0, obl:w.obl}, tipo);
-      if (tipo === 'X') pl.walls.forEach(x => { if (!before.has(x)) x.sp = sp; }); }); }
+      if (tipo === 'X') pl.walls.forEach(x => { if (!before.has(x)) x.sp = sp; }); });
+    // aperture: stessa posizione e stessa regola di quando si posano a mano (distanza e larghezza solo proposte: le misure le scrivi tu)
+    const Tp = topo(pl), under = (wx, wy) => { let b = null, bd = Infinity;
+      pl.walls.forEach(w => { const I = Tp.info.get(w.id); if (!I || !(I.t > 0)) return; const s = I.H ? wx - I.a.x : wy - I.a.y, perp = I.H ? Math.abs(wy - I.a.y - I.o) : Math.abs(wx - I.a.x - I.o);
+        if (s < -0.05 || s > I.len + 0.05 || perp > I.t / 2 + 0.10) return; if (perp < bd) { bd = perp; b = {w, I, s}; } }); return b; };
+    (aps || []).forEach(a => { const u = under(a.c[0] - x0, a.c[1] - y0); if (!u) return; const {w, I} = u, l = Math.min(a.l, luce(I)); if (!(l >= 0.3)) return;
+      const s0 = Math.min(Math.max(u.s - l / 2, I.da), Math.max(I.da, I.len - I.db - l)), d = Math.round((s0 - I.da) * 100) / 100, a0 = I.da + d;
+      if ((w.ap || []).some(o => { const o0 = I.da + num(o.d); return Math.min(o0 + num(o.l), a0 + l) - Math.max(o0, a0) > 0.005; })) return;
+      const df = DEF_AP[a.tipo] || {}, ap = {id:uid(), tipo:a.tipo, d:f2(d), l:f2(l), h:df.h || '', dav:df.dav || '', inv:false, dp:true, lp:true};
+      if (a.tipo === 'porta') { const al = p => I.H ? p[0] - x0 - I.a.x : p[1] - y0 - I.a.y, sd = p => I.H ? p[1] - y0 - I.a.y - I.o : p[0] - x0 - I.a.x - I.o; ap.pt = ''; ap.cx = al(a.H) > al(a.Ec); ap.vx = sd(a.Eo) > 0; }
+      w.ap = w.ap || []; w.ap.push(ap); }); }
   finally { R = old; }
   return n;
 }
@@ -4497,14 +4549,14 @@ function dxfPasso1() {
     <div style="margin-top:12px"><b>Cosa contiene ogni layer?</b></div>
     ${names.map(n => { const l = S.P.layers[n]; return `<div class="dxl"><span class="sw" style="background:${DXF_COL[l.col] || '#888'}"></span><span class="nm">${esc(n)}${l.off ? ' <span class="b w">spento</span>' : ''}</span><span class="mut">${l.n} oggetti</span>
       <select data-dl="${esc(n)}">${DXF_GR.map(([k, t]) => `<option value="${k}" ${S.grp[n] === k ? 'selected' : ''}>${t}</option>`).join('')}</select></div>`; }).join('')}
-    <p class="hint">Blocchi (INSERT) nel disegno: ${S.P.info.insert}, per ora non letti. Archi e curve si leggono come linee dritte.</p>
+    <p class="hint">Blocchi (INSERT) nel disegno: ${S.P.info.insert}, aperti come se fossero linee. Gli archi servono per le porte.</p>
     <div class="btns" style="margin-top:12px"><button id="dxAv" class="pri">Avanti: cerca i muri</button><button id="dxNo">Annulla</button></div>`;
   if (!dlg.open) dlg.showModal();
 }
 function dxfPasso2() {
   const S = dxfS, dlg = $('#dDxf');
   try { const sv = dxfSaved(); Object.assign(sv, S.grp); localStorage.setItem('rilievo-dxf-layer', JSON.stringify(sv)); } catch (e) {}
-  S.res = dxfMuri(S.P.segs, S.grp, S.f); S.off = new Set(); dxfDisegna(); if (!dlg.open) dlg.showModal();
+  S.res = dxfMuri(S.P.segs, S.grp, S.f, S.P.arcs); S.off = new Set(); dxfDisegna(); if (!dlg.open) dlg.showModal();
 }
 function dxfDisegna() {
   const S = dxfS, r = S.res, dlg = $('#dDxf'), all = r.muri.concat(r.gradini, r.fuori), pts = [];
@@ -4517,12 +4569,18 @@ function dxfDisegna() {
     ${r.sole.map(w => `<line x1="${X(w.p)}" y1="${Y(w.p)}" x2="${X(w.q)}" y2="${Y(w.q)}" stroke="#aaa" stroke-width="1" vector-effect="non-scaling-stroke"/>`).join('')}
     ${r.gradini.concat(r.fuori).map(w => poly(w, 'fill="#e8b0b0" fill-opacity=".6"')).join('')}
     ${r.muri.map(w => { const off = S.off.has(w.id), c = off ? 'fill="none" stroke="#999" stroke-dasharray="4 3" stroke-width="1" vector-effect="non-scaling-stroke"' : `fill="${w.g === 'P' ? '#1f5fbf' : '#e07a10'}" fill-opacity=".85"`;
-      return poly(w, c) + `<line data-dw="${w.id}" x1="${X(w.p)}" y1="${Y(w.p)}" x2="${X(w.q)}" y2="${Y(w.q)}" stroke="transparent" stroke-width="18" vector-effect="non-scaling-stroke" pointer-events="stroke" style="cursor:pointer"/>`; }).join('')}</svg>`;
+      return poly(w, c) + `<line data-dw="${w.id}" x1="${X(w.p)}" y1="${Y(w.p)}" x2="${X(w.q)}" y2="${Y(w.q)}" stroke="transparent" stroke-width="18" vector-effect="non-scaling-stroke" pointer-events="stroke" style="cursor:pointer"/>`; }).join('')}__AP__</svg>`;
+  const kid = new Set(r.muri.filter(w => !S.off.has(w.id)).map(w => w.id)), inf = r.inf.filter(o => kid.has(o.w)), wById = new Map(r.muri.map(w => [w.id, w])), AC = {finestra:'#16a34a', uscita:'#0d9488', porta:'#dc2626', varco:'#f59e0b'};
+  const apSvg = inf.map(o => { const w = wById.get(o.w), F = w.F, h = w.th / 2 + 0.04, c = o.c, a = [c[0] - F.u[0] * o.l / 2, c[1] - F.u[1] * o.l / 2], b = [c[0] + F.u[0] * o.l / 2, c[1] + F.u[1] * o.l / 2];
+    return `<polygon points="${[[a[0] + F.n[0] * h, a[1] + F.n[1] * h], [b[0] + F.n[0] * h, b[1] + F.n[1] * h], [b[0] - F.n[0] * h, b[1] - F.n[1] * h], [a[0] - F.n[0] * h, a[1] - F.n[1] * h]].map(p => X(p) + ',' + Y(p)).join(' ')}" fill="#fff" fill-opacity=".85" stroke="${AC[o.tipo]}" stroke-width="2" vector-effect="non-scaling-stroke"/>`; }).join('');
+  const ni = k => inf.filter(o => o.tipo === k).length;
+  const svgF = svg.replace('__AP__', apSvg);
   const keep = r.muri.filter(w => !S.off.has(w.id)), nP = keep.filter(w => w.g === 'P').length, th = {}; keep.forEach(w => { const k = f2(w.th); th[k] = (th[k] || 0) + 1; });
-  dlg.innerHTML = `<div class="cardh">Muri trovati <small>${esc(S.name)}</small></div>${svg}
+  dlg.innerHTML = `<div class="cardh">Muri trovati <small>${esc(S.name)}</small></div>${svgF}
     <p style="margin:8px 0 0"><b>${keep.length}</b> muri (${nP} perimetrali, ${keep.length - nP} tramezzi o altro) · spessori: ${Object.keys(th).sort().map(k => k + ' m ×' + th[k]).join(', ') || '—'}<br>
     <span class="mut"><b>${r.sole.length}</b> linee senza coppia scartate (grigie) · ${r.gradini.length} elementi di scala e ${r.fuori.length} fuori dalla casa lasciati da parte (rosa, tappa 3)${S.off.size ? ' · ' + S.off.size + ' muri scartati da te' : ''}</span></p>
-    <p class="hint">Tocca un muro per scartarlo (tratteggiato); toccalo ancora per rimetterlo. Porte e finestre arrivano nella prossima tappa: ora i muri sono continui.</p>
+    <p style="margin:6px 0 0"><b>${inf.length}</b> aperture: ${ni('finestra')} finestre, ${ni('uscita')} porte-finestre, ${ni('porta')} porte, ${ni('varco')} varchi senza infisso <span class="mut">(riquadri colorati: verde finestra, verde acqua porta-finestra, rosso porta, arancio varco)</span></p>
+    <p class="hint">Tocca un muro per scartarlo (tratteggiato); toccalo ancora per rimetterlo. Le larghezze delle aperture sono solo proposte: le misure le scrivi tu sul posto.</p>
     <div class="btns" style="margin-top:10px"><button id="dxCrea" class="pri" ${keep.length ? '' : 'disabled'}>Crea rilievo</button><button id="dxInd">Indietro</button><button id="dxNo">Annulla</button></div>`;
 }
 $('#bDxf').onclick = () => $('#fDxf').click();
@@ -4539,7 +4597,7 @@ $('#dDxf').addEventListener('click', e => {
   if (t.id === 'dxAv') { dxfPasso2(); return; }
   if (t.id === 'dxInd') { dxfPasso1(); return; }
   if (t.id === 'dxCrea') { const keep = dxfS.res.muri.filter(w => !dxfS.off.has(w.id)); if (!keep.length) return;
-    const n = dxfCrea(keep, 'Da DXF ' + dxfS.name.replace(/\.dxf$/i, '')); dlg.close(); dxfS = null; arcPut(n); openRilievo(n); toast('Rilievo creato dal DXF: ora scrivi le misure sul posto.'); return; }
+    const kid = new Set(keep.map(w => w.id)), n = dxfCrea(keep, 'Da DXF ' + dxfS.name.replace(/\.dxf$/i, ''), dxfS.res.inf.filter(o => kid.has(o.w))); dlg.close(); dxfS = null; arcPut(n); openRilievo(n); toast('Rilievo creato dal DXF: ora scrivi le misure sul posto.'); return; }
   const w = t.closest && t.closest('[data-dw]'); if (w) { const id = +w.dataset.dw; if (dxfS.off.has(id)) dxfS.off.delete(id); else dxfS.off.add(id); dxfDisegna(); }
 });
 $('#dDxf').addEventListener('change', e => {
