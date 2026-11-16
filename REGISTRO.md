@@ -8,7 +8,7 @@ rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact
 - Le scale disegnate come **righe singole** a passo 0,18–0,40 m (come nel disegno vero: righe larghe quanto la scala, linea di mezzo, taglio obliquo)
   non venivano riconosciute: a passo 0,30 le coppie di righe sembravano muri perimetrali. Ora ≥3 righe con un estremo in comune diventano una scala dritta;
   linea di mezzo, lati e taglio obliquo entrano nella scala e non sono più muri.
-- Due tratti con la stessa larghezza a meno di 2 m (scala disegnata con il pezzo di mezzo mancante) diventano **una scala sola**: se erano due, si divide dal pannello.
+- Due tratti separati da un vuoto restano **due scale** (prima venivano uniti in una sola). Nel disegno di prova le scale sono ora 4.
 - Nel disegno di prova: scale riconosciute da 1 a 3, muri da 55 a 45 (le righe delle scale non sono più muri).
 - Prova `dxf`: attesi rigenerati.
 

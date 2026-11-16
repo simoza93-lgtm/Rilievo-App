@@ -4456,7 +4456,7 @@ function dxfMuri(segs, grp, f, arcs) {
       if (Math.abs(p.s - q.s) <= tolS && (tolT === null || Math.abs(p.th - q.th) <= tolT) && q.t0 <= p.t1 + gap && q.t1 >= p.t0 - gap) {
         const wp = p.t1 - p.t0, wq = q.t1 - q.t0; p.s = (p.s * wp + q.s * wq) / (wp + wq); if (tolT !== null) p.th = (p.th * wp + q.th * wq) / (wp + wq);
         p.pc = (p.pc || [[p.t0, p.t1]]).concat(q.pc || [[q.t0, q.t1]]); p.t0 = Math.min(p.t0, q.t0); p.t1 = Math.max(p.t1, q.t1); A.splice(j, 1); ch = true; break; } } } return A; };
-  // scale a righe singole (come si disegnano in pianta): ≥3 righe a passo 0,18–0,40 con un estremo in comune; la linea di mezzo, i lati e il taglio obliquo entrano nella scala; due tratti con la stessa larghezza a meno di 2 m sono una scala sola (tratto di mezzo non disegnato)
+  // scale a righe singole (come si disegnano in pianta): ≥3 righe a passo 0,18–0,40 con un estremo in comune; la linea di mezzo, i lati e il taglio obliquo entrano nella scala; due tratti separati da un vuoto restano due scale
   const bbq = (F, t0, t1, s0, s1) => { const q = [[t0, s0], [t0, s1], [t1, s0], [t1, s1]].map(([t, s]) => [F.u[0] * t + F.n[0] * s, F.u[1] * t + F.n[1] * s]); return [Math.min(...q.map(p => p[0])), Math.min(...q.map(p => p[1])), Math.max(...q.map(p => p[0])), Math.max(...q.map(p => p[1]))]; };
   const tin = (l, b) => [l.a, l.b].every(p => p[0] >= b[0] - 0.05 && p[0] <= b[2] + 0.05 && p[1] >= b[1] - 0.05 && p[1] <= b[3] + 0.05);
   res.scale = []; { const chs = [];
@@ -4466,7 +4466,7 @@ function dxfMuri(segs, grp, f, arcs) {
       X.filter(x => x.t1 - x.t0 >= 0.5 && x.t1 - x.t0 <= 3).sort((p, q) => p.s - q.s).forEach(x => {
         const c = chs.find(c => { const l = c.L[c.L.length - 1], d = x.s - l.s; return c.F === F && d >= 0.18 && d <= 0.4 && Math.min(l.t1, x.t1) - Math.max(l.t0, x.t0) >= 0.6 * Math.min(l.t1 - l.t0, x.t1 - x.t0) && (Math.abs(l.t0 - x.t0) < 0.05 || Math.abs(l.t1 - x.t1) < 0.05); });
         if (c) c.L.push(x); else chs.push({F, L:[x]}); }); });
-    const sc = []; chs.filter(c => c.L.length >= 3).forEach(c => { const w = c.L.reduce((a, l) => l.t1 - l.t0 > a.t1 - a.t0 ? l : a), m = sc.find(o => o.F === c.F && Math.abs(o.t0 - w.t0) < 0.05 && Math.abs(o.t1 - w.t1) < 0.05 && c.L[0].s - o.L[o.L.length - 1].s <= 2 && c.L[0].s > o.L[0].s); if (m) m.L = m.L.concat(c.L); else sc.push({F:c.F, t0:w.t0, t1:w.t1, L:c.L}); });
+    const sc = []; chs.filter(c => c.L.length >= 3).forEach(c => { const w = c.L.reduce((a, l) => l.t1 - l.t0 > a.t1 - a.t0 ? l : a); sc.push({F:c.F, t0:w.t0, t1:w.t1, L:c.L}); });
     sc.forEach(c => { const L = c.L, d = []; for (let i = 1; i < L.length; i++) if (L[i].s - L[i - 1].s <= 0.4) d.push(L[i].s - L[i - 1].s); d.sort((x, y) => x - y);
       const th = Math.round(d[d.length >> 1] * 100) / 100, s0 = L[0].s, s1 = L[L.length - 1].s; c.th = th; c.k = L.length; c.n = Math.round((s1 - s0) / th) + 1; c.bb = bbq(c.F, c.t0, c.t1, s0, s1);
       const g = bbq(c.F, c.t0, c.t1, s0 - 0.4, s1 + 0.4); fam.forEach(G => { G.ls = G.ls.filter(l => !(l.g === 'T' && tin(l, g))); }); res.scale.push(c); }); }
