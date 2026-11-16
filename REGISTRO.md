@@ -3,6 +3,24 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 16 novembre 2026 — Importa DXF, tappa 1: muri e tramezzi
+
+- Nuovo tasto **Importa DXF** (accanto a «Importa»). Carichi un DXF di una pianta e l'app crea un **rilievo nuovo** nell'Archivio, con un solo piano:
+  muri e tramezzi al loro posto, collegati, spostabili e modificabili come quelli disegnati a mano. **Nessuna misura scritta**: le caselle restano vuote e
+  la pianta si aggiusta quando scrivi le tue misure sul posto.
+- **Unità**: il file non è affidabile (può dire millimetri ed essere in metri). L'app mostra quanto viene grande la casa in metri, centimetri e millimetri
+  e propone l'unità che dà una casa tra 3 e 60 m.
+- **Layer**: elenco con colore, numero di oggetti e «Cosa contiene»: Muri perimetrali / Tramezzi e scale / Infissi e ringhiere / Ignora. Proposta per nome
+  (PLAN_MURI_PERIM, PLAN_MURI_INT, PLAN_INFISSI_TESTI), poi per colore (7, 2, 1); i layer «0» e Defpoints vanno su Ignora. Le scelte restano sul dispositivo
+  (`rilievo-dxf-layer`).
+- **Muri**: coppie di linee parallele a 0,05–0,60 m che si sovrappongono; il muro è la linea di mezzo con lo spessore trovato. Spessore uguale a 0,30 / 0,10
+  (±0,02) → perimetrale / tramezzo, altrimenti muro con il suo spessore. Spigoli e incroci a T ricuciti sulla linea di mezzo; muri obliqui oltre 1,5° dagli assi.
+  Il buco di una porta o finestra (fino a 3 m, linee interrotte) lascia il muro continuo: le aperture arrivano nella tappa 2.
+- **Lasciati da parte** (tappa 3): gradini della scala (3 o più coppie uguali in fila) ed elementi dei tramezzi fuori dal perimetro (balconi, pergolato).
+  Le linee senza coppia (da 0,65 m in su) si scartano e si contano; blocchi (INSERT) non letti.
+- **Anteprima** prima di creare il rilievo: muri colorati, conteggi, tocco su un muro per scartarlo, poi «Crea rilievo» o «Annulla».
+- Formato dei rilievi invariato. Prova nuova `dxf` con il DXF inventato `test/casa-finta.dxf`.
+
 ## 15 novembre 2026 — sezione, tappa 1: solaio di calpestio e altezza di tutti i vani
 
 - Impostazioni, nuova scheda **Solai**: per ogni piano lo spessore del solaio di calpestio (quello su cui si
