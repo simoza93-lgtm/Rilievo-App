@@ -4542,9 +4542,12 @@ function dxfInfissi(segs, arcs, grp, f, walls) {
   return out;
 }
 // crea il rilievo nuovo: un solo piano, muri al loro posto, nessuna misura scritta
-function dxfCrea(walls, nome, aps, scale) {
-  const n = blank(), pl = n.piani[0], old = R; n.id = uid(); n.nome = nome; n.unexp = true; n.mod = new Date().toISOString(); n.demo = false; scale = scale || [];
-  const x0 = Math.min(...walls.map(w => Math.min(w.p[0], w.q[0])), ...scale.map(c => c.bb[0])), y0 = Math.min(...walls.map(w => Math.min(w.p[1], w.q[1])), ...scale.map(c => c.bb[1]));
+function dxfCrea(walls, nome, aps, scale, add) {
+  // add = true: il disegno diventa un piano nuovo del rilievo aperto (stessa origine del primo DXF, così i piani restano sovrapposti)
+  const n = add ? R : blank(), old = R; scale = scale || [];
+  let pl; if (add) { pl = {id:uid(), nome, ver:0, nodes:[], walls:[], rooms:[]}; n.piani.push(pl); n.cur = n.piani.length - 1; } else { pl = n.piani[0]; n.id = uid(); n.nome = nome; n.unexp = true; n.mod = new Date().toISOString(); n.demo = false; }
+  let x0 = Math.min(...walls.map(w => Math.min(w.p[0], w.q[0])), ...scale.map(c => c.bb[0])), y0 = Math.min(...walls.map(w => Math.min(w.p[1], w.q[1])), ...scale.map(c => c.bb[1]));
+  if (add && n.dxo) [x0, y0] = n.dxo; else if (!n.dxo) n.dxo = [x0, y0];
   R = n;   // P_(), T_() e thick() leggono R
   try { walls.slice().sort((a, b) => (a.g === 'P' ? 0 : 1) - (b.g === 'P' ? 0 : 1)).forEach(w => {
       const std = w.g === 'P' ? P_() : T_(), tipo = Math.abs(w.th - std) <= 0.02 ? w.g : 'X', sp = f2(w.th), before = new Set(pl.walls);
@@ -4614,7 +4617,7 @@ function dxfDisegna() {
     <p style="margin:6px 0 0"><b>${nS}</b> scale (verde acqua): gradini in fila diventati una scala dritta con larghezza e passo del disegno; il verso di salita lo giri dal pannello della scala.</p>
     <p style="margin:6px 0 0"><b>${inf.length}</b> aperture: ${ni('finestra')} finestre, ${ni('uscita')} porte-finestre, ${ni('porta')} porte, ${ni('varco')} varchi senza infisso <span class="mut">(riquadri colorati: verde finestra, verde acqua porta-finestra, rosso porta, arancio varco)</span></p>
     <p class="hint">Tocca un muro per scartarlo (tratteggiato); toccalo ancora per rimetterlo. Le larghezze delle aperture sono solo proposte: le misure le scrivi tu sul posto.</p>
-    <div class="btns" style="margin-top:10px"><button id="dxCrea" class="pri" ${keep.length ? '' : 'disabled'}>Crea rilievo</button><button id="dxInd">Indietro</button><button id="dxNo">Annulla</button></div>`;
+    <div class="btns" style="margin-top:10px"><button id="dxCrea" class="pri" ${keep.length ? '' : 'disabled'}>Su nuovo rilievo</button>${R.demo ? '' : `<button id="dxPiano" class="pri" ${keep.length ? '' : 'disabled'}>Su nuovo piano di «${esc(R.nome || 'senza nome')}»</button>`}<button id="dxInd">Indietro</button><button id="dxNo">Annulla</button></div>`;
 }
 $('#bDxf').onclick = () => $('#fDxf').click();
 $('#fDxf').onchange = async e => {
@@ -4631,6 +4634,10 @@ $('#dDxf').addEventListener('click', e => {
   if (t.id === 'dxInd') { dxfPasso1(); return; }
   if (t.id === 'dxCrea') { const keep = dxfS.res.muri.filter(w => !dxfS.off.has(w.id)); if (!keep.length) return;
     const kid = new Set(keep.map(w => w.id)), n = dxfCrea(keep, 'Da DXF ' + dxfS.name.replace(/\.dxf$/i, ''), dxfS.res.inf.filter(o => kid.has(o.w)), dxfS.res.scale.filter(c => !dxfS.off.has(c.id))); dlg.close(); dxfS = null; arcPut(n); openRilievo(n); toast('Rilievo creato dal DXF: ora scrivi le misure sul posto.'); return; }
+  if (t.id === 'dxPiano') { const keep = dxfS.res.muri.filter(w => !dxfS.off.has(w.id)); if (!keep.length || R.demo) return;
+    const nm = prompt('Nome del nuovo piano:', R.piani.length ? 'Piano primo' : 'Piano terra'); if (!nm) return;
+    const kid = new Set(keep.map(w => w.id)); dxfCrea(keep, nm, dxfS.res.inf.filter(o => kid.has(o.w)), dxfS.res.scale.filter(c => !dxfS.off.has(c.id)), true);
+    dlg.close(); dxfS = null; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); save(); toast('Piano creato dal DXF: ora scrivi le misure sul posto.'); return; }
   const w = t.closest && t.closest('[data-dw]'); if (w) { const id = +w.dataset.dw; if (dxfS.off.has(id)) dxfS.off.delete(id); else dxfS.off.add(id); dxfDisegna(); }
 });
 $('#dDxf').addEventListener('change', e => {

@@ -10,6 +10,7 @@ rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact
   linea di mezzo, lati e taglio obliquo entrano nella scala e non sono più muri.
 - Due tratti separati da un vuoto restano **due scale** (prima venivano uniti in una sola). Nel disegno di prova le scale sono ora 4.
 - Gli **scalini d'ingresso** disegnati come «U» annidate (una dentro l'altra, aperte verso il muro) non diventano più un muro sbagliato sotto la finestra: vengono ignorati. Una «U» sola (testa di muro) resta com'era.
+- **Importa DXF su nuovo piano**: dopo la scelta dei muri ci sono due pulsanti, «Su nuovo rilievo» (come prima) e «Su nuovo piano di <rilievo aperto>». Il secondo aggiunge un piano al rilievo aperto (chiede il nome) e lascia gli altri piani com'erano. I piani importati usano la stessa origine del primo DXF, così, se i disegni hanno le stesse coordinate, restano sovrapposti. Per un rilievo non nato da DXF l'origine è l'angolo del disegno.
 - Nel disegno di prova: scale riconosciute da 1 a 3, muri da 55 a 45 (le righe delle scale non sono più muri).
 - Prova `dxf`: attesi rigenerati.
 

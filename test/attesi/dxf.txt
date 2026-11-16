@@ -144,6 +144,15 @@
   "conScalini": 1,
   "conUsola": 1,
   "senzaRXimento": 6
+ },
+ "nuovoPiano": {
+  "stessoRilievo": true,
+  "piani": [
+   "Piano terra:17",
+   "Piano primo:17"
+  ],
+  "muriPianoTerraIXi": true,
+  "era": 1
  }
 }
 errors []

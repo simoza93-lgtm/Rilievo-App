@@ -49,4 +49,8 @@ const FILE = process.argv[2] || require('path').join(__dirname, 'casa-finta.dxf'
   out.scalini = await p.evaluate(() => { const U = pts => pts.flatMap((a, i) => i < 3 ? [{l:'T', a, b:pts[i + 1], u:pts}] : []), M = (a, b) => ({l:'P', a, b});
     const base = [M([0, 0], [8, 0]), M([0, 0.3], [8, 0.3])], gr = [[[2, 0], [2, -0.3], [6, -0.3], [6, 0]], [[1.65, 0], [1.65, -0.6], [6.4, -0.6], [6.4, 0]], [[1.4, 0], [1.4, -0.85], [6.75, -0.85], [6.75, 0]]].flatMap(U), sola = U([[10, 0], [10, -0.15], [12, -0.15], [12, 0]]);
     const n = s => dxfMuri(s, {P:'P', T:'T'}, 1).muri.length; return {senza:n(base), conScalini:n(base.concat(gr)), conUsola:n(base.concat(sola)), senzaRiconoscimento:n(base.concat(gr.map(g => ({l:g.l, a:g.a, b:g.b}))))}; });
+  // stesso DXF su «nuovo piano» del rilievo aperto: i muri entrano in un piano nuovo, il resto non cambia
+  const nm0 = await p.evaluate(() => ({piani:R.piani.length, muri:R.piani[0].walls.length, id:R.id}));
+  p.once('dialog', d => d.accept('Piano primo')); await p.setInputFiles('#fDxf', FILE); await p.waitForSelector('#dDxf[open]'); await p.click('#dxAv'); await p.waitForSelector('#dxPiano'); await p.click('#dxPiano'); await p.waitForTimeout(300);
+  out.nuovoPiano = await p.evaluate(m => ({stessoRilievo:R.id === m.id, piani:R.piani.map(x => x.nome + ':' + x.walls.length), muriPianoTerraInvariati:R.piani[0].walls.length === m.muri, era:m.piani}), nm0);
   console.log(JSON.stringify(out, null, 1)); console.log('errors', errs); await b.close(); })();
