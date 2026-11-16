@@ -9,6 +9,7 @@ rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact
   non venivano riconosciute: a passo 0,30 le coppie di righe sembravano muri perimetrali. Ora ≥3 righe con un estremo in comune diventano una scala dritta;
   linea di mezzo, lati e taglio obliquo entrano nella scala e non sono più muri.
 - Due tratti separati da un vuoto restano **due scale** (prima venivano uniti in una sola). Nel disegno di prova le scale sono ora 4.
+- Gli **scalini d'ingresso** disegnati come «U» annidate (una dentro l'altra, aperte verso il muro) non diventano più un muro sbagliato sotto la finestra: vengono ignorati. Una «U» sola (testa di muro) resta com'era.
 - Nel disegno di prova: scale riconosciute da 1 a 3, muri da 55 a 45 (le righe delle scale non sono più muri).
 - Prova `dxf`: attesi rigenerati.
 

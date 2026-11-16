@@ -138,6 +138,12 @@
  ],
  "varco": [
   "varco 1.00 (3.50,0.15)"
- ]
+ ],
+ "X": {
+  "senza": 1,
+  "conScalini": 1,
+  "conUsola": 1,
+  "senzaRXimento": 6
+ }
 }
 errors []

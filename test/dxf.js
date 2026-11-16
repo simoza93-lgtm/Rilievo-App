@@ -45,4 +45,8 @@ const FILE = process.argv[2] || require('path').join(__dirname, 'casa-finta.dxf'
     return dxfParse(t).segs.map(s => s.l + ' ' + s.a.map(v => +v.toFixed(2)) + '>' + s.b.map(v => +v.toFixed(2))); });
   // un buco di 1 m nel muro senza infissi diventa un varco
   out.varco = await p.evaluate(() => { const L = (a, b) => ({l:'M', a, b}), s = [L([0, 0], [3, 0]), L([0, 0.3], [3, 0.3]), L([4, 0], [8, 0]), L([4, 0.3], [8, 0.3])], r = dxfMuri(s, {M:'P'}, 1); return r.inf.map(o => o.tipo + ' ' + o.l.toFixed(2) + ' (' + o.c.map(v => v.toFixed(2)) + ')'); });
+  // scalini d'ingresso: tre «U» annidate sul layer dei tramezzi non sono muri; una «U» sola (testa di muro) resta
+  out.scalini = await p.evaluate(() => { const U = pts => pts.flatMap((a, i) => i < 3 ? [{l:'T', a, b:pts[i + 1], u:pts}] : []), M = (a, b) => ({l:'P', a, b});
+    const base = [M([0, 0], [8, 0]), M([0, 0.3], [8, 0.3])], gr = [[[2, 0], [2, -0.3], [6, -0.3], [6, 0]], [[1.65, 0], [1.65, -0.6], [6.4, -0.6], [6.4, 0]], [[1.4, 0], [1.4, -0.85], [6.75, -0.85], [6.75, 0]]].flatMap(U), sola = U([[10, 0], [10, -0.15], [12, -0.15], [12, 0]]);
+    const n = s => dxfMuri(s, {P:'P', T:'T'}, 1).muri.length; return {senza:n(base), conScalini:n(base.concat(gr)), conUsola:n(base.concat(sola)), senzaRiconoscimento:n(base.concat(gr.map(g => ({l:g.l, a:g.a, b:g.b}))))}; });
   console.log(JSON.stringify(out, null, 1)); console.log('errors', errs); await b.close(); })();
