@@ -4406,8 +4406,8 @@ const ivSub = (L, lo, hi) => { const o = []; L.forEach(([a, b]) => { if (hi <= a
 const cross2 = (a, b) => a[0] * b[1] - a[1] * b[0];
 // ricucitura: le estremità dei muri si portano sulla linea di mezzo del muro che incontrano (spigoli, incroci a T)
 function dxfRicuci(list) {
-  const hit = (w, k, V) => { const E = k ? w.q : w.p, d = [w.q[0] - w.p[0], w.q[1] - w.p[1]], Lw = Math.hypot(d[0], d[1]); d[0] /= Lw; d[1] /= Lw; if (!k) { d[0] = -d[0]; d[1] = -d[1]; }
-    const e = [V.q[0] - V.p[0], V.q[1] - V.p[1]], Lv = Math.hypot(e[0], e[1]); e[0] /= Lv; e[1] /= Lv; const cr = cross2(d, e), sn = Math.abs(cr); if (sn < 0.17) return null;
+  const hit = (w, k, V) => { const E = k ? w.q : w.p, d = [w.q[0] - w.p[0], w.q[1] - w.p[1]], Lw = Math.hypot(d[0], d[1]); if (!(Lw > 1e-6)) return null; d[0] /= Lw; d[1] /= Lw; if (!k) { d[0] = -d[0]; d[1] = -d[1]; }
+    const e = [V.q[0] - V.p[0], V.q[1] - V.p[1]], Lv = Math.hypot(e[0], e[1]); if (!(Lv > 1e-6)) return null; e[0] /= Lv; e[1] /= Lv; const cr = cross2(d, e), sn = Math.abs(cr); if (sn < 0.17) return null;
     const r = [V.p[0] - E[0], V.p[1] - E[1]], lam = cross2(r, e) / cr, mu = cross2(r, d) / cr, ext = w.th / 2 / sn + 0.08;
     if (Math.abs(lam) > V.th / 2 / sn + 0.08 || mu < -ext || mu > Lv + ext) return null;
     return {x:[E[0] + d[0] * lam, E[1] + d[1] * lam], dist:Math.abs(lam)}; };
