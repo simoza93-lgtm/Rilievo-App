@@ -37,8 +37,8 @@
     "-"
    ]
   ],
-  "segmenti": 40,
-  "blocchi": 1
+  "Xi": 40,
+  "X": 1
  },
  "unita": {
   "metri": "m* cm mm",
@@ -46,7 +46,7 @@
   "mm": "m cm mm*",
   "troppoPiccolo": "m cm mm"
  },
- "pannello": {
+ "Xo": {
   "unita": "1* 0.01 0.001",
   "righe": 5
  },
@@ -54,11 +54,11 @@
   "n": 7,
   "perim": 4,
   "tram": 3,
-  "obliqui": 1,
-  "scartate": 0,
-  "gradini": 5,
+  "X": 1,
+  "Xe": 0,
+  "X": 5,
   "fuori": 3,
-  "spessori": [
+  "Xi": [
    0.1,
    0.3
   ],
@@ -72,10 +72,10 @@
    "T 0.1 (6.96;3.6)-(8.5;5.5)"
   ]
  },
- "scartato": 1,
- "rimesso": 0,
- "rilievo": {
-  "archivio": [
+ "Xo": 1,
+ "X": 0,
+ "X": {
+  "Xo": [
    0,
    1
   ],
@@ -83,19 +83,19 @@
   "nome": "Da DXF casa-finta",
   "muri": 12,
   "nodi": 10,
-  "perimetrali": 7,
-  "tramezzi": 5,
+  "Xrali": 7,
+  "Xi": 5,
   "altro": [],
-  "obliqui": 1,
+  "X": 1,
   "misureScritte": 0,
-  "aperture": 0,
+  "Xe": 0,
   "scale": 0,
   "errori": [],
   "avvisi": [],
-  "ambienti": 3,
-  "scollegati": 1
+  "Xi": 3,
+  "Xati": 1
  },
- "ricordo": {
+ "X": {
   "0": "-",
   "PLAN_MURI_PERIM": "P",
   "PLAN_MURI_INT": "T",
@@ -107,12 +107,13 @@
   "errori": 0
  },
  "mm": {
-  "fattore": 0.001,
+  "X": 0.001,
   "muri": 7,
-  "gradini": 5
+  "X": 5
  },
  "sp25": {
   "muri": 4,
   "tipi": "X:0,25 X:0,25 X:0,25 X:0,25"
  }
 }
+errors []
