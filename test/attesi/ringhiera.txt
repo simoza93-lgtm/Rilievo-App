@@ -1,0 +1,2 @@
+{"nW":3,"Xe":0.05,"lay":"W","nonW":true,"stanze":[26.79,4.94],"Xo":true,"rgScript":true,"ros":true}
+errors []

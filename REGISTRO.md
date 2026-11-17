@@ -3,6 +3,14 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 17 novembre 2026 — Ringhiere (tappa 1 di superfici esterne)
+
+- Nuovo **tipo di muro «Ringhiera»**: tasto «Ringhiere» in Muri, voce nel tipo del muro e nei muri selezionati. Rossa e sottile in pianta, **spessore 5 cm** (modificabile) e **altezza** (proposta 1,00 m, la scrivi tu) nel pannello del muro.
+- Chiude un balcone come un muro normale: l'ambiente racchiuso dà i suoi mq. Nessun layer nuovo: nell'app seguono il layer «Porte e finestre» (acceso/spento e blocco) e nello script vanno su `PLAN_INFISSI_TESTI` (rosso).
+- I rilievi vecchi non cambiano: il tipo nuovo si aggiunge solo quando lo scegli. L'altezza è salvata nel muro (`h`), non ancora usata dalla sezione.
+- Ancora da fare: portico e marciapiede (superficie con mq e sfrido, chiusa dai muri della casa) e il loro layer nello script.
+- Prova `ringhiera`: balcone 3 × 2 chiuso da 3 ringhiere, layer, script e pannello.
+
 ## 16 novembre 2026 — Importa DXF, correzione: scale a righe singole
 
 - Le scale disegnate come **righe singole** a passo 0,18–0,40 m (come nel disegno vero: righe larghe quanto la scala, linea di mezzo, taglio obliquo)
