@@ -18,6 +18,6 @@ const { chromium } = require('playwright');
     update(true);
     const scr = [].concat(genScript(pl)).join('\n');
     draw(); const svg = document.querySelector('#svg').innerHTML;
-    return {bbs, nS:S.length, spess:thick(S[0]), lay:layerOf(S[0]), stanze, rec:!!rec, giallo:svg.includes('fill="var(--wI)" fill-opacity=".6"'), scr:scr.includes('PLAN_SUPERFICI'), dest:Object.keys(DEST).includes('Marciapiede')}; });
+    return {bbs, nS:S.length, spess:thick(S[0]), lay:layerOf(S[0]), stanze, rec:!!rec, giallo:svg.includes('fill="var(--wI)" fill-opacity=".6"'), scr:scr.includes('PLAN_SUPERFICI'), dest:Object.keys(DEST).includes('Marciapiede'), H:calcoli(pl).map(c => isFinite(c.H))}; });
   console.log(JSON.stringify(r)); console.log('errors', errs); await b.close();
 })();

@@ -1,2 +1,2 @@
-{"bbs":[[0.3,0.3,6,5],[0.02,5.3,6.28,6.99]],"nS":3,"spess":0.02,"lay":"E","stanze":[26.79,10.58],"rec":true,"giallo":true,"scr":true,"dest":true}
+{"bbs":[[0.3,0.3,6,5],[0.02,5.3,6.28,6.99]],"nS":3,"spess":0.02,"lay":"E","stanze":[26.79,10.58],"rec":true,"giallo":true,"scr":true,"dest":true,"H":[true,false]}
 errors []

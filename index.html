@@ -1605,7 +1605,7 @@ function calcoli(pl) {
   const rai = num(R.rai), hA = num(R.hA), hC = num(R.hC);
   return (pl.rooms || []).map(r => {
     const c = G.comps[r._c]; if (!c || !c.room) return null;
-    const S = c.det ? cArea(c) : NaN, H = num(r.H), cat = DEST[r.dest] || 'C';
+    const cat = DEST[r.dest] || 'C', S = c.det ? cArea(c) : NaN, H = cat === 'E' ? NaN : num(r.H);   // superfici esterne: niente altezza
     const raiOk = cat !== 'A' || !c.det ? null : (c.Af > 0 && rai > 0 ? c.Af >= S / rai - 1e-9 : false);
     const hMin = cat === 'A' ? hA : hC, hOk = isFinite(H) && isFinite(hMin) ? H >= hMin - 1e-9 : null;
     return {r, c, cat, S, per:c.det ? c.per || 0 : NaN, H, V:isFinite(H) ? S * H : NaN, Af:c.Af, ratio:c.Af > 0 ? S / c.Af : NaN, raiOk, hOk};
@@ -3969,7 +3969,7 @@ ${apFields(x)}
     el.innerHTML = `<div class="cardh">Ambiente</div>${pienoBox}<div class="info">Superficie netta <b>${cc && cc.det ? f2(cArea(cc)) + ' m²' : 'da completare'}</b>${cc && cc.foro ? ` <span class="mut">(tolto il vano scala ${f2(cc.foro)} m²)</span>` : ''}${cc && cc.det ? ` · perimetro ${f2(cc.per)} m` : ' (mancano misure dei muri attorno)'}${cc && !cc.isRect ? ' · forma non rettangolare' : ''}</div>
       <div class="grid">${inp('nome', r.nome, 'Nome', 'c2', false, 'data-r')}
       <div><label class="l">Destinazione</label><select data-r="dest">${Object.keys(DEST).map(d => `<option ${r.dest === d ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
-      ${inp('H', r.H, 'Altezza (m)', '', true, 'data-r')}</div>
+      ${DEST[r.dest] === 'E' ? '' : inp('H', r.H, 'Altezza (m)', '', true, 'data-r')}</div>
       <p class="hint">Gli ambienti si riconoscono da soli quando i muri li chiudono.</p>`;
   } else {
     el.innerHTML = ''; el.style.display = 'none';   // nessun elemento selezionato: niente pannello (le istruzioni sono state tolte)

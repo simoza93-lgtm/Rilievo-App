@@ -15,6 +15,7 @@ rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact
 
 ## 18 novembre 2026 — Superfici esterne: anello attorno alla casa, tolti sfrido e portico
 
+- Marciapiede, terrazzo e balcone non hanno più l'altezza: sparisce dal pannello e dalla tabella Calcoli (niente volume né controllo altezza).
 - Marciapiede ad anello attorno alla casa: disegnato come anello di «Superficie esterna», l'area esce già senza la casa
   e le stanze della casa restano riconosciute (prova «anello»).
 - Tolti: lo sfrido, il portico (resta la destinazione Marciapiede, Terrazzo, Balcone) e il vecchio strumento a punti
