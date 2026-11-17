@@ -1,2 +1,2 @@
-{"barOn":true,"nCand":2,"ringOn":true,"att1":12.6,"got1":12.6,"lor1":13.86,"att2":27.2,"got2":27.2,"Xo":true,"dopo":6,"lor":7.2,"tratt":true,"etich":true,"json":2}
+{"script":{"lay":true,"por":true,"mar":true,"sf":true,"tratti":true},"barOn":true,"nCand":2,"ringOn":true,"att1":12.6,"got1":12.6,"lor1":13.86,"att2":27.2,"got2":27.2,"Xo":true,"dopo":6,"lor":7.2,"tratt":true,"etich":true,"json":2}
 errors []

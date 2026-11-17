@@ -2253,6 +2253,17 @@ function genScript(pl) {
     w('_.TEXT', '_S', 'STUDIO', '_J', '_MC', pt(g.txt), '0.25', '0', 'N'); } }
   const inkOut = (pl.ink || []).filter(k => !k.cs && (k.lin || R.opt.mano));
   if (inkOut.length) { w('; ---- ' + (R.opt.mano ? 'note a mano e linee' : 'linee disegnate'), 'CLAYER', LAY.R); inkOut.forEach(k => w('_.PLINE', ...k.pts.map(pt), '')); }
+  if ((pl.sup || []).length) {   // superfici esterne: layer giallo, portico a tratti (come le scale), mq scritti con e senza sfrido
+    w('; ---- superfici esterne (portico tratteggiato, marciapiede continuo)', '_-LAYER', '_Make PLAN_SUPERFICI', '_Color 2 PLAN_SUPERFICI', '_LWeight 0.13 PLAN_SUPERFICI', '', 'CLAYER', 'PLAN_SUPERFICI');
+    pl.sup.forEach(k => {
+      if (k.tipo === 'P') k.pts.forEach((a, i) => { const b = k.pts[(i + 1) % k.pts.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (!(L > 0)) return;
+        for (let s0 = 0; s0 < L - 1e-6; s0 += 0.16) { const s1 = Math.min(L, s0 + 0.10), f = t => [a[0] + (b[0] - a[0]) * t / L, a[1] + (b[1] - a[1]) * t / L]; w('_.LINE', pt(f(s0)), pt(f(s1)), ''); } });
+      else w('_.PLINE', ...k.pts.map(pt), '_C');
+      let bi = 0, bl = -1; k.pts.forEach((q, i) => { const n = k.pts[(i + 1) % k.pts.length], l = Math.hypot(n[0] - q[0], n[1] - q[1]); if (l > bl) { bl = l; bi = i; } });
+      const a = k.pts[bi], b = k.pts[(bi + 1) % k.pts.length], m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], sf = num(k.sf) || 0;
+      w('_.TEXT', '_S', 'STUDIO', '_J', '_MC', pt([m[0], m[1] + 0.20]), '0.20', '0', (k.tipo === 'P' ? 'PORTICO' : 'MARCIAPIEDE') + ' S = ' + supNet(k).toFixed(2) + ' mq');
+      if (sf > 0) w('_.TEXT', '_S', 'STUDIO', '_J', '_MC', pt([m[0], m[1] - 0.05]), '0.20', '0', 'con sfrido ' + sf + '% = ' + supLor(k).toFixed(2) + ' mq'); });
+  }
   if (R.opt.note) (pl.notes || []).forEach(n => String(n.t || '').split('\n').map(x => ascii(x).replace(/^;+/, '').trim()).forEach((l, i) => { if (l) w('_.TEXT', '_S', 'STUDIO', pt([n.x, n.y - 0.30 - i * 0.35]), '0.20', '0', l); }));
   if (R.opt.vani !== false && sp.vani.length) {
     // larghezza del vano: linea perpendicolare al muro dal centro del vano verso l'ambiente, numero lungo la linea
