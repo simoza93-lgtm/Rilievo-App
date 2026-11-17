@@ -13,6 +13,13 @@ rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact
 - Il bottone «Superficie» a punti (tappe 2 e 3 di oggi) è sostituito da questo; il vecchio codice resta nel file ma non si raggiunge.
 - Non ancora: sfrido %, portico tratteggiato, marciapiede ad anello attorno alla casa (area con la casa tolta).
 
+## 18 novembre 2026 — Superfici esterne: anello attorno alla casa, tolti sfrido e portico
+
+- Marciapiede ad anello attorno alla casa: disegnato come anello di «Superficie esterna», l'area esce già senza la casa
+  e le stanze della casa restano riconosciute (prova «anello»).
+- Tolti: lo sfrido, il portico (resta la destinazione Marciapiede, Terrazzo, Balcone) e il vecchio strumento a punti
+  con il suo codice. Le superfici fatte con quel vecchio strumento non si vedono più.
+
 ## 17 novembre 2026 — Superfici esterne nello script AutoCAD (tappa 3)
 
 - Se il piano ha superfici, lo script crea il layer **`PLAN_SUPERFICI`** (giallo, spessore 0,13). Senza superfici lo script resta identico a prima.

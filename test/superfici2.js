@@ -14,10 +14,10 @@ const { chromium } = require('playwright');
     const S = pl.walls.filter(w => w.tipo === 'S');
     const stanze = G.comps.filter(c => c.room).map(c => +c.area.toFixed(2));
     const bbs = G.comps.filter(c=>c.room).map(c=>c.bbox.map(v=>+v.toFixed(3))); const rec = (pl.rooms || []).find(x => G.comps[x._c] && Math.abs(G.comps[x._c].area - 10.58) < 1);
-    if (rec) { rec.dest = 'Portico'; rec.nome = 'Portico'; }
+    if (rec) { rec.dest = 'Marciapiede'; rec.nome = 'Marciapiede'; }
     update(true);
     const scr = [].concat(genScript(pl)).join('\n');
     draw(); const svg = document.querySelector('#svg').innerHTML;
-    return {bbs, nS:S.length, spess:thick(S[0]), lay:layerOf(S[0]), stanze, rec:!!rec, giallo:svg.includes('fill="var(--wI)" fill-opacity=".6"'), scr:scr.includes('PLAN_SUPERFICI'), dest:Object.keys(DEST).includes('Portico')}; });
+    return {bbs, nS:S.length, spess:thick(S[0]), lay:layerOf(S[0]), stanze, rec:!!rec, giallo:svg.includes('fill="var(--wI)" fill-opacity=".6"'), scr:scr.includes('PLAN_SUPERFICI'), dest:Object.keys(DEST).includes('Marciapiede')}; });
   console.log(JSON.stringify(r)); console.log('errors', errs); await b.close();
 })();
