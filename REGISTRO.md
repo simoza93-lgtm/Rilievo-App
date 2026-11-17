@@ -3,6 +3,15 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 17 novembre 2026 — Superfici esterne: portico e marciapiede (tappa 2)
+
+- Nuovo strumento **«Superficie»** (accanto a «Ringhiere» in Muri). Scegli **Marciapiede** (linea continua) o **Portico** (tratteggiato), tocchi i punti del contorno (agganciano spigoli e facce dei muri), poi **Fine**. Contorno e riempimento gialli, nome e mq scritti sul lato più lungo.
+- **Chiusura lungo i muri**: se primo e ultimo punto stanno sullo stesso muro, l'app mostra i percorsi possibili in colori diversi (con i mq di ciascuno) e scegli tu; oppure «Linea dritta». Se i punti non sono su un muro, chiude con una linea dritta.
+- **Anello attorno alla casa**: tornando sul primo punto l'app propone di togliere la casa (contorno più esterno dei muri); scegli «Sì» o «No». Si può togliere dopo dal pannello. Mq = contorno − casa.
+- Pannello a destra: tipo, **sfrido %** (scritto da te; proposto 10, si ricorda l'ultimo), mq netti e con sfrido, perimetro e **lunghezza di ogni lato**: scrivendola si sposta il punto dopo (e i successivi), il lato che chiude si adegua.
+- Dati: nuova lista `pl.sup` nel piano, vuota nei rilievi vecchi (nessuna conversione). Non ancora nello script AutoCAD (tappa 3).
+- Prova `superfici`: portico 2 × lato alto, anello 1 m attorno alla casa, sfrido, lato scritto, tratteggio.
+
 ## 17 novembre 2026 — Ringhiere (tappa 1 di superfici esterne)
 
 - Nuovo **tipo di muro «Ringhiera»**: tasto «Ringhiere» in Muri, voce nel tipo del muro e nei muri selezionati. Rossa e sottile in pianta, **spessore 5 cm** (modificabile) e **altezza** (proposta 1,00 m, la scrivi tu) nel pannello del muro.
