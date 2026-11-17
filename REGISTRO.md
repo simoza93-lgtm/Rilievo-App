@@ -3,6 +3,16 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 17 novembre 2026 — Superfici esterne disegnate come i muri
+
+- Nuovo tipo di muro «Superficie esterna» (linea gialla sottile, 2 cm, layer «Superfici esterne»): si disegna con
+  lo stesso strumento dei muri (tratto, misure, spostamenti, tipo cambiabile). Chiuso, anche contro il muro di casa,
+  forma un ambiente con i suoi m² come tutti gli altri.
+- Destinazioni nuove dell'ambiente: Portico, Marciapiede, Terrazzo, Balcone (fuori dai calcoli di rapporto aeroilluminante).
+- Script AutoCAD: le linee escono nel layer PLAN_SUPERFICI (giallo); i m² escono con il testo dell'ambiente.
+- Il bottone «Superficie» a punti (tappe 2 e 3 di oggi) è sostituito da questo; il vecchio codice resta nel file ma non si raggiunge.
+- Non ancora: sfrido %, portico tratteggiato, marciapiede ad anello attorno alla casa (area con la casa tolta).
+
 ## 17 novembre 2026 — Superfici esterne nello script AutoCAD (tappa 3)
 
 - Se il piano ha superfici, lo script crea il layer **`PLAN_SUPERFICI`** (giallo, spessore 0,13). Senza superfici lo script resta identico a prima.

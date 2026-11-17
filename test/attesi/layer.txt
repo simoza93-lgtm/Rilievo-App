@@ -5,6 +5,7 @@
    "Muri Xrali",
    "TX",
    "Porte e Xe",
+   "SXi X",
    "Scale e Xre",
    "Quote e misure",
    "Nomi e m²",
@@ -16,7 +17,7 @@
    "Sagoma altro piano",
    "Nord"
   ],
-  "Xti": 11
+  "Xti": 12
  },
  "prima": {
   "nota": true,
@@ -63,7 +64,7 @@
    "lk": true
   }
  },
- "tutti": ",,,,,,,,,,,,",
+ "tutti": ",,,,,,,,,,,,,",
  "scriptUguale": true
 }
 errors []
