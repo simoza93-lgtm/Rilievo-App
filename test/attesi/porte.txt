@@ -9,6 +9,7 @@
    "porta:sce",
    "porta:sco",
    "porta:lib",
+   "porta:strom",
    "Xo",
    "varco"
   ],

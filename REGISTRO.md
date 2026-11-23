@@ -4,7 +4,7 @@ Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembr
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
 ## 23 novembre 2026 — Porta strombata (e a scalino)
-- Porte, ingresso e varco si possono incassare come le finestre: nel pannello dell'apertura c'è «Forma» (normale, a scalino, strombata), con parte larga, risega e lato largo.
+- Nell'elenco delle porte c'è la voce «Strombata», scelta indipendente come per le finestre (non è un'opzione del menu delle porte). Una volta posata, nel pannello c'è «Forma» (normale, a scalino, strombata), con parte larga, risega e lato largo; vale anche per ingresso e varco.
 - L'anta e l'infisso stanno nella parte stretta: se il cardine cadrebbe sulla faccia larga, va sul fondo della parte stretta. I cunei della strombata tornano muro come per le finestre.
 - Nessun dato cambia: si usano gli stessi campi delle finestre (`inc`, `l2`, `ris`, `lw`).
 

@@ -284,12 +284,12 @@ const PORTE_T = {'':'Battente', '2a':'Doppia anta', am:'Anta e mezza', sce:'Scor
 const AP_KIND = {
   porta:{cat:'porte', lab:'Porta battente', tipo:'porta', pt:'', l:'0,80'}, 'porta:2a':{cat:'porte', lab:'Porta a doppia anta', tipo:'porta', pt:'2a', l:'1,20'},
   'porta:am':{cat:'porte', lab:'Porta anta e mezza', tipo:'porta', pt:'am', l:'1,20'}, 'porta:sce':{cat:'porte', lab:'Porta scorrevole esterna', tipo:'porta', pt:'sce', l:'0,80'},
-  'porta:sco':{cat:'porte', lab:'Porta a scomparsa', tipo:'porta', pt:'sco', l:'0,80'}, 'porta:lib':{cat:'porte', lab:'Porta a libro', tipo:'porta', pt:'lib', l:'0,80'},
+  'porta:sco':{cat:'porte', lab:'Porta a scomparsa', tipo:'porta', pt:'sco', l:'0,80'}, 'porta:lib':{cat:'porte', lab:'Porta a libro', tipo:'porta', pt:'lib', l:'0,80'}, 'porta:strom':{cat:'porte', lab:'Porta strombata', tipo:'porta', pt:'', inc:'strom', l:'0,80'},
   ingresso:{cat:'porte', lab:'Ingresso (portoncino)', tipo:'ingresso', l:'1,00', h:'2,10'}, varco:{cat:'porte', lab:'Varco (senza infisso)', tipo:'varco', l:'0,90'},
   finestra:{cat:'finestre', lab:'Finestra', tipo:'finestra', l:'1,20', h:'1,40', dav:'0,90'}, uscita:{cat:'finestre', lab:'Porta-finestra', tipo:'uscita', l:'1,20', h:'2,20'},
   incassata:{cat:'finestre', lab:'Finestra incassata a scalino', tipo:'finestra', inc:'scal', l:'1,20', h:'1,40', dav:'0,90'},
   strombata:{cat:'finestre', lab:'Finestra incassata strombata', tipo:'finestra', inc:'strom', l:'1,20', h:'1,40', dav:'0,90'}};
-const apLab = (k, ap) => { if (ap) { if (ap.tipo === 'finestra' && ap.inc) return 'Finestra incassata'; if (ap.tipo === 'porta' && ap.pt && PORTE_T[ap.pt]) return 'Porta ' + PORTE_T[ap.pt].toLowerCase(); return TIPI_AP[ap.tipo] || TIPI_AP[k]; }
+const apLab = (k, ap) => { if (ap) { if (ap.tipo === 'finestra' && ap.inc) return 'Finestra incassata'; if (ap.tipo === 'porta' && ap.inc) return ap.inc === 'strom' ? 'Porta strombata' : 'Porta a scalino'; if (ap.tipo === 'porta' && ap.pt && PORTE_T[ap.pt]) return 'Porta ' + PORTE_T[ap.pt].toLowerCase(); return TIPI_AP[ap.tipo] || TIPI_AP[k]; }
   return AP_KIND[k] ? AP_KIND[k].lab : TIPI_AP[k]; };
 // misure proposte quando si posa un'apertura con i tasti rapidi (poi si correggono con il laser)
 const DEF_AP = {finestra:{l:'1,20', h:'1,40', dav:'0,90'}, incassata:{l:'1,20', h:'1,40', dav:'0,90'}, uscita:{l:'1,20', h:'2,20', dav:''}, porta:{l:'0,80', h:'', dav:''}, ingresso:{l:'1,00', h:'2,10', dav:''}};
@@ -2468,6 +2468,7 @@ const AP_ICO = {
   'porta:am':'<path d="M2 28h8M30 28h8" stroke-width="3"/><path d="M10 28V14.7M30 28v-6.7"/><path d="M10 14.7a13.3 13.3 0 0 1 13.3 13.3M30 21.3a6.7 6.7 0 0 0-6.7 6.7" stroke-width="1"/>',
   'porta:sce':'<path d="M2 28h8M30 28h8" stroke-width="3"/><rect x="7" y="23.5" width="26" height="2.5"/><path d="M20 17h-9M14 14.5L11 17l3 2.5" stroke-width="1.2"/>',
   'porta:sco':'<path d="M2 23h16M2 31h16M32 23h6M32 31h6M18 23v8M32 23v8" stroke-width="1.6"/><path d="M3 26h15v2H3z" stroke-dasharray="2.2 1.6" stroke-width="1.1"/><path d="M30 17h-9M24 14.5L21 17l3 2.5" stroke-width="1.2"/>',
+  'porta:strom':'<path d="M2 12h6M2 28h10M32 12h6M28 28h10" stroke-width="2.4"/><path d="M8 12l4 10v6M32 12l-4 10v6M8 12h24" stroke-width="1.1"/><path d="M12 28v-6a8 8 0 0 1 8 8" stroke-width="1.1"/>',
   'porta:lib':'<path d="M2 28h8M30 28h8" stroke-width="3"/><path d="M10 28l5-9 5 9 5-9 5 9"/>',
   ingresso:'<path d="M2 16h8M30 16h8" stroke-width="3"/><path d="M10 16h20" stroke-width="2.2"/><path d="M17 31h6l-3-5z"/>',
   varco:'<path d="M2 14h8M2 26h8M30 14h8M30 26h8" stroke-width="2.4"/><path d="M10 14h20M10 26h20" stroke-dasharray="2.5 2" stroke-width="1"/>',
@@ -2486,7 +2487,7 @@ const PAN = {layer:{t:'Layer'}, porte:{t:'Porte'}, finestre:{t:'Finestre'}, scal
   hint:'Scegli il tipo, poi tocca dentro il vano e trascina; solleva per posarla. Tipo, verso e misure si cambiano dopo toccandola con «Seleziona».'}};
 const panItems = cat => PAN[cat] && PAN[cat].items ? PAN[cat].items : Object.keys(AP_KIND).filter(k => AP_KIND[k].cat === cat);
 const panOn = k => k.startsWith('sc:') ? 'sc:' + ui.placeSc === k : ui.place === k;
-const AP_SHORT = {porta:'Battente', 'porta:2a':'Doppia anta', 'porta:am':'Anta e mezza', 'porta:sce':'Scorrevole esterna', 'porta:sco':'A scomparsa', 'porta:lib':'A libro', ingresso:'Ingresso', varco:'Varco', 'sc:dritta':'Dritta', 'sc:L':'A L', 'sc:U':'A U', 'sc:chiocciola':'A chiocciola', 'sc:asc':'Attorno all\'ascensore', 'sc:lift':'Ascensore',
+const AP_SHORT = {porta:'Battente', 'porta:2a':'Doppia anta', 'porta:am':'Anta e mezza', 'porta:sce':'Scorrevole esterna', 'porta:sco':'A scomparsa', 'porta:lib':'A libro', 'porta:strom':'Strombata', ingresso:'Ingresso', varco:'Varco', 'sc:dritta':'Dritta', 'sc:L':'A L', 'sc:U':'A U', 'sc:chiocciola':'A chiocciola', 'sc:asc':'Attorno all\'ascensore', 'sc:lift':'Ascensore',
   finestra:'Finestra', uscita:'Porta-finestra', incassata:'Incassata a scalino', strombata:'Incassata strombata'};
 const LY_EYE = on => `<svg viewBox="0 0 24 24">${on ? '<path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>' : '<path d="M3 3l18 18M10.6 6.1A10 10 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3.2 3.9M6.6 6.6C3.7 8.4 2 12 2 12s3.5 6.5 10 6.5c1.6 0 3-.4 4.2-1"/>'}</svg>`;
 const LY_LK = on => `<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="${on ? 'M8 11V7a4 4 0 0 1 8 0v4' : 'M8 11V7a4 4 0 0 1 7.5-2'}"/></svg>`;
@@ -3752,7 +3753,7 @@ function apFields(x) { return `        <div><label class="l">Tipo</label><select
         ${inp('ap.' + x.id + '.d', x.d, 'Distanza (m)')}${inp('ap.' + x.id + '.l', x.l, 'Larghezza (m)')}
         ${inp('ap.' + x.id + '.h', x.h, 'Altezza (m)')}
         ${x.tipo === 'finestra' ? inp('ap.' + x.id + '.dav', x.dav, 'Davanzale (m)') : ''}
-        ${incTipo(x.tipo) && (x.inc || x.tipo !== 'finestra') ? `<div><label class="l">Forma</label><select data-w="ap.${x.id}.inc" data-re>${opt({'':'Normale (non incassata)', scal:'A scalino', strom:'Strombata'}, x.inc || '')}</select></div>` : ''}
+        ${incTipo(x.tipo) && x.inc ? `<div><label class="l">Forma</label><select data-w="ap.${x.id}.inc" data-re>${opt({'':'Normale (non incassata)', scal:'A scalino', strom:'Strombata'}, x.inc || '')}</select></div>` : ''}
         ${incTipo(x.tipo) && x.inc ? (() => { const f = dimAp(piano(), x.id), I = f && G.T && G.T.info.get(f.w.id), rs = (num(x.l2) - num(x.l)) / 2;
           return inp('ap.' + x.id + '.l2', x.l2p ? '' : x.l2, 'Larghezza parte larga (m)').replace('<input ', `<input placeholder="${x.l2p ? 'prop. ' + f2(num(x.l2)) : ''}" `)
             + inp('ap.' + x.id + '.ris', x.ris, 'Risega ' + (I && !I.H ? 'in basso' : 'a sinistra') + ' (m)').replace('<input ', `<input placeholder="${isFinite(rs) ? 'centrata ' + f2(rs) : ''}" `)
