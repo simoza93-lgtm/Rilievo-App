@@ -3,6 +3,11 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 23 novembre 2026 — Porta strombata (e a scalino)
+- Porte, ingresso e varco si possono incassare come le finestre: nel pannello dell'apertura c'è «Forma» (normale, a scalino, strombata), con parte larga, risega e lato largo.
+- L'anta e l'infisso stanno nella parte stretta: se il cardine cadrebbe sulla faccia larga, va sul fondo della parte stretta. I cunei della strombata tornano muro come per le finestre.
+- Nessun dato cambia: si usano gli stessi campi delle finestre (`inc`, `l2`, `ris`, `lw`).
+
 ## 23 novembre 2026 — Muro spostato di lato (denti)
 
 - Nel pannello del muro dritto c'è «Sposta il muro di lato (m)»: + in alto o a destra, − in basso o a sinistra. Il muro scorre

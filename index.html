@@ -312,7 +312,8 @@ const P_ = () => num(R.P), T_ = () => num(R.T);
    ap.ris = risega dall'inizio del muro (dal bordo largo al bordo della luce), vuota = luce centrata; ap.l2p = larghezza larga proposta.
    La parte stretta è profonda incP() dalla sua faccia (Impostazioni). ---- */
 const incP = () => { const v = num(R.incP); return v > 0 ? v : 0.15; };
-const incOk = (ap, t) => ap.tipo === 'finestra' && (ap.inc === 'scal' || ap.inc === 'strom') && (ap.lw === 1 || ap.lw === -1) && num(ap.l2) > num(ap.l) + 0.005 && num(ap.l) > 0 && t > incP() + 0.02;
+const incTipo = t => t === 'finestra' || t === 'porta' || t === 'ingresso' || t === 'varco';   // porte comprese: anta e infisso stanno nella parte stretta
+const incOk = (ap, t) => incTipo(ap.tipo) && (ap.inc === 'scal' || ap.inc === 'strom') && (ap.lw === 1 || ap.lw === -1) && num(ap.l2) > num(ap.l) + 0.005 && num(ap.l) > 0 && t > incP() + 0.02;
 const risMis = ap => String(ap.ris ?? '').trim() !== '' && num(ap.ris) >= 0;
 const risOf = ap => risMis(ap) ? num(ap.ris) : (num(ap.l2) - num(ap.l)) / 2;
 const risOk = ap => risMis(ap) || (!ap.lp && !ap.l2p);
@@ -1281,8 +1282,8 @@ function geometry(pl) {
         c0 = Math.max(I.da, Math.min(s0, I.len - I.db - Math.min(l, luce(I)))); c1 = Math.min(I.len - I.db, c0 + l); if (c1 - c0 < 0.05) { c0 = Math.max(I.da, I.len - I.db - 0.05); c1 = I.len - I.db; } }
       if ((ap.tipo === 'finestra' || ap.tipo === 'uscita') && !(num(ap.h) > 0)) warns.push({w:w.id, t:nm + ': manca l\'altezza, non entra nel rapporto aeroilluminante.'});
       const op = {ap, w, I, s0:c0, s1:c1, bad:c0 !== s0 || c1 !== s1, c:I.H ? [I.a.x + c0, I.a.y + o - h, I.a.x + c1, I.a.y + o + h] : [I.a.x + o - h, I.a.y + c0, I.a.x + o + h, I.a.y + c1]};
-      if (ap.tipo === 'finestra' && (ap.inc === 'scal' || ap.inc === 'strom') && !incOk(ap, I.t))
-        warns.push({w:w.id, t:nm + (num(ap.l2) > num(ap.l) + 0.005 ? `: muro troppo sottile per la finestra incassata (serve più di ${f2(incP() + 0.02)} m), disegnata normale.` : ': incassata, la parte larga deve essere più larga della luce. Controlla le due larghezze.')});
+      if (incTipo(ap.tipo) && (ap.inc === 'scal' || ap.inc === 'strom') && !incOk(ap, I.t))
+        warns.push({w:w.id, t:nm + (num(ap.l2) > num(ap.l) + 0.005 ? `: muro troppo sottile per l'apertura incassata (serve più di ${f2(incP() + 0.02)} m), disegnata normale.` : ': incassata, la parte larga deve essere più larga della luce. Controlla le due larghezze.')});
       if (incOk(ap, I.t)) {   // parte larga: dalla faccia larga fino alla parte stretta (profonda incP() dall'altra faccia)
         let w0 = c0 - risOf(ap), w1 = w0 + num(ap.l2); const lo = I.da, hi = I.len - I.db;
         if (w0 < lo - EPS || w1 > hi + EPS) { errs.push({w:w.id, t:`${nm}: la parte larga (${f2(num(ap.l2))} m) esce dal muro. Controlla la larghezza larga e la risega.`}); w0 = Math.max(lo, w0); w1 = Math.min(hi, w1); }
@@ -1303,8 +1304,8 @@ function geometry(pl) {
         c0 = Math.max(I.da, Math.min(s0, I.len - I.db - Math.min(l, luce(I)))); c1 = Math.min(I.len - I.db, c0 + l); if (c1 - c0 < 0.05) { c0 = Math.max(I.da, I.len - I.db - 0.05); c1 = I.len - I.db; } }
       if ((ap.tipo === 'finestra' || ap.tipo === 'uscita') && !(num(ap.h) > 0)) warns.push({w:w.id, t:nm + ': manca l\'altezza, non entra nel rapporto aeroilluminante.'});
       const q = [PT(c0, -h), PT(c1, -h), PT(c1, h), PT(c0, h)], op = {ap, w, I, s0:c0, s1:c1, bad:c0 !== s0 || c1 !== s1, q, c:box(q)};
-      if (ap.tipo === 'finestra' && (ap.inc === 'scal' || ap.inc === 'strom') && !incOk(ap, I.t))
-        warns.push({w:w.id, t:nm + (num(ap.l2) > num(ap.l) + 0.005 ? `: muro troppo sottile per la finestra incassata (serve più di ${f2(incP() + 0.02)} m), disegnata normale.` : ': incassata, la parte larga deve essere più larga della luce. Controlla le due larghezze.')});
+      if (incTipo(ap.tipo) && (ap.inc === 'scal' || ap.inc === 'strom') && !incOk(ap, I.t))
+        warns.push({w:w.id, t:nm + (num(ap.l2) > num(ap.l) + 0.005 ? `: muro troppo sottile per l'apertura incassata (serve più di ${f2(incP() + 0.02)} m), disegnata normale.` : ': incassata, la parte larga deve essere più larga della luce. Controlla le due larghezze.')});
       if (incOk(ap, I.t)) { let w0 = c0 - risOf(ap), w1 = w0 + num(ap.l2); const lo = I.da, hi = I.len - I.db;
         if (w0 < lo - EPS || w1 > hi + EPS) { errs.push({w:w.id, t:`${nm}: la parte larga (${f2(num(ap.l2))} m) esce dal muro. Controlla la larghezza larga e la risega.`}); w0 = Math.max(lo, w0); w1 = Math.min(hi, w1); }
         const lw = ap.lw, pD = incP(), x0 = lw * h, x1 = lw * (pD - h), m0 = Math.min(x0, x1), m1 = Math.max(x0, x1);
@@ -1452,13 +1453,15 @@ function geometry(pl) {
     o.at = at;
     const k = d >= 0.30 - EPS ? 0.125 : d * 0.125 / 0.30;
     const L = (off, l = 'R') => lines.push({l, a:at(s0, off), b:at(s1, off)});
+    // porta/ingresso incassati: l'anta sta nella parte stretta; un filo che cadrebbe sulla faccia larga va sul fondo della parte stretta
+    const nf = o.inc ? (o.inc.lw * sg > 0 ? 0 : d) : 0, fx = z => o.inc && z !== nf ? nf + o.inc.lw * sg * o.inc.p : z;
     if (o.ap.tipo === 'finestra' && o.inc) {   // incassata: fili e vetri nella parte stretta, filo della faccia larga sulla parte larga
       const {lw, p, w0, w1} = o.inc, A = (al, off) => apPt(I, al, lw * (off - h));
       const N = off => lines.push({l:'R', a:A(s0, off), b:A(s1, off)}), gk = Math.min(0.025, p / 6);
       N(0); N(p / 2 - gk); N(p / 2 + gk); N(p); lines.push({l:'R', a:A(w0, d), b:A(w1, d)}); }
     else if (o.ap.tipo === 'finestra') { L(0); L(k); L(d - k); L(d); }
     else if (o.ap.tipo === 'uscita') { L(k); L(d - k); L(d); lines.push({l:'R', a:at(sm, d / 2 - 0.5), b:at(sm, d / 2 + 0.5)}); }
-    else if (o.ap.tipo === 'porta') { const Lw = Math.abs(s1 - s0), sh = o.ap.cx ? s1 : s0, so = o.ap.cx ? s0 : s1, u = Math.sign(so - sh) || 1, f = o.ap.vx ? d : 0, q = o.ap.vx ? 1 : -1, pt = PORTE_T[o.ap.pt] ? o.ap.pt || '' : '';
+    else if (o.ap.tipo === 'porta') { const Lw = Math.abs(s1 - s0), sh = o.ap.cx ? s1 : s0, so = o.ap.cx ? s0 : s1, u = Math.sign(so - sh) || 1, f = fx(o.ap.vx ? d : 0), q = o.ap.vx ? 1 : -1, pt = PORTE_T[o.ap.pt] ? o.ap.pt || '' : '';
       // anta a battente: cerniera h0 sul filo f, apre verso q, chiusa verso dir lungo il muro (rettangolo 0,06 × anta e arco, come il blocco dello studio)
       const leaf = (h0, len, dir) => { const e = Math.min(0.06, len / 4);
         return {rect:[at(h0, f), at(h0, f + q * len), at(h0 + dir * e, f + q * len), at(h0 + dir * e, f)], c:at(h0, f), r:len, p0:at(h0 + dir * e, f + q * Math.sqrt(Math.max(0, len * len - e * e))), pm:at(h0 + dir * len / Math.SQRT2, f + q * len / Math.SQRT2), p1:at(h0 + dir * len, f)}; };
@@ -1482,7 +1485,7 @@ function geometry(pl) {
         const hl = Lw / 2, dep = hl * Math.sin(Math.PI / 3);
         S.pl.push({pts:[at(sh, f), at(sh + u * hl / 2, f + q * dep), at(sh + u * hl, f), at(sh + u * 1.5 * hl, f + q * dep), at(so, f)], c:false}); }
       o.dsym = S; }
-    else if (o.ap.tipo === 'ingresso') { L(d, 'P'); tris.push({l:'I', pts:[at(sm - 0.15, d + 0.60), at(sm + 0.15, d + 0.60), at(sm, d + 0.30)]}); }
+    else if (o.ap.tipo === 'ingresso') { L(fx(d), 'P'); tris.push({l:'I', pts:[at(sm - 0.15, d + 0.60), at(sm + 0.15, d + 0.60), at(sm, d + 0.30)]}); }
     if ((o.ap.tipo === 'uscita' || o.ap.tipo === 'ingresso') && cp >= 0 && cm >= 0) warns.push({w:o.w.id, t:`${TIPI_AP[o.ap.tipo]} tra due ambienti: controlla il tipo o il lato esterno.`});
   });
   const runs = runsOf(pl, T), covered = new Set();
@@ -2746,7 +2749,7 @@ function flipSvg() { return flipBtns().map(b => { const [x, y] = b.p, u = [b.t[0
   return `<g data-flip="${b.k}"><circle cx="${x}" cy="${y}" r="16" fill="var(--card)" stroke="var(--acc)" stroke-width="2"/><path d="M${P(-9, 0)} L${P(9, 0)} M${P(-9, 0)} L${P(-4, -4.5)} M${P(-9, 0)} L${P(-4, 4.5)} M${P(9, 0)} L${P(4, -4.5)} M${P(9, 0)} L${P(4, 4.5)}" stroke="var(--acc)" stroke-width="2.2" fill="none" stroke-linecap="round"/><title>${b.k === 'lw' ? 'Parte larga dall\'altro lato' : b.k === 'cx' ? 'Cerniera dall\'altra parte' : 'Apre dall\'altro lato'}</title></g>`; }).join(''); }
 function flipAt(p) { return flipBtns().find(b => Math.hypot(b.p[0] - p[0], b.p[1] - p[1]) < 20) || null; }
 function selInc() { const id = ui.sel && ui.sel.k === 'a' && ui.sel.ap; return id && G.ops ? G.ops.find(o => o.inc && o.ap.id === id) || null : null; }
-function flipInc(id) { const f = dimAp(piano(), id); if (!f) return; pushUndo(); f.ap.lw = f.ap.lw === 1 ? -1 : 1; update(true); toast('Finestra incassata: parte larga dall\'altro lato.'); }
+function flipInc(id) { const f = dimAp(piano(), id); if (!f) return; pushUndo(); f.ap.lw = f.ap.lw === 1 ? -1 : 1; update(true); toast('Apertura incassata: parte larga dall\'altro lato.'); }
 function flipDoor(k) { if (k === 'lw') { const id = ui.selAp || (ui.sel && ui.sel.ap); ui.selAp = null; if (id) flipInc(id); return; } const o = selDoor(); if (!o) return; pushUndo(); o.ap[k] = !o.ap[k]; update(true); const sl = o.ap.pt === 'sce' || o.ap.pt === 'sco'; toast(k === 'cx' ? (sl ? 'Porta: ora scorre dall\'altra parte.' : o.ap.pt === 'am' ? 'Porta: anta grande dall\'altra parte.' : 'Porta: cerniera spostata.') : (sl ? 'Porta: anta sull\'altra faccia del muro.' : 'Porta: ora apre dall\'altro lato.')); }
 
 /* ---- disegno della tavola ---- */
@@ -3749,8 +3752,8 @@ function apFields(x) { return `        <div><label class="l">Tipo</label><select
         ${inp('ap.' + x.id + '.d', x.d, 'Distanza (m)')}${inp('ap.' + x.id + '.l', x.l, 'Larghezza (m)')}
         ${inp('ap.' + x.id + '.h', x.h, 'Altezza (m)')}
         ${x.tipo === 'finestra' ? inp('ap.' + x.id + '.dav', x.dav, 'Davanzale (m)') : ''}
-        ${x.tipo === 'finestra' && x.inc ? `<div><label class="l">Forma</label><select data-w="ap.${x.id}.inc" data-re>${opt({scal:'A scalino', strom:'Strombata', '':'Normale (non incassata)'}, x.inc)}</select></div>` : ''}
-        ${x.tipo === 'finestra' && x.inc ? (() => { const f = dimAp(piano(), x.id), I = f && G.T && G.T.info.get(f.w.id), rs = (num(x.l2) - num(x.l)) / 2;
+        ${incTipo(x.tipo) && (x.inc || x.tipo !== 'finestra') ? `<div><label class="l">Forma</label><select data-w="ap.${x.id}.inc" data-re>${opt({'':'Normale (non incassata)', scal:'A scalino', strom:'Strombata'}, x.inc || '')}</select></div>` : ''}
+        ${incTipo(x.tipo) && x.inc ? (() => { const f = dimAp(piano(), x.id), I = f && G.T && G.T.info.get(f.w.id), rs = (num(x.l2) - num(x.l)) / 2;
           return inp('ap.' + x.id + '.l2', x.l2p ? '' : x.l2, 'Larghezza parte larga (m)').replace('<input ', `<input placeholder="${x.l2p ? 'prop. ' + f2(num(x.l2)) : ''}" `)
             + inp('ap.' + x.id + '.ris', x.ris, 'Risega ' + (I && !I.H ? 'in basso' : 'a sinistra') + ' (m)').replace('<input ', `<input placeholder="${isFinite(rs) ? 'centrata ' + f2(rs) : ''}" `)
             + `<div style="grid-column:1/-1;display:flex;gap:6px;align-items:center"><button class="sm" data-flipap="${x.id}:lw">⇅ Parte larga dall'altro lato</button><span class="mut" style="font-size:12px">Luce = parte stretta (l'infisso), profonda ${f2(incP())} m: si cambia nelle Impostazioni.</span></div>`; })() : ''}
