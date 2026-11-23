@@ -1,2 +1,2 @@
-{"a0":26.79,"n0":0,"a1":29.64,"n1":0,"dArea":2.85,"yTop":5.65,"sx":false,"a2":25.08,"X":true,"resid":false}
+{"a0":26.79,"n0":0,"a1":29.64,"n1":0,"dArea":2.85,"yTop":5.65,"sx":false,"a2":25.08,"X":true,"resid":false,"b0":"12.46/13.87","b1":"12.46/15.29","jg":1,"wPiu":1,"wTorna":true,"nodiExtra":false}
 errors []

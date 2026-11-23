@@ -1019,12 +1019,25 @@ function oblChain(pl, w) { if (!isObl(w) || num(w.mis) > 0) return null; const a
 // i muri attaccati si allungano o si accorciano e le loro misure scritte restano com'erano. Lo scostamento è annotato sui nodi (sx, sy)
 // e tolto prima di ogni nuovo calcolo, così non si accumula.
 let DMSKIP = new Set();
-function undoDm(pl) { pl.nodes.forEach(nn => { if (nn.sx || nn.sy) { nn.x = r4(nn.x - (nn.sx || 0)); nn.y = r4(nn.y - (nn.sy || 0)); } delete nn.sx; delete nn.sy; }); }
-function applyDm(pl) { DMSKIP = new Set(); const T = topo(pl);
-  pl.walls.forEach(w => { const d = num(w.dm), I = T.info.get(w.id); if (!(Math.abs(d) > 1e-9) || !I) return;
-    // un muro che prosegue in linea dallo spigolo si storcerebbe: il muro non si sposta e l'app lo dice
-    if ([w.a, w.b].some(id => (T.at.get(id) || []).some(o => { if (o === w || isObl(o)) return false; const xa = T.N.get(o.a), xb = T.N.get(o.b); return xa && xb && isH(xa, xb) === I.H; }))) { DMSKIP.add(w.id); return; }
-    [I.a, I.b].forEach(nn => { if (I.H) { nn.y = r4(nn.y + d); nn.sy = r4((nn.sy || 0) + d); } else { nn.x = r4(nn.x + d); nn.sx = r4((nn.sx || 0) + d); } }); }); }
+// Dove il muro spostato continua in linea con un altro muro, allo spigolo nasce un tratto di raccordo (w.jg, stesso tipo) che chiude il
+// dente: esiste solo mentre lo spostamento c'è. Prima di ogni calcolo si toglie e il muro torna attaccato al suo nodo (n2.jn).
+function undoDm(pl) {
+  pl.walls = pl.walls.filter(x => !x.jg);
+  pl.nodes.filter(n2 => n2.jn).forEach(n2 => pl.walls.forEach(x => { if (x.a === n2.id) x.a = n2.jn; if (x.b === n2.id) x.b = n2.jn; }));
+  pl.nodes = pl.nodes.filter(n2 => !n2.jn);
+  pl.nodes.forEach(nn => { if (nn.sx || nn.sy) { nn.x = r4(nn.x - (nn.sx || 0)); nn.y = r4(nn.y - (nn.sy || 0)); } delete nn.sx; delete nn.sy; }); }
+function applyDm(pl) { DMSKIP = new Set(); const T0 = topo(pl), moved = [];
+  pl.walls.forEach(w => { const d = num(w.dm), I = T0.info.get(w.id); if (!(Math.abs(d) > 1e-9) || !I) return;
+    ['a', 'b'].forEach(e => { const id = w[e], node = T0.N.get(id);
+      if (!(T0.at.get(id) || []).some(o => { if (o === w || isObl(o)) return false; const xa = T0.N.get(o.a), xb = T0.N.get(o.b); return xa && xb && isH(xa, xb) === I.H; })) return;
+      const n2 = {id:'jn' + w.id + e, x:node.x, y:node.y, jn:id, mk:1}; pl.nodes.push(n2); w[e] = n2.id;
+      pl.walls.push({id:'jg' + w.id + e, a:id, b:n2.id, tipo:w.tipo, sp:w.sp, h:w.h, mis:'', rif:'int', ap:[], jg:1}); });
+    moved.push([w, d]); });
+  const T = topo(pl);
+  moved.forEach(([w, d]) => { const I = T.info.get(w.id); if (!I) { DMSKIP.add(w.id); return; }
+    [I.a, I.b].forEach(nn => { if (I.H) { nn.y = r4(nn.y + d); nn.sy = r4((nn.sy || 0) + d); } else { nn.x = r4(nn.x + d); nn.sx = r4((nn.sx || 0) + d); } }); });
+  pl.walls.filter(x => x.jg).forEach(x => { const a = T.N.get(x.a) || pl.nodes.find(n => n.id === x.a), b = pl.nodes.find(n => n.id === x.b);   // il raccordo va dal nodo fermo a quello spostato; a < b come per gli altri muri
+    if (a && b && ((isH(a, b) && b.x < a.x) || (!isH(a, b) && b.y < a.y))) { const t = x.a; x.a = x.b; x.b = t; } }); }
 // di quanto un tratto da P a Q si è allungato per lo spostamento dei muri attaccati (da togliere al confronto con la misura scritta)
 const dShift = (P, Q, H) => H ? (Q.sx || 0) - (P.sx || 0) : (Q.sy || 0) - (P.sy || 0);
 function solve(pl, extKeys) {
@@ -2407,7 +2420,7 @@ function recompute() {
   if (JSON.stringify((pl.stairs || []).map(st => [st.x, st.y])) !== st0) G = geometry(pl);
   if (syncVarchi(pl)) { placeAps(pl); G = geometry(pl); }
   G.warns.push(...(ui.varcoWarn || []));
-  DMSKIP.forEach(id => G.warns.push({w:id, t:'Spostamento di lato non applicato: da uno spigolo di questo muro parte un altro muro in linea, che si storcerebbe. Togli lo spostamento o sposta tutta la fila.'}));
+  DMSKIP.forEach(id => G.warns.push({w:id, t:'Spostamento di lato non applicato a questo muro.'}));
   syncRooms(pl, G);
   // vano scala al piano di arrivo: è un foro nel solaio
   G.comps.forEach(c => { c.foro = 0; });

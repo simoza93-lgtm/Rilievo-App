@@ -8,7 +8,8 @@ rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact
 - Nel pannello del muro dritto c'è «Sposta il muro di lato (m)»: + in alto o a destra, − in basso o a sinistra. Il muro scorre
   parallelo a se stesso, i muri attaccati si allungano o si accorciano; le loro misure scritte restano come sono e non
   danno falsi «non torna». I m² e il perimetro della stanza seguono il disegno. Vuoto = nessuno spostamento (prova «dente»).
-- Se dallo spigolo parte un altro muro in linea, lo spostamento non si applica e compare un avviso.
+- Se il muro continua in linea con un altro (per esempio diviso da un tramezzo), allo spigolo nasce da solo un tratto di raccordo dello
+  stesso tipo che chiude il dente. Il raccordo esiste solo finché c'è lo spostamento: togliendolo sparisce e tutto torna com'era.
 - Dati: campo nuovo e facoltativo `dm` sul muro (e `sx`, `sy` sui nodi, solo di servizio): i rilievi vecchi si aprono come prima.
 
 ## 17 novembre 2026 — Superfici esterne disegnate come i muri

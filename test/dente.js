@@ -18,6 +18,13 @@ const { chromium } = require('playwright');
     const a1 = area(), n1 = nonTorna(), yTop = pl.nodes.find(n => n.id === top.a).y, sx = pl.nodes.some(n => n.sx);
     top.dm = '-0,3'; update(true); const a2 = area();
     top.dm = ''; update(true); const a3 = area(), ys3 = pl.nodes.map(n => n.y).join(), resid = pl.nodes.some(n => n.sx || n.sy);
-    return {a0, n0, a1, n1, dArea:+(a1 - a0).toFixed(2), yTop, sx, a2, ritorno:a3 === a0 && ys3 === ys0, resid}; });
+    // muro in linea con un altro (diviso da un tramezzo): lo spostamento crea il raccordo e il dente entra nei m²
+    R = blank(); R.id = 'dn2'; tab = 'pianta'; render(); const p2 = piano(); G = geometry(p2);
+    st([[0,0],[0,5],[6,5],[6,0],[0,0]], 'P'); st([[3,5],[3,0]], 'T'); update(true);
+    const ar = () => G.comps.filter(c => c.room).map(c => +c.area.toFixed(2)).sort((x, y) => x - y).join('/'), nw = () => p2.walls.length;
+    const dx = p2.walls.find(w => { const a = p2.nodes.find(n => n.id === w.a), c = p2.nodes.find(n => n.id === w.b); return a.y > 4 && c.y > 4 && a.x >= 2.5; });
+    const b0 = ar(), w0 = nw(); dx.dm = '0,5'; update(true); update(true);
+    const b1 = ar(), w1 = nw(), jg = p2.walls.filter(w => w.jg).length; dx.dm = ''; update(true);
+    return {a0, n0, a1, n1, dArea:+(a1 - a0).toFixed(2), yTop, sx, a2, ritorno:a3 === a0 && ys3 === ys0, resid, b0, b1, jg, wPiu:w1 - w0, wTorna:nw() === w0 && ar() === b0, nodiExtra:p2.nodes.some(n => n.jn || n.sx || n.sy)}; });
   console.log(JSON.stringify(r)); console.log('errors', errs); await b.close();
 })();
