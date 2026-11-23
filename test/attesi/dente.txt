@@ -1,0 +1,2 @@
+{"a0":26.79,"n0":0,"a1":29.64,"n1":0,"dArea":2.85,"yTop":5.65,"sx":false,"a2":25.08,"X":true,"resid":false}
+errors []

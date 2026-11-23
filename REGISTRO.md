@@ -3,6 +3,14 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 23 novembre 2026 — Muro spostato di lato (denti)
+
+- Nel pannello del muro dritto c'è «Sposta il muro di lato (m)»: + in alto o a destra, − in basso o a sinistra. Il muro scorre
+  parallelo a se stesso, i muri attaccati si allungano o si accorciano; le loro misure scritte restano come sono e non
+  danno falsi «non torna». I m² e il perimetro della stanza seguono il disegno. Vuoto = nessuno spostamento (prova «dente»).
+- Se dallo spigolo parte un altro muro in linea, lo spostamento non si applica e compare un avviso.
+- Dati: campo nuovo e facoltativo `dm` sul muro (e `sx`, `sy` sui nodi, solo di servizio): i rilievi vecchi si aprono come prima.
+
 ## 17 novembre 2026 — Superfici esterne disegnate come i muri
 
 - Nuovo tipo di muro «Superficie esterna» (linea gialla sottile, 2 cm, layer «Superfici esterne»): si disegna con

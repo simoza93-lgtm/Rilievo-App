@@ -1015,6 +1015,18 @@ function oblChain(pl, w) { if (!isObl(w) || num(w.mis) > 0) return null; const a
     const F = G && G.oblFace && G.oblFace.get(w.id), c = G && G.oblCorr && G.oblCorr.get(w.id + ':' + (F && sg !== F.side ? 'est' : 'int'));
     return {key:'l:' + key, L:sum + (c || 0), sg, face:sum}; }
   return null; }
+// spostamento di lato di un muro (w.dm, per un dente): dopo il calcolo delle misure i suoi due estremi scorrono di quella quantità;
+// i muri attaccati si allungano o si accorciano e le loro misure scritte restano com'erano. Lo scostamento è annotato sui nodi (sx, sy)
+// e tolto prima di ogni nuovo calcolo, così non si accumula.
+let DMSKIP = new Set();
+function undoDm(pl) { pl.nodes.forEach(nn => { if (nn.sx || nn.sy) { nn.x = r4(nn.x - (nn.sx || 0)); nn.y = r4(nn.y - (nn.sy || 0)); } delete nn.sx; delete nn.sy; }); }
+function applyDm(pl) { DMSKIP = new Set(); const T = topo(pl);
+  pl.walls.forEach(w => { const d = num(w.dm), I = T.info.get(w.id); if (!(Math.abs(d) > 1e-9) || !I) return;
+    // un muro che prosegue in linea dallo spigolo si storcerebbe: il muro non si sposta e l'app lo dice
+    if ([w.a, w.b].some(id => (T.at.get(id) || []).some(o => { if (o === w || isObl(o)) return false; const xa = T.N.get(o.a), xb = T.N.get(o.b); return xa && xb && isH(xa, xb) === I.H; }))) { DMSKIP.add(w.id); return; }
+    [I.a, I.b].forEach(nn => { if (I.H) { nn.y = r4(nn.y + d); nn.sy = r4((nn.sy || 0) + d); } else { nn.x = r4(nn.x + d); nn.sx = r4((nn.sx || 0) + d); } }); }); }
+// di quanto un tratto da P a Q si è allungato per lo spostamento dei muri attaccati (da togliere al confronto con la misura scritta)
+const dShift = (P, Q, H) => H ? (Q.sx || 0) - (P.sx || 0) : (Q.sy || 0) - (P.sy || 0);
 function solve(pl, extKeys) {
   const n = pl.nodes.length; if (!n) return;
   const T = topo(pl), idx = new Map(pl.nodes.map((nn, i) => [nn.id, i]));
@@ -1473,7 +1485,7 @@ function geometry(pl) {
     const mid = r.H ? [(r.P.x + r.Q.x) / 2, r.P.y + r.o] : [r.P.x + r.o, (r.P.y + r.Q.y) / 2], o = r.t / 2 + 0.03;
     const c = r.H ? compAt(mid[0], mid[1] + r.sg * o) : compAt(mid[0] + r.sg * o, mid[1]);
     r.ext = c === -1; r.pieno = c >= 0 && comps[c].pieno; r.comp = c;
-    if (r.mis > 0) { r.walls.forEach(x => covered.add(x.id)); r.diff = r.face - r.mis;
+    if (r.mis > 0) { r.walls.forEach(x => covered.add(x.id)); r.diff = r.face - r.mis - dShift(T.N.get(r.p), T.N.get(r.q), r.H);
       if (Math.abs(r.diff) > TOL) { const nm = c >= 0 && comps[c].rec ? ' · ' + comps[c].rec.nome : '';
         if (r.ext) r.verif = true;   // verifica esterna: l'avviso lo dà la facciata o la riga qui sotto
         if (r.ext) warns.push({w:r.walls[0].id, t:`Verifica esterna: misurato ${f2(r.mis)} m (${tipoNome(r.walls[0])}, ${latoNome(r)}), dalle misure interne viene ${f2(r.face)} m, differenza ${r.diff > 0 ? '+' : ''}${Math.round(r.diff * 100)} cm. Controlla le misure interne di questo lato.`, ext:true});
@@ -1502,8 +1514,8 @@ function geometry(pl) {
         if (p && p.k === r.key && (i ? p.prev === pv.id : !p.prev)) meas = num(p.v);
         if (i === 0) known = !!(An && An.ok && sameD(An.n, r.p, r.H)); else { const Ap = AN.get(pv.id), Fp = ops[i - 1].F; known = !!(An && An.ok && Ap && Ap.ok && !Fp.prop && Fp.rok && sameD(An.n, Ap.n, r.H)); } }
       else { meas = num((pl.fl || {})[r.key]); const Ap = AN.get(pv.id), Fp = ops[i - 1].F; known = !!(Ap && Ap.ok && !Fp.prop && Fp.rok && sameD(Ap.n, r.q, r.H)); }
-      const pc = {i, a, b, len:b - a, nx, pv, meas, known, last:!nx};
-      if (meas >= 0) { r.walls.forEach(x => covered.add(x.id)); pc.diff = pc.len - meas;
+      const pc = {i, a, b, len:b - a, nx, pv, meas, known, last:!nx}, pP = T.N.get(r.p), pQ = T.N.get(r.q), sh = (i === n ? (r.H ? pQ.sx : pQ.sy) || 0 : 0) - (i === 0 ? (r.H ? pP.sx : pP.sy) || 0 : 0);   // primo e ultimo tratto seguono lo spostamento dei muri agli estremi
+      if (meas >= 0) { r.walls.forEach(x => covered.add(x.id)); pc.diff = pc.len - meas - sh;
         if (Math.abs(pc.diff) > TOL) warns.push({w:r.walls[0].id, t:`Parziale ${f2(meas)} m (${tipoNome(r.walls[0])}, ${latoNome(r)}${nm}${pc.last ? ', ultimo tratto' : ''})${pc.last && REJ.has('l:' + r.key) ? ' NON APPLICATA: non torna con le misure inserite prima' : ''}: nel disegno risolto viene ${f2(pc.len)} m, differenza ${pc.diff > 0 ? '+' : ''}${Math.round(pc.diff * 100)} cm.${pc.last ? ' Controlla le parziali e le larghezze dei vani di questo lato.' : ''}`}); }
       pcs.push(pc);
     }
@@ -1543,9 +1555,9 @@ function geometry(pl) {
     fc.mis = fc.ext ? fc.ext.mis : NaN;
     fc.det = fc.sumInt != null || detD(fc.A.id, fc.B.id, fc.H);
     if (fc.mi > 0 || fc.mis > 0) fc.walls.forEach(x => covered.add(x.id));
-    if (fc.mi > 0) { const ref = fc.sumInt != null ? fc.sumInt : fc.totInt; fc.diffI = ref - fc.mi;
+    if (fc.mi > 0) { const ref = fc.sumInt != null ? fc.sumInt : fc.totInt; fc.diffI = ref - fc.mi - dShift(fc.A, fc.B, fc.H);
       if (Math.abs(fc.diffI) > TOL) warns.push({w:fc.walls[0].id, t:`${fc.nome}: misura interna totale ${f2(fc.mi)} m${REJ.has('f:' + fc.key) ? ' NON APPLICATA (non torna con le misure inserite prima)' : ''}, ${fc.sumInt != null ? 'dalla somma dei tratti e dei tramezzi' : 'nel disegno'} viene ${f2(ref)} m, differenza ${fc.diffI > 0 ? '+' : ''}${Math.round(fc.diffI * 100)} cm.`}); }
-    if (fc.mis > 0) { const ref = fc.sum != null ? fc.sum : fc.tot; fc.diff = ref - fc.mis;
+    if (fc.mis > 0) { const ref = fc.sum != null ? fc.sum : fc.tot; fc.diff = ref - fc.mis - dShift(fc.A, fc.B, fc.H);
       /* la verifica esterna è segnalata dalla faccia esterna (vedi sopra) */ }
   });
   // muri obliqui con aperture: parziali lungo la faccia verso ogni ambiente (spigolo → vano → vano → spigolo), come i lati dritti
@@ -2375,7 +2387,7 @@ function toast(t) { const el = $('#toast'); if (!el) return; el.textContent = t;
 
 /* ================= ciclo di aggiornamento ================= */
 function recompute() {
-  const pl = piano(); fixCapGlue(pl); fixJuncGlue(pl); joinEnds(pl); cleanTiny(pl); trimStubs(pl); attachEnds(pl); fixJuncGlue(pl); mergeNearNodes(pl); trimStubs(pl); mergeCollinear(pl); migrate(pl);
+  const pl = piano(); undoDm(pl); fixCapGlue(pl); fixJuncGlue(pl); joinEnds(pl); cleanTiny(pl); trimStubs(pl); attachEnds(pl); fixJuncGlue(pl); mergeNearNodes(pl); trimStubs(pl); mergeCollinear(pl); migrate(pl);
   // quali facce sono esterne si sa solo dopo il disegno: si ricalcola finché l'elenco non cambia più
   let ext = new Set(((G && G.runs) || []).filter(r => r.ext).map(r => r.key));
   const resnap = () => (pl.dims || []).forEach(d => { if (!d.dg) return; [d.a, d.b].forEach(e => { const n = e.n && pl.nodes.find(k => k.id === e.n); if (!n) return; const x = n.x + (e.dx || 0), y = n.y + (e.dy || 0);
@@ -2383,7 +2395,7 @@ function recompute() {
   const oc = () => [...((G && G.oblCorr) || new Map())].map(([k, v]) => k + v.toFixed(4)).join() + (pl.dims || []).filter(d => d.dg).map(d => [d.a.dx, d.a.dy, d.b.dx, d.b.dy].join()).join()
     + pl.walls.filter(w => isObl(w) && String(w.rient || '').trim()).map(w => { const F = G && G.oblFace && G.oblFace.get(w.id); return F ? F.fd.map(v => v.toFixed(4)).join() : ''; }).join();
   for (let k = 0; k < 6; k++) {
-    const oc0 = oc(); solve(pl, ext); placeAps(pl); G = geometry(pl); resnap();
+    const oc0 = oc(); undoDm(pl); solve(pl, ext); applyDm(pl); placeAps(pl); G = geometry(pl); resnap();
     const ne = new Set(G.runs.filter(r => r.ext).map(r => r.key)), oblOk = !(pl.walls.some(w => isObl(w) && (num(w.mis) > 0 || oblChain(pl, w))) || (pl.dims || []).some(d => d.dg && num(d.v) > 0) || pl.walls.some(w => isObl(w) && String(w.rient || '').trim())) || oc() === oc0;
     if (ne.size === ext.size && [...ne].every(x => ext.has(x)) && oblOk) break;
     ext = ne;
@@ -2395,6 +2407,7 @@ function recompute() {
   if (JSON.stringify((pl.stairs || []).map(st => [st.x, st.y])) !== st0) G = geometry(pl);
   if (syncVarchi(pl)) { placeAps(pl); G = geometry(pl); }
   G.warns.push(...(ui.varcoWarn || []));
+  DMSKIP.forEach(id => G.warns.push({w:id, t:'Spostamento di lato non applicato: da uno spigolo di questo muro parte un altro muro in linea, che si storcerebbe. Togli lo spostamento o sposta tutta la fila.'}));
   syncRooms(pl, G);
   // vano scala al piano di arrivo: è un foro nel solaio
   G.comps.forEach(c => { c.foro = 0; });
@@ -3936,7 +3949,9 @@ ${apFields(x)}
         <div><label class="l">Tipo</label><select data-w="tipo" data-re>${opt({P:`Perimetrale ${f2(P_())}`, T:`Tramezzo ${f2(T_())}`, X:'Altro spessore', W:'Ringhiera', S:'Superficie esterna'}, w.tipo)}</select></div>
         ${w.tipo === 'X' ? inp('sp', w.sp, 'Spessore (m)') : w.tipo === 'W' ? inp('sp', w.sp || '0,05', 'Spessore ringhiera (m)') + inp('h', w.h || '1,00', 'Altezza ringhiera (m)') : '<div></div>'}
         <div class="c2"><label class="l">Posizione rispetto al muro accanto più spesso (vale per tutto il muro dritto)</label><select data-w="filo">${opt(I.H ? {'':'Centrato', '+':'A filo sopra', '-':'A filo sotto'} : {'':'Centrato', '-':'A filo a sinistra', '+':'A filo a destra'}, w.filo || '')}</select></div>
+        ${inp('dm', w.dm, I.H ? 'Sposta il muro di lato (m): + in alto, − in basso' : 'Sposta il muro di lato (m): + a destra, − a sinistra', 'c2')}
       </div>
+      <p class="hint" style="margin:-4px 0 8px">Per un dente: il muro scorre di lato di quella misura, i muri attaccati si allungano o si accorciano e le loro misure restano come le hai scritte. I m² della stanza seguono il disegno. Vuoto = nessuno spostamento.</p>
       <h3>Misure laser, lato per lato</h3>
       ${G.runs.filter(r => r.walls.includes(w)).sort((a, b) => b.sg - a.sg).map(r => {
         const room = r.comp >= 0 && G.comps[r.comp].rec ? G.comps[r.comp].rec.nome : '', fc = G.facs.find(f => f.ext === r);
