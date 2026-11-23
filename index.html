@@ -3732,7 +3732,11 @@ function hit(p) {
     const lim = Math.max(I.t / 2 + 0.02, 14 / ui.view.s); if (d < lim && d < bd) { bd = d; best = w; } });
   const c0 = G.compAt(wx, wy), cc0 = c0 >= 0 ? G.comps[c0] : null;
   if (cc0 && cc0.rec && (cc0.pieno || cc0.area < 0.5) && (!best || bd > thick(best) / 2 + 0.005)) { ui.sel = {k:'r', id:cc0.rec.id}; draw(); renderSide(); return; }
-  if (best) ui.sel = {k:'w', id:best.id};
+  if (best) { const s0 = ui.sel;   // un muro già scelto + un altro tocco = selezione multipla (si toglie ritoccando un muro scelto)
+    if (s0 && s0.k === 'w' && s0.id !== best.id) { ui.sel = {k:'m', w:[s0.id, best.id], s:[], n:[], q:[], i:[]}; toast('2 muri scelti: tocca altri muri per aggiungerli o toglierli.'); }
+    else if (s0 && s0.k === 'm') { s0.w = s0.w.includes(best.id) ? s0.w.filter(x => x !== best.id) : s0.w.concat(best.id);
+      const n = s0.w.length + s0.s.length + s0.n.length + s0.q.length + (s0.i || []).length; if (!n) ui.sel = null; else if (n === 1 && s0.w.length) ui.sel = {k:'w', id:s0.w[0]}; }
+    else ui.sel = {k:'w', id:best.id}; }
   else { const c = G.compAt(wx, wy), r = c >= 0 && G.comps[c].rec; ui.sel = r ? {k:'r', id:r.id} : null; }
   draw(); renderSide();
 }

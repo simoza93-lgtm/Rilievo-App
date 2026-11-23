@@ -3,6 +3,10 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 24 novembre 2026 — Seleziona: più muri con i tocchi
+- Con «Seleziona» attivo, un tocco sceglie un muro come sempre. Un secondo tocco su un altro muro li sceglie insieme (selezione multipla), e si possono aggiungere altri muri o toglierne uno ritoccandolo.
+- Con più muri scelti compaiono i comandi della selezione multipla, compreso «Elimina» (si annulla con «Annulla»). Per sceglierne uno solo diverso, tocca prima un punto vuoto.
+
 ## 23 novembre 2026 — Porta strombata (e a scalino)
 - Nell'elenco delle porte c'è la voce «Strombata», scelta indipendente come per le finestre (non è un'opzione del menu delle porte). Una volta posata, nel pannello c'è «Forma» (normale, a scalino, strombata), con parte larga, risega e lato largo; vale anche per ingresso e varco.
 - L'anta e l'infisso stanno nella parte stretta: se il cardine cadrebbe sulla faccia larga, va sul fondo della parte stretta. I cunei della strombata tornano muro come per le finestre.
