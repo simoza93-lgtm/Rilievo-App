@@ -113,13 +113,7 @@
   "Xi": 4,
   "Xati": 1
  },
- "X": {
-  "0": "-",
-  "PLAN_MURI_PERIM": "P",
-  "PLAN_MURI_INT": "T",
-  "PLAN_INFISSI_TESTI": "F",
-  "QUOTE_VECCHIE": "-"
- },
+ "X": {},
  "dopo": {
   "muri": 17,
   "errori": 0

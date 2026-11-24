@@ -1,0 +1,150 @@
+{
+ "nomi": [
+  "PLAN_INFISSI_TESTI:F",
+  "PLAN_MURI_PERIM:P",
+  "PLAN_MURI_INT:T",
+  "PORTE:F",
+  "FINESTRE:F",
+  "SERRAMENTI:F",
+  "A-DOOR:F",
+  "WINDOW:F",
+  "SCALE:T",
+  "SCALA_1:T",
+  "QUOTE:-",
+  "DS_ST_quote 1_50:-",
+  "TESTI:-",
+  "ARREDI:-",
+  "CARTIGLIO:-",
+  "HATCH:-",
+  "VERDE prato:-",
+  "0:-",
+  "DXs:-",
+  "A-WALL:P",
+  "MURI:P",
+  "muri 10:T",
+  "SUPPORTO:-",
+  "PORTICO:-",
+  "Muri 30:P"
+ ],
+ "spento": [
+  "-",
+  "T",
+  "P"
+ ],
+ "X": {
+  "Xza": 10.7,
+  "X": 7.7
+ },
+ "XNessuno": {},
+ "XUno": {
+  "TRAMEZZI": "P"
+ },
+ "gruppi": {
+  "n": 2,
+  "nomi": [
+   "PIANO TERRA",
+   "PIANO PRIMO"
+  ],
+  "muri": [
+   5,
+   5
+  ],
+  "numeriNelDisegno": [
+   "1",
+   "2"
+  ]
+ },
+ "primo": {
+  "Xi": 5,
+  "solo": 0
+ },
+ "nuovoRilievo": {
+  "muri": 7,
+  "piani": 1
+ },
+ "XPiano": {
+  "piani": [
+   "Piano terra:7",
+   "Piano primo:7"
+  ]
+ },
+ "Xa": "Nome del nuovo piano:",
+ "Xosti": true,
+ "asse": {
+  "avviso": true,
+  "creaDXo": true
+ },
+ "curvo": true,
+ "X": {
+  "scale": 0,
+  "avviso": true
+ },
+ "Xa": [
+  "MURI_PERIM_Xràli"
+ ],
+ "veloce": {
+  "righe": 3012,
+  "Xs": true
+ },
+ "troppe": {
+  "X": true,
+  "restaAlPasso1": true
+ },
+ "scale": [
+  {
+   "rot": 0,
+   "scale": 1,
+   "n": "12",
+   "p": "0,28",
+   "b": "1,00",
+   "XoUguale": true,
+   "muri": 7
+  },
+  {
+   "rot": 90,
+   "scale": 1,
+   "n": "12",
+   "p": "0,28",
+   "b": "1,00",
+   "XoUguale": true,
+   "muri": 7
+  },
+  {
+   "rot": 180,
+   "scale": 1,
+   "n": "12",
+   "p": "0,28",
+   "b": "1,00",
+   "XoUguale": true,
+   "muri": 7
+  },
+  {
+   "rot": 270,
+   "scale": 1,
+   "n": "14",
+   "p": "0,25",
+   "b": "0,80",
+   "XoUguale": true,
+   "muri": 7
+  },
+  {
+   "rot": 0,
+   "scale": 1,
+   "n": "4",
+   "p": "0,28",
+   "b": "1,00",
+   "XoUguale": true,
+   "muri": 7
+  },
+  {
+   "rot": 0,
+   "scale": 1,
+   "n": "16",
+   "p": "0,28",
+   "b": "1,60",
+   "XoUguale": true,
+   "muri": 7
+  }
+ ]
+}
+errors []

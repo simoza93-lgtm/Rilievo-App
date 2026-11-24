@@ -3,6 +3,18 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 24 novembre 2026 — Importa DXF: layer, più piante, avvisi, velocità
+Provato anche con un DXF vero dello studio (sottotetto, due scale): muri, 17 aperture e le due scale (11 e 9 gradini, passo 0,28 m) tornano come prima.
+- **Anteprima vuota con i DXF veri**: il disegno veniva sempre incluso dall'origine, quindi con coordinate di migliaia di metri i muri restavano un puntino. Ora l'anteprima si adatta ai muri.
+- **Nomi dei layer**: oltre ai nomi dello studio, PORTE, FINESTRE, SERRAMENTI, DOOR, WINDOW, A-DOOR vanno su «Infissi e ringhiere» (prima su «Ignora» e le porte diventavano varchi); SCALA/SCALE/STAIR sui tramezzi; QUOTE, TESTI, ARREDI, CARTIGLIO, HATCH, TRATTEGGIO, VERDE, ASSI e simili su «Ignora». Un layer spento o congelato si propone «Ignora».
+- **Scelte ricordate**: ora si ricordano solo i layer cambiati a mano (chiave nuova `rilievo-dxf-layer2`: le scelte vecchie, che conservavano anche le proposte sbagliate di prima, non si usano più).
+- **Più piante nello stesso file**: i muri e le scale a meno di 2,5 m l'uno dall'altro formano un gruppo; se i gruppi sono più d'uno compaiono numerati in rosso nel disegno e nell'elenco, con il nome letto dal testo scritto vicino (PIANO TERRA, PIANO PRIMO, SOTTOTETTO…) e il tasto «Solo questo». Importando un gruppo come nuovo piano l'origine è l'angolo del gruppo: piante affiancate nel disegno restano sovrapposte come piani. Il nome del testo è la proposta per il nome del piano.
+- **Avvisi invece del silenzio**: nessun muro trovato (muri a linea sola o riempimenti) con il motivo; tratti curvi delle polilinee su layer di muri (letti come dritti); gradini che non formano una scala dritta (obliqua, curva, chiocciola). Il tasto di creazione resta spento se non ci sono muri.
+- **Velocità**: l'unione delle linee non riparte più da capo a ogni unione. 1600 linee oblique su un layer di muri: da 4,4 s a 0,1 s; 6000 linee: da oltre 200 s a 1,5 s. Sopra 8000 linee sui layer scelti come muri l'app chiede conferma, con il consiglio di mettere «Ignora» sui layer che non sono muri.
+- **Codifica**: i DXF vecchi (Windows-1252) si leggono con gli accenti giusti; un commento `999` in testa al file non fa più rifiutare il file.
+- Le scale di righe tornano con numero, passo, larghezza e ingombro uguali al disegno in tutti e quattro i versi; il **verso di salita non si legge dal DXF** (si gira dal pannello della scala).
+- Formato dei rilievi invariato. Prova nuova `dxf2`; `dxf`: cambia solo «layer ricordati» (ora vuoto se non cambi niente).
+
 ## 24 novembre 2026 — Seleziona: più muri con i tocchi
 - Con «Seleziona» attivo, un tocco sceglie un muro come sempre. Un secondo tocco su un altro muro li sceglie insieme (selezione multipla), e si possono aggiungere altri muri o toglierne uno ritoccandolo.
 - Con più muri scelti compaiono i comandi della selezione multipla, compreso «Elimina» (si annulla con «Annulla»). Per sceglierne uno solo diverso, tocca prima un punto vuoto.

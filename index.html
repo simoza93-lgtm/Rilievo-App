@@ -4405,7 +4405,7 @@ const DXF_GR = [['P', 'Muri perimetrali'], ['T', 'Tramezzi e scale'], ['F', 'Inf
 const DXF_COL = {1:'#e02020', 2:'#d6a800', 3:'#1fa84a', 4:'#14b8c8', 5:'#2a55e0', 6:'#c030c0', 7:'#222222', 8:'#808080', 9:'#b0b0b0'};
 // legge un DXF di testo: layer (nome, colore, spento) e segmenti di LINE, LWPOLYLINE, POLYLINE; i blocchi (INSERT) si contano e basta
 function dxfParse(txt) {
-  const L = txt.split(/\r?\n/), layers = {}, main = {segs:[], arcs:[], ins:[]}, blocks = {}, info = {insert:0, archi:0};
+  const L = txt.split(/\r?\n/), layers = {}, main = {segs:[], arcs:[], ins:[]}, blocks = {}, info = {insert:0, archi:0}, texts = [];
   let sec = '', e = null, poly = null, blk = null;
   const lay = n => layers[n] || (layers[n] = {col:7, off:false, n:0});
   const tgt = () => sec === 'BLOCKS' ? (blk && blocks[blk]) : main;
@@ -4422,6 +4422,7 @@ function dxfParse(txt) {
       else if (e.t === 'VERTEX') { if (poly && e.v[10] !== undefined && !(e.fl & 16)) poly.pts.push([e.v[10], e.v[20] || 0]); }
       else if (e.t === 'SEQEND') { if (poly) addPts(poly.pts, poly.closed, poly.l); poly = null; }
       else if (e.t === 'ARC') { if (e.v[10] !== undefined && e.v[40] > 0) { T.arcs.push({l:e.layer, c:[e.v[10], e.v[20] || 0], r:e.v[40], s:e.v[50] || 0, f:e.v[51] === undefined ? 360 : e.v[51]}); info.archi++; } }
+      else if ((e.t === 'TEXT' || e.t === 'MTEXT') && sec === 'ENTITIES') { const s = (e.s || '').replace(/\\[A-Za-z][^;\\]*;|\\P/g, ' ').replace(/[{}]/g, '').replace(/\s+/g, ' ').trim(); if (s && e.v[10] !== undefined) texts.push({s, p:[e.v[10], e.v[20] || 0]}); }
       else if (e.t === 'INSERT') { if (T === main) info.insert++; if (e.v[10] !== undefined) T.ins.push({l:e.layer, name:e.name, p:[e.v[10], e.v[20] || 0], sx:e.v[41] === undefined ? 1 : e.v[41], sy:e.v[42] === undefined ? (e.v[41] === undefined ? 1 : e.v[41]) : e.v[42], rot:e.v[50] || 0}); }
     }
     e = null; };
@@ -4431,7 +4432,8 @@ function dxfParse(txt) {
     if (!e) continue;
     if (e.t === 'SECTION') { if (c === 2) sec = v; continue; }
     if (c === 8) e.layer = v; else if (c === 2) e.name = v; else if (c === 62) e.col = parseInt(v, 10); else if (c === 70) e.fl = parseInt(v, 10) || 0;
-    else if (c === 42) { if (e.t === 'INSERT') e.v[42] = parseFloat(v); else if (parseFloat(v)) info.archi++; }
+    else if (c === 42) { if (e.t === 'INSERT') e.v[42] = parseFloat(v); else if (parseFloat(v)) { info.archi++; if (sec === 'ENTITIES' && (e.t === 'LWPOLYLINE' || e.t === 'VERTEX')) lay(e.layer).cv = (lay(e.layer).cv || 0) + 1; } }   // cv: tratti curvi (bulge) di polilinee: letti come rette
+    else if ((c === 1 || c === 3) && (e.t === 'TEXT' || e.t === 'MTEXT')) e.s = (e.s || '') + v;
     else if (c === 40 || c === 41 || c === 50 || c === 51) e.v[c] = parseFloat(v);
     else if (c === 10 || c === 20 || c === 11 || c === 21) { const x = parseFloat(v); if (e.t === 'LWPOLYLINE') { if (c === 10) e.pts.push([x, 0]); else if (c === 20 && e.pts.length) e.pts[e.pts.length - 1][1] = x; } else e.v[c] = x; }
   }
@@ -4447,7 +4449,7 @@ function dxfParse(txt) {
       arcs.push({l:lyr(g.l), c, r, s:s0 + rot, f:f0 + rot}); });
     if (depth < 1) open(B.ins, {rot:I.rot + M.rot, k:Math.abs(I.sx) * M.k, f:at}, depth + 1); });
   open(main.ins, {rot:0, k:1, f:q => q}, 0);
-  return {layers, segs, arcs, info};
+  return {layers, segs, arcs, info, texts};
 }
 function dxfBox(segs) { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   segs.forEach(s => [s.a, s.b].forEach(p => { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }));
@@ -4455,12 +4457,17 @@ function dxfBox(segs) { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -
 // l'unità scritta nel file non è affidabile: si propone quella che dà una casa tra 3 e 60 m (la più grande, se ce ne sono più d'una)
 function dxfUnita(box) { const o = [['m', 1], ['cm', 0.01], ['mm', 0.001]].map(([k, f]) => ({k, f, w:box.w * f, h:box.h * f, ok:Math.max(box.w, box.h) * f >= 3 && Math.max(box.w, box.h) * f <= 60}));
   return {opts:o, sug:(o.find(u => u.ok) || o[0]).f}; }
-function dxfGrp(name, col) { const n = name.toUpperCase();
+// proposta per un layer: prima i nomi dello studio, poi i nomi più comuni (infissi, scale, quote e simili da ignorare), poi il colore; un layer spento si ignora
+function dxfGrp(name, col, off) { const n = name.toUpperCase(), w = k => new RegExp('(^|[^A-Z])(' + k + ')').test(n);
   if (/MURI_PERIM/.test(n)) return 'P'; if (/MURI_INT/.test(n)) return 'T'; if (/INFISSI/.test(n)) return 'F';
-  if (n === '0' || n === 'DEFPOINTS') return '-';
+  if (off || n === '0' || n === 'DEFPOINTS') return '-';
+  if (w('QUOT|DIM|TEST[IO]?|TEXT|ARRED|FURN|HATCH|TRATT|CARTIG|CORNIC|FRAME|BORDER|TITLE|GRIGLIA|GRID|ASSI|AXIS|VIEWPORT|PRATO|GRASS|VERDE')) return '-';
+  if (w('PORT[AE]|FINESTR|SERRAM|DOOR|WINDOW|GLAZ')) return 'F';
+  if (w('SCAL[AE]|STAIR')) return 'T';
   return col === 7 ? 'P' : col === 2 ? 'T' : col === 1 ? 'F' : '-'; }
-const dxfSaved = () => { try { return JSON.parse(localStorage.getItem('rilievo-dxf-layer') || '{}') || {}; } catch (e) { return {}; } };
-const dxfProposta = layers => { const sv = dxfSaved(), g = {}; Object.keys(layers).forEach(n => { g[n] = ['P', 'T', 'F', '-'].includes(sv[n]) ? sv[n] : dxfGrp(n, layers[n].col); }); return g; };
+// le scelte ricordate sono solo quelle cambiate a mano (chiave nuova: le vecchie conservavano anche le proposte sbagliate di prima)
+const dxfSaved = () => { try { return JSON.parse(localStorage.getItem('rilievo-dxf-layer2') || '{}') || {}; } catch (e) { return {}; } };
+const dxfProposta = layers => { const sv = dxfSaved(), g = {}; Object.keys(layers).forEach(n => { g[n] = ['P', 'T', 'F', '-'].includes(sv[n]) ? sv[n] : dxfGrp(n, layers[n].col, layers[n].off); }); return g; };
 
 // intervalli liberi lungo una retta
 const ivCut = (L, lo, hi) => L.map(([a, b]) => [Math.max(a, lo), Math.min(b, hi)]).filter(([a, b]) => b - a > 0.04);
@@ -4502,11 +4509,15 @@ function dxfMuri(segs, grp, f, arcs) {
     F.ortho = Math.abs(m - q) < 0.026;   // meno di 1,5° dagli assi: muro dritto
     if (F.ortho) { const hz = Math.abs(Math.cos(q)) > 0.5; F.u = hz ? [1, 0] : [0, 1]; F.n = hz ? [0, 1] : [-1, 0]; } else { F.u = [Math.cos(m), Math.sin(m)]; F.n = [-Math.sin(m), Math.cos(m)]; } });
   let walls = [];
-  const merge = (A, tolS, tolT, gap) => { for (let ch = true; ch;) { ch = false;
-    for (let i = 0; i < A.length && !ch; i++) for (let j = i + 1; j < A.length; j++) { const p = A[i], q = A[j];
-      if (Math.abs(p.s - q.s) <= tolS && (tolT === null || Math.abs(p.th - q.th) <= tolT) && q.t0 <= p.t1 + gap && q.t1 >= p.t0 - gap) {
-        const wp = p.t1 - p.t0, wq = q.t1 - q.t0; p.s = (p.s * wp + q.s * wq) / (wp + wq); if (tolT !== null) p.th = (p.th * wp + q.th * wq) / (wp + wq);
-        p.pc = (p.pc || [[p.t0, p.t1]]).concat(q.pc || [[q.t0, q.t1]]); p.t0 = Math.min(p.t0, q.t0); p.t1 = Math.max(p.t1, q.t1); A.splice(j, 1); ch = true; break; } } } return A; };
+  // unisce le righe quasi uguali; stessa regola di prima (prima coppia trovata, poi si ricontrolla solo quella unita) ma senza ripartire da capo ogni volta: con tante linee non si pianta
+  const merge = (A, tolS, tolT, gap) => { const ok = (p, q) => Math.abs(p.s - q.s) <= tolS && (tolT === null || Math.abs(p.th - q.th) <= tolT) && q.t0 <= p.t1 + gap && q.t1 >= p.t0 - gap;
+    const take = (p, q) => { const wp = p.t1 - p.t0, wq = q.t1 - q.t0; p.s = (p.s * wp + q.s * wq) / (wp + wq); if (tolT !== null) p.th = (p.th * wp + q.th * wq) / (wp + wq);
+      p.pc = (p.pc || [[p.t0, p.t1]]).concat(q.pc || [[q.t0, q.t1]]); p.t0 = Math.min(p.t0, q.t0); p.t1 = Math.max(p.t1, q.t1); };
+    for (let i = 0; i < A.length;) { let a = 0; while (a < i && !ok(A[a], A[i])) a++;
+      if (a < i) { take(A[a], A[i]); A.splice(i, 1); i = a; continue; }
+      let j = i + 1; while (j < A.length && !ok(A[i], A[j])) j++;
+      if (j < A.length) { take(A[i], A[j]); A.splice(j, 1); } else i++; }
+    return A; };
   // scale a righe singole (come si disegnano in pianta): ≥3 righe a passo 0,18–0,40 con un estremo in comune; la linea di mezzo, i lati e il taglio obliquo entrano nella scala; due tratti separati da un vuoto restano due scale
   const bbq = (F, t0, t1, s0, s1) => { const q = [[t0, s0], [t0, s1], [t1, s0], [t1, s1]].map(([t, s]) => [F.u[0] * t + F.n[0] * s, F.u[1] * t + F.n[1] * s]); return [Math.min(...q.map(p => p[0])), Math.min(...q.map(p => p[1])), Math.max(...q.map(p => p[0])), Math.max(...q.map(p => p[1]))]; };
   const tin = (l, b) => [l.a, l.b].every(p => p[0] >= b[0] - 0.05 && p[0] <= b[2] + 0.05 && p[1] >= b[1] - 0.05 && p[1] <= b[3] + 0.05);
@@ -4586,12 +4597,13 @@ function dxfInfissi(segs, arcs, grp, f, walls) {
   return out;
 }
 // crea il rilievo nuovo: un solo piano, muri al loro posto, nessuna misura scritta
-function dxfCrea(walls, nome, aps, scale, add) {
+function dxfCrea(walls, nome, aps, scale, add, own) {
   // add = true: il disegno diventa un piano nuovo del rilievo aperto (stessa origine del primo DXF, così i piani restano sovrapposti)
   const n = add ? R : blank(), old = R; scale = scale || [];
   let pl; if (add) { pl = {id:uid(), nome, ver:0, nodes:[], walls:[], rooms:[]}; n.piani.push(pl); n.cur = n.piani.length - 1; } else { pl = n.piani[0]; n.id = uid(); n.nome = nome; n.unexp = true; n.mod = new Date().toISOString(); n.demo = false; }
   let x0 = Math.min(...walls.map(w => Math.min(w.p[0], w.q[0])), ...scale.map(c => c.bb[0])), y0 = Math.min(...walls.map(w => Math.min(w.p[1], w.q[1])), ...scale.map(c => c.bb[1]));
-  if (add && n.dxo) [x0, y0] = n.dxo; else if (!n.dxo) n.dxo = [x0, y0];
+  // own = si è scelto un gruppo di muri da un file con più piante: l'origine è l'angolo di quel gruppo, così piante affiancate nel disegno restano sovrapposte come piani
+  if (add && n.dxo && !own) [x0, y0] = n.dxo; else if (!n.dxo) n.dxo = [x0, y0];
   R = n;   // P_(), T_() e thick() leggono R
   try { walls.slice().sort((a, b) => (a.g === 'P' ? 0 : 1) - (b.g === 'P' ? 0 : 1)).forEach(w => {
       const std = w.g === 'P' ? P_() : T_(), tipo = Math.abs(w.th - std) <= 0.02 ? w.g : 'X', sp = f2(w.th), before = new Set(pl.walls);
@@ -4631,15 +4643,34 @@ function dxfPasso1() {
     <div class="btns" style="margin-top:12px"><button id="dxAv" class="pri">Avanti: cerca i muri</button><button id="dxNo">Annulla</button></div>`;
   if (!dlg.open) dlg.showModal();
 }
+// gruppi di muri separati (due piante affiancate nello stesso disegno): muri e scale a meno di 2,5 m uno dall'altro stanno insieme
+const segDist = (a, b, c, d) => { const pt = (p, q, r) => { const e = [r[0] - q[0], r[1] - q[1]], L2 = e[0] * e[0] + e[1] * e[1], t = L2 ? Math.max(0, Math.min(1, ((p[0] - q[0]) * e[0] + (p[1] - q[1]) * e[1]) / L2)) : 0; return Math.hypot(p[0] - q[0] - e[0] * t, p[1] - q[1] - e[1] * t); };
+  if (cross2([b[0] - a[0], b[1] - a[1]], [c[0] - a[0], c[1] - a[1]]) * cross2([b[0] - a[0], b[1] - a[1]], [d[0] - a[0], d[1] - a[1]]) < 0 && cross2([d[0] - c[0], d[1] - c[1]], [a[0] - c[0], a[1] - c[1]]) * cross2([d[0] - c[0], d[1] - c[1]], [b[0] - c[0], b[1] - c[1]]) < 0) return 0;
+  return Math.min(pt(a, c, d), pt(b, c, d), pt(c, a, b), pt(d, a, b)); };
+const DXF_PIANO = /PIAN[OI]|TERRA|PRIMO|SECOND[OA]|TERZO|SOTTOTETT|SEMINT|INTERRAT|COPERTURA|\bP\.? ?(T|1|2|S|-1)\b/i;
+function dxfGruppi(r, texts, f) {
+  const it = r.muri.map(w => ({id:w.id, S:[[w.p, w.q]]})).concat(r.scale.map(c => { const b = c.bb; return {id:c.id, S:[[[b[0], b[1]], [b[2], b[1]]], [[b[2], b[1]], [b[2], b[3]]], [[b[2], b[3]], [b[0], b[3]]], [[b[0], b[3]], [b[0], b[1]]]]}; }));
+  const par = it.map((_, i) => i), rt = i => par[i] === i ? i : (par[i] = rt(par[i]));
+  const near = (A, B) => A.S.some(a => B.S.some(b => segDist(a[0], a[1], b[0], b[1]) < 2.5));
+  for (let i = 0; i < it.length; i++) for (let j = i + 1; j < it.length; j++) if (rt(i) !== rt(j) && near(it[i], it[j])) par[rt(j)] = rt(i);
+  const M = new Map(); it.forEach((x, i) => { const k = rt(i); (M.get(k) || M.set(k, []).get(k)).push(x); });
+  const G = [...M.values()].map(L => { const P = L.flatMap(x => x.S.flat()), b = [Math.min(...P.map(p => p[0])), Math.min(...P.map(p => p[1])), Math.max(...P.map(p => p[0])), Math.max(...P.map(p => p[1]))]; return {ids:new Set(L.map(x => x.id)), bb:b, nome:''}; }).sort((a, b) => a.bb[0] - b.bb[0] || a.bb[1] - b.bb[1]);
+  const T = (texts || []).filter(t => DXF_PIANO.test(t.s)).map(t => ({s:t.s, p:[t.p[0] * f, t.p[1] * f]}));
+  const dist = (g, p) => Math.hypot(Math.max(g.bb[0] - p[0], 0, p[0] - g.bb[2]), Math.max(g.bb[1] - p[1], 0, p[1] - g.bb[3]));
+  T.forEach(t => { let b = null, bd = Infinity; G.forEach(g => { const d = dist(g, t.p); if (d < bd) { bd = d; b = g; } }); if (b && (bd <= 15 || (G.length === 1 && T.length === 1))) b.nome = (b.nome ? b.nome + ' · ' : '') + t.s; });
+  return G; }
 function dxfPasso2() {
   const S = dxfS, dlg = $('#dDxf');
-  try { const sv = dxfSaved(); Object.assign(sv, S.grp); localStorage.setItem('rilievo-dxf-layer', JSON.stringify(sv)); } catch (e) {}
-  S.res = dxfMuri(S.P.segs, S.grp, S.f, S.P.arcs); S.off = new Set(); dxfDisegna(); if (!dlg.open) dlg.showModal();
+  try { const sv = dxfSaved(); Object.keys(S.grp).forEach(n => { if (S.grp[n] !== dxfGrp(n, S.P.layers[n].col, S.P.layers[n].off)) sv[n] = S.grp[n]; else delete sv[n]; }); localStorage.setItem('rilievo-dxf-layer2', JSON.stringify(sv)); } catch (e) {}
+  const nm = S.P.segs.filter(s => S.grp[s.l] === 'P' || S.grp[s.l] === 'T').length;
+  if (nm > 8000 && !confirm('Sui layer scelti come muri ci sono ' + nm + ' linee: potrebbe volerci molto o fermarsi (di solito è un tratteggio o un arredo messo tra i muri). Torna indietro e metti «Ignora» sui layer che non sono muri. Continuo lo stesso?')) return;
+  S.res = dxfMuri(S.P.segs, S.grp, S.f, S.P.arcs); S.off = new Set(); S.solo = null; S.gr = dxfGruppi(S.res, S.P.texts, S.f); dxfDisegna(); if (!dlg.open) dlg.showModal();
 }
 function dxfDisegna() {
   const S = dxfS, r = S.res, dlg = $('#dDxf'), all = r.muri.concat(r.gradini), pts = [];
-  all.forEach(w => pts.push(w.p, w.q)); r.sole.forEach(w => pts.push(w.p, w.q));
-  const x0 = Math.min(...pts.map(p => p[0]), 0) - 0.5, x1 = Math.max(...pts.map(p => p[0]), 1) + 0.5, y0 = Math.min(...pts.map(p => p[1]), 0) - 0.5, y1 = Math.max(...pts.map(p => p[1]), 1) + 0.5;
+  all.forEach(w => pts.push(w.p, w.q)); r.sole.forEach(w => pts.push(w.p, w.q)); r.scale.forEach(c => pts.push([c.bb[0], c.bb[1]], [c.bb[2], c.bb[3]])); if (!pts.length) pts.push([0, 0], [1, 1]);
+  // (prima il disegno era sempre incluso dall'origine 0,0: con le coordinate vere di un DXF, migliaia di metri, i muri restavano un puntino)
+  const x0 = Math.min(...pts.map(p => p[0])) - 0.5, x1 = Math.max(...pts.map(p => p[0])) + 0.5, y0 = Math.min(...pts.map(p => p[1])) - 0.5, y1 = Math.max(...pts.map(p => p[1])) + 0.5;
   const X = p => (p[0] - x0).toFixed(3), Y = p => (y1 - p[1]).toFixed(3);
   const poly = (w, col, extra) => { const d = [w.q[0] - w.p[0], w.q[1] - w.p[1]], L = Math.hypot(d[0], d[1]) || 1, n = [-d[1] / L * w.th / 2, d[0] / L * w.th / 2];
     return `<polygon points="${[[w.p[0] + n[0], w.p[1] + n[1]], [w.q[0] + n[0], w.q[1] + n[1]], [w.q[0] - n[0], w.q[1] - n[1]], [w.p[0] - n[0], w.p[1] - n[1]]].map(p => X(p) + ',' + Y(p)).join(' ')}" ${col} ${extra || ''}/>`; };
@@ -4647,12 +4678,13 @@ function dxfDisegna() {
     ${r.sole.map(w => `<line x1="${X(w.p)}" y1="${Y(w.p)}" x2="${X(w.q)}" y2="${Y(w.q)}" stroke="#aaa" stroke-width="1" vector-effect="non-scaling-stroke"/>`).join('')}
     ${r.scale.map(c => { const off = S.off.has(c.id), q = [[c.bb[0], c.bb[1]], [c.bb[2], c.bb[1]], [c.bb[2], c.bb[3]], [c.bb[0], c.bb[3]]].map(p => X(p) + ',' + Y(p)).join(' ');
       return `<polygon data-dw="${c.id}" points="${q}" fill="${off ? 'none' : '#0d9488'}" fill-opacity=".55" stroke="${off ? '#999' : '#0d9488'}" ${off ? 'stroke-dasharray="4 3"' : ''} stroke-width="1.5" vector-effect="non-scaling-stroke" style="cursor:pointer"/>`; }).join('')}
+    ${S.gr.length > 1 ? S.gr.map((g, i) => `<text x="${(g.bb[0] - x0).toFixed(2)}" y="${(y1 - g.bb[3] - 0.3).toFixed(2)}" font-size="${Math.max(0.6, (x1 - x0) / 40).toFixed(2)}" font-weight="700" fill="#b91c1c">${i + 1}</text>`).join('') : ''}
     ${r.muri.map(w => { const off = S.off.has(w.id), c = off ? 'fill="none" stroke="#999" stroke-dasharray="4 3" stroke-width="1" vector-effect="non-scaling-stroke"' : `fill="${w.fu ? '#8b5cc6' : w.g === 'P' ? '#1f5fbf' : '#e07a10'}" fill-opacity=".85"`;
       return poly(w, c) + `<line data-dw="${w.id}" x1="${X(w.p)}" y1="${Y(w.p)}" x2="${X(w.q)}" y2="${Y(w.q)}" stroke="transparent" stroke-width="18" vector-effect="non-scaling-stroke" pointer-events="stroke" style="cursor:pointer"/>`; }).join('')}__AP__</svg>`;
   const kid = new Set(r.muri.filter(w => !S.off.has(w.id)).map(w => w.id)), inf = r.inf.filter(o => kid.has(o.w)), wById = new Map(r.muri.map(w => [w.id, w])), AC = {finestra:'#16a34a', uscita:'#0d9488', porta:'#dc2626', varco:'#f59e0b'};
   const apSvg = inf.map(o => { const w = wById.get(o.w), F = w.F, h = w.th / 2 + 0.04, c = o.c, a = [c[0] - F.u[0] * o.l / 2, c[1] - F.u[1] * o.l / 2], b = [c[0] + F.u[0] * o.l / 2, c[1] + F.u[1] * o.l / 2];
     return `<polygon points="${[[a[0] + F.n[0] * h, a[1] + F.n[1] * h], [b[0] + F.n[0] * h, b[1] + F.n[1] * h], [b[0] - F.n[0] * h, b[1] - F.n[1] * h], [a[0] - F.n[0] * h, a[1] - F.n[1] * h]].map(p => X(p) + ',' + Y(p)).join(' ')}" fill="#fff" fill-opacity=".85" stroke="${AC[o.tipo]}" stroke-width="2" vector-effect="non-scaling-stroke"/>`; }).join('');
-  const ni = k => inf.filter(o => o.tipo === k).length;
+  const ni = k => inf.filter(o => o.tipo === k).length, curvi = Object.keys(S.P.layers).reduce((n, k) => n + ((S.grp[k] === 'P' || S.grp[k] === 'T') ? S.P.layers[k].cv || 0 : 0), 0);
   const svgF = svg.replace('__AP__', apSvg);
   const keep = r.muri.filter(w => !S.off.has(w.id)), nP = keep.filter(w => w.g === 'P').length, nF = keep.filter(w => w.fu).length, nS = r.scale.filter(c => !S.off.has(c.id)).length, th = {}; keep.forEach(w => { const k = f2(w.th); th[k] = (th[k] || 0) + 1; });
   dlg.innerHTML = `<div class="cardh">Muri trovati <small>${esc(S.name)}</small></div>${svgF}
@@ -4660,14 +4692,21 @@ function dxfDisegna() {
     <span class="mut"><b>${r.sole.length}</b> linee senza coppia scartate (grigie)${S.off.size ? ' · ' + S.off.size + ' scartati da te' : ''}</span></p>
     <p style="margin:6px 0 0"><b>${nS}</b> scale (verde acqua): gradini in fila diventati una scala dritta con larghezza e passo del disegno; il verso di salita lo giri dal pannello della scala.</p>
     <p style="margin:6px 0 0"><b>${inf.length}</b> aperture: ${ni('finestra')} finestre, ${ni('uscita')} porte-finestre, ${ni('porta')} porte, ${ni('varco')} varchi senza infisso <span class="mut">(riquadri colorati: verde finestra, verde acqua porta-finestra, rosso porta, arancio varco)</span></p>
+    ${!keep.length ? `<p class="b w" style="margin:8px 0;display:block;padding:8px">Non ho trovato muri. I muri devono essere disegnati con <b>due linee parallele</b> (i due lati): una linea sola (l'asse) o un riempimento pieno non si riconoscono. Torna indietro e controlla i layer${r.sole.length ? ` (ho scartato ${r.sole.length} linee senza coppia)` : ''}.</p>` : ''}
+    ${r.gradini.length && !r.scale.length ? `<p class="b w" style="margin:8px 0;display:block;padding:8px">Ho trovato <b>${r.gradini.length}</b> gradini che non formano una scala dritta (scala obliqua, curva o a chiocciola): non vengono importati. Aggiungila a mano con «Scala».</p>` : ''}
+    ${curvi ? `<p class="b w" style="margin:8px 0;display:block;padding:8px">Ci sono <b>${curvi}</b> tratti curvi su layer di muri: l'app li legge come linee dritte, controlla quei muri sul posto.</p>` : ''}
+    ${S.gr.length > 1 ? `<p style="margin:8px 0 4px"><b>${S.gr.length} gruppi di muri separati</b> (i numeri rossi nel disegno): sono più piante nello stesso file? Importane una alla volta.</p>
+    ${S.gr.map((g, i) => `<div class="dxl"><span class="nm"><b>${i + 1}</b> · ${[...g.ids].filter(id => id < 1e6).length} muri, ${[...g.ids].filter(id => id >= 1e6).length} scale${g.nome ? ' · <b>' + esc(g.nome) + '</b>' : ''}</span><button data-gr="${i}" ${S.solo === i ? 'class="pri"' : ''}>${S.solo === i ? 'Scelto' : 'Solo questo'}</button></div>`).join('')}
+    ${S.solo !== null ? '<button data-gr="-1">Tutti i gruppi</button>' : ''}` : ''}
     <p class="hint">Tocca un muro per scartarlo (tratteggiato); toccalo ancora per rimetterlo. Le larghezze delle aperture sono solo proposte: le misure le scrivi tu sul posto.</p>
     <div class="btns" style="margin-top:10px"><button id="dxCrea" class="pri" ${keep.length ? '' : 'disabled'}>Su nuovo rilievo</button>${R.demo ? '' : `<button id="dxPiano" class="pri" ${keep.length ? '' : 'disabled'}>Su nuovo piano di «${esc(R.nome || 'senza nome')}»</button>`}<button id="dxInd">Indietro</button><button id="dxNo">Annulla</button></div>`;
 }
 $('#bDxf').onclick = () => $('#fDxf').click();
 $('#fDxf').onchange = async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  let txt = ''; try { txt = await f.text(); } catch (err) { alert('Non riesco a leggere il file.'); return; }
-  if (!/^\s*0\s*\r?\n\s*SECTION/.test(txt)) { alert('Questo non è un DXF di testo (forse è un DWG o un DXF binario). In AutoCAD salva con nome come DXF.'); return; }
+  // i DXF recenti sono UTF-8, quelli di AutoCAD 2004 e precedenti in Windows-1252 (accenti nei nomi dei layer)
+  let txt = ''; try { const buf = await f.arrayBuffer(); try { txt = new TextDecoder('utf-8', {fatal:true}).decode(buf); } catch (e2) { txt = new TextDecoder('windows-1252').decode(buf); } } catch (err) { alert('Non riesco a leggere il file.'); return; }
+  if (!/^(\s*999\s*\r?\n[^\r\n]*\r?\n)*\s*0\s*\r?\n\s*SECTION/.test(txt)) { alert('Questo non è un DXF di testo (forse è un DWG o un DXF binario). In AutoCAD salva con nome come DXF.'); return; }
   const P = dxfParse(txt); if (!P.segs.length) { alert('Nel DXF non ho trovato linee né polilinee.'); return; }
   dxfS = {name:f.name, P, grp:dxfProposta(P.layers)}; dxfPasso1();
 };
@@ -4677,11 +4716,12 @@ $('#dDxf').addEventListener('click', e => {
   if (t.id === 'dxAv') { dxfPasso2(); return; }
   if (t.id === 'dxInd') { dxfPasso1(); return; }
   if (t.id === 'dxCrea') { const keep = dxfS.res.muri.filter(w => !dxfS.off.has(w.id)); if (!keep.length) return;
-    const kid = new Set(keep.map(w => w.id)), n = dxfCrea(keep, 'Da DXF ' + dxfS.name.replace(/\.dxf$/i, ''), dxfS.res.inf.filter(o => kid.has(o.w)), dxfS.res.scale.filter(c => !dxfS.off.has(c.id))); dlg.close(); dxfS = null; arcPut(n); openRilievo(n); toast('Rilievo creato dal DXF: ora scrivi le misure sul posto.'); return; }
+    const kid = new Set(keep.map(w => w.id)), n = dxfCrea(keep, 'Da DXF ' + dxfS.name.replace(/\.dxf$/i, ''), dxfS.res.inf.filter(o => kid.has(o.w)), dxfS.res.scale.filter(c => !dxfS.off.has(c.id)), false, dxfS.solo !== null); dlg.close(); dxfS = null; arcPut(n); openRilievo(n); toast('Rilievo creato dal DXF: ora scrivi le misure sul posto.'); return; }
   if (t.id === 'dxPiano') { const keep = dxfS.res.muri.filter(w => !dxfS.off.has(w.id)); if (!keep.length || R.demo) return;
-    const nm = prompt('Nome del nuovo piano:', R.piani.length ? 'Piano primo' : 'Piano terra'); if (!nm) return;
-    const kid = new Set(keep.map(w => w.id)); dxfCrea(keep, nm, dxfS.res.inf.filter(o => kid.has(o.w)), dxfS.res.scale.filter(c => !dxfS.off.has(c.id)), true);
+    const gn = dxfS.solo !== null ? dxfS.gr[dxfS.solo].nome : dxfS.gr.length === 1 ? dxfS.gr[0].nome : '', nm = prompt('Nome del nuovo piano:', gn || (R.piani.length ? 'Piano primo' : 'Piano terra')); if (!nm) return;
+    const kid = new Set(keep.map(w => w.id)); dxfCrea(keep, nm, dxfS.res.inf.filter(o => kid.has(o.w)), dxfS.res.scale.filter(c => !dxfS.off.has(c.id)), true, dxfS.solo !== null);
     dlg.close(); dxfS = null; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); save(); toast('Piano creato dal DXF: ora scrivi le misure sul posto.'); return; }
+  if (t.dataset && t.dataset.gr !== undefined) { const i = +t.dataset.gr; dxfS.solo = i < 0 ? null : i; dxfS.off = new Set(); if (i >= 0) { const g = dxfS.gr[i]; dxfS.res.muri.forEach(w => { if (!g.ids.has(w.id)) dxfS.off.add(w.id); }); dxfS.res.scale.forEach(c => { if (!g.ids.has(c.id)) dxfS.off.add(c.id); }); } dxfDisegna(); return; }
   const w = t.closest && t.closest('[data-dw]'); if (w) { const id = +w.dataset.dw; if (dxfS.off.has(id)) dxfS.off.delete(id); else dxfS.off.add(id); dxfDisegna(); }
 });
 $('#dDxf').addEventListener('change', e => {
