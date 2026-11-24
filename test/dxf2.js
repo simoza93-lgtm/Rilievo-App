@@ -69,4 +69,18 @@ const LY = [['MURI', 7], ['TRAMEZZI', 2], ['INFISSI', 1]];
     await apri('scala.dxf', dxf(LY.concat([['SCALE', 3]]), casa(0, 0).concat(rampa(o)))); await p.click('#dxAv'); await p.waitForSelector('#dxCrea'); await p.click('#dxCrea'); await p.waitForTimeout(250);
     out.scale.push(await p.evaluate(o => { const pl = piano(), st = (pl.stairs || []), bb = st[0] ? stairPrims(st[0]).bbox : null; const esp = [(o.rot % 180 === 0 ? (o.n - 1) * o.p : o.b), (o.rot % 180 === 0 ? o.b : (o.n - 1) * o.p)];
       return {rot:o.rot, scale:st.length, n:st[0] && st[0].n, p:st[0] && st[0].p, b:st[0] && st[0].b, ingombroUguale:bb ? Math.abs(bb[2] - bb[0] - esp[0]) < 0.011 && Math.abs(bb[3] - bb[1] - esp[1]) < 0.011 : false, muri:pl.walls.length}; }, o)); }
+  // scala a U (due rampe affiancate con pianerottolo): una sola scala, non due; le alzate del disegno cadono sulle alzate dell'app in tutti e quattro i versi
+  const UO = {'0false':[0.6, 1], '90false':[3, 1], '180false':[3.6, 3], '270false':[0.6, 5], '0true':[3.6, 1]};   // origini scelte perché la scala non tocchi il tramezzo a x = 5
+  const uScala = (rot, spec) => { const p = 0.28, n1 = 11, n2 = 9, b1 = 1.07, b2 = 0.93, g = 0.25, L1 = (n1 - 1) * p, S = [], c = Math.round(Math.cos(rot * Math.PI / 180)), sn = Math.round(Math.sin(rot * Math.PI / 180)), P = (s, t) => { const x = spec ? -s : s; const O = UO[rot + '' + spec]; return [O[0] + x * c - t * sn, O[1] + x * sn + t * c]; };
+    for (let i = 0; i < n1; i++) S.push(LN('SCALE', P(i * p, 0), P(i * p, b1)));
+    for (let j = 0; j < n2; j++) S.push(LN('SCALE', P(L1 - j * p, b1 + g), P(L1 - j * p, b1 + g + b2)));
+    return S; };
+  const uMedi = (rot, spec) => { const p = 0.28, n1 = 11, n2 = 9, b1 = 1.07, b2 = 0.93, g = 0.25, L1 = (n1 - 1) * p, M = [], c = Math.round(Math.cos(rot * Math.PI / 180)), sn = Math.round(Math.sin(rot * Math.PI / 180)), P = (s, t) => { const x = spec ? -s : s; const O = UO[rot + '' + spec]; return [O[0] + x * c - t * sn, O[1] + x * sn + t * c]; };
+    for (let i = 0; i < n1; i++) M.push(P(i * p, b1 / 2)); for (let j = 0; j < n2; j++) M.push(P(L1 - j * p, b1 + g + b2 / 2)); return M; };
+  out.scalaU = [];
+  for (const [rot, spec] of [[0, false], [90, false], [180, false], [270, false], [0, true]]) {
+    await apri('u.dxf', dxf(LY.concat([['SCALE', 3]]), casa(0, 0).concat(uScala(rot, spec)))); await p.click('#dxAv'); await p.waitForSelector('#dxCrea');
+    const src = await p.evaluate(() => dxfS.res.scale.map(c => ({U:!!c.U, n:c.n, n1:c.n1, b1:+(c.b1 || 0).toFixed(2), b2:+(c.b2 || 0).toFixed(2), g:+(c.g || 0).toFixed(2)})));
+    await p.click('#dxCrea'); await p.waitForTimeout(250);
+    out.scalaU.push({rot, specchio:spec, trovate:src, creata:await p.evaluate(M => { const st = piano().stairs || [], pr = st[0] ? stairPrims(st[0]).ris : [], nm = [Math.min(...piano().nodes.map(n => n.x)), Math.min(...piano().nodes.map(n => n.y))], o = [R.dxo[0] - nm[0], R.dxo[1] - nm[1]], err = Math.max(...M.map(m => Math.min(...pr.map(r => Math.hypot((r.a[0] + r.b[0]) / 2 - (m[0] - o[0]), (r.a[1] + r.b[1]) / 2 - (m[1] - o[1])))))); return {scale:st.length, tipo:st[0].tipo, n:st[0].n, n1:st[0].n1, b:st[0].b, b2:st[0].b2, g:st[0].g, p:st[0].p, alzateSulDisegno:err < 0.05}; }, uMedi(rot, spec))}); }
   console.log(JSON.stringify(out, null, 1)); console.log('errors', errs); await b.close(); })();

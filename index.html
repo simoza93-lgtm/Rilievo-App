@@ -4528,9 +4528,9 @@ function dxfMuri(segs, grp, f, arcs) {
       X.filter(x => x.t1 - x.t0 >= 0.5 && x.t1 - x.t0 <= 3).sort((p, q) => p.s - q.s).forEach(x => {
         const c = chs.find(c => { const l = c.L[c.L.length - 1], d = x.s - l.s; return c.F === F && d >= 0.18 && d <= 0.4 && Math.min(l.t1, x.t1) - Math.max(l.t0, x.t0) >= 0.6 * Math.min(l.t1 - l.t0, x.t1 - x.t0) && (Math.abs(l.t0 - x.t0) < 0.05 || Math.abs(l.t1 - x.t1) < 0.05); });
         if (c) c.L.push(x); else chs.push({F, L:[x]}); }); });
-    const sc = []; chs.filter(c => c.L.length >= 3).forEach(c => { const w = c.L.reduce((a, l) => l.t1 - l.t0 > a.t1 - a.t0 ? l : a); sc.push({F:c.F, t0:w.t0, t1:w.t1, L:c.L}); });
+    const sc = []; chs.filter(c => c.L.length >= 3).forEach(c => { const w = c.L.reduce((a, l) => l.t1 - l.t0 > a.t1 - a.t0 ? l : a); const md = c.L.slice().sort((x, y) => (x.t1 - x.t0) - (y.t1 - y.t0))[c.L.length >> 1]; sc.push({F:c.F, t0:w.t0, t1:w.t1, m0:md.t0, m1:md.t1, L:c.L}); });   // t0/t1: riga più lunga (per togliere le linee dentro la scala); m0/m1: riga di lunghezza media = larghezza vera della rampa
     sc.forEach(c => { const L = c.L, d = []; for (let i = 1; i < L.length; i++) if (L[i].s - L[i - 1].s <= 0.4) d.push(L[i].s - L[i - 1].s); d.sort((x, y) => x - y);
-      const th = Math.round(d[d.length >> 1] * 100) / 100, s0 = L[0].s, s1 = L[L.length - 1].s; c.th = th; c.k = L.length; c.n = Math.round((s1 - s0) / th) + 1; c.bb = bbq(c.F, c.t0, c.t1, s0, s1);
+      const th = Math.round(d[d.length >> 1] * 100) / 100, s0 = L[0].s, s1 = L[L.length - 1].s; c.th = th; c.k = L.length; c.n = Math.round((s1 - s0) / th) + 1; c.bb = bbq(c.F, c.t0, c.t1, s0, s1); c.bbN = bbq(c.F, c.m0, c.m1, s0, s1);
       const g = bbq(c.F, c.t0, c.t1, s0 - 0.4, s1 + 0.4); fam.forEach(G => { G.ls = G.ls.filter(l => !(l.g === 'T' && tin(l, g))); }); res.scale.push(c); }); }
   fam.forEach(F => ['P', 'T'].forEach(g => {
     const X = F.ls.filter(l => l.g === g).map(l => { const sa = l.a[0] * F.n[0] + l.a[1] * F.n[1], sb = l.b[0] * F.n[0] + l.b[1] * F.n[1], ta = l.a[0] * F.u[0] + l.a[1] * F.u[1], tb = l.b[0] * F.u[0] + l.b[1] * F.u[1];
@@ -4562,6 +4562,16 @@ function dxfMuri(segs, grp, f, arcs) {
     const c = vecchie.find(c => c.F === w.F && Math.abs(c.th - w.th) < 0.02 && Math.abs(c.t0 - w.t0) < 0.05 && Math.abs(c.t1 - w.t1) < 0.05 && w.s - c.s1 < w.th * 2.5 + 0.05);
     if (c) { c.s1 = w.s; c.k++; } else vecchie.push({F:w.F, th:w.th, t0:w.t0, t1:w.t1, s0:w.s, s1:w.s, k:1}); });
   vecchie.filter(c => c.k >= 3).forEach(c => res.scale.push(Object.assign(c, {bb:bbq(c.F, c.t0, c.t1, c.s0 - c.th / 2, c.s1 + c.th / 2), n:Math.round((c.s1 - c.s0) / c.th) + 2})));
+  // scala a U: due rampe affiancate (stesso passo, vuoto di 0–0,45 m in mezzo) che finiscono dalla stessa parte, dove sta il pianerottolo; la prima è la più lunga (il verso di salita non si legge dal disegno)
+  for (let i = 0; i < res.scale.length; i++) for (let j = i + 1; j < res.scale.length; j++) { const A = res.scale[i], B = res.scale[j]; if (!A.L || !B.L || A.F !== B.F || Math.abs(A.th - B.th) > 0.02) continue;
+    const gap = Math.max(B.m0 - A.m1, A.m0 - B.m1); if (gap < -0.02 || gap > 0.45) continue;
+    const sA = A.L.map(l => l.s), sB = B.L.map(l => l.s), a0 = Math.min(...sA), a1 = Math.max(...sA), b0 = Math.min(...sB), b1 = Math.max(...sB);
+    if (Math.min(a1, b1) - Math.max(a0, b0) < 0.6 * Math.min(a1 - a0, b1 - b0)) continue;
+    const fin = Math.abs(a1 - b1) < 0.2 ? 1 : Math.abs(a0 - b0) < 0.2 ? -1 : 0; if (!fin) continue;
+    const [P1, P2] = A.k >= B.k ? [A, B] : [B, A], bb = [Math.min(A.bbN[0], B.bbN[0]), Math.min(A.bbN[1], B.bbN[1]), Math.max(A.bbN[2], B.bbN[2]), Math.max(A.bbN[3], B.bbN[3])];
+    const ext = Math.max(a1, b1) - Math.min(a0, b0), lan = Math.max(0.05, Math.round((ext - (P1.k - 1) * P1.th) * 100) / 100);   // pianerottolo: quanto il disegno è più lungo della prima rampa
+    res.scale[i] = {U:true, F:A.F, P1, P2, fin, th:Math.round((A.th + B.th) / 0.02) * 0.01, n:A.k + B.k, n1:P1.k, b1:P1.m1 - P1.m0, b2:P2.m1 - P2.m0, g:Math.max(0, gap), pian:lan, bb, bbN:bb, k:A.k + B.k};
+    res.scale.splice(j, 1); j = i; }
   res.scale.forEach((c, i) => c.id = 1e6 + i);
   const P = walls.filter(w => w.g === 'P'); dxfRicuci(P);
   // fuori dal perimetro (balconi, travi del pergolato): il punto di mezzo cade fuori dalla casa; entrano come muri col loro spessore, marcati (w.fu)
@@ -4596,6 +4606,18 @@ function dxfInfissi(segs, arcs, grp, f, walls) {
     mine.forEach(o => out.push(o)); });
   return out;
 }
+// scala a U: tra le 8 combinazioni (4 rotazioni, con e senza specchio) si prende quella che porta le alzate del disegno sulle alzate della scala
+function dxfScalaU(pl, c, x0, y0) {
+  const F = c.F, row = l => { const t = (l.t0 + l.t1) / 2; return [F.u[0] * t + F.n[0] * l.s - x0, F.u[1] * t + F.n[1] * l.s - y0]; }, ord = (P, first) => P.L.slice().sort((a, b) => (a.s - b.s) * c.fin * (first ? 1 : -1));
+  const src = ord(c.P1, true).map(row).concat(ord(c.P2, false).map(row)), tw = c.bb[2] - c.bb[0], th = c.bb[3] - c.bb[1];
+  const base = newStair('U', 0, 0); Object.assign(base, {n:String(c.n), n1:String(c.n1), p:f2(c.th), b:f2(c.b1), b2:f2(c.b2), g:f2(c.g), pian:f2(c.pian)});
+  let best = null;
+  const avg = L => [L.reduce((t, q) => t + q[0], 0) / L.length, L.reduce((t, q) => t + q[1], 0) / L.length], sm = avg(src);
+  [0, 90, 180, 270].forEach(rot => ['dx', 'sx'].forEach(mano => { const st = Object.assign({}, base, {rot, mano}), mid = r => [(r.a[0] + r.b[0]) / 2, (r.a[1] + r.b[1]) / 2], M0 = stairPrims(st).ris.map(mid), m0 = avg(M0);
+    st.x = r4(num(st.x) + sm[0] - m0[0]); st.y = r4(num(st.y) + sm[1] - m0[1]);   // si allinea sulle alzate (la lunghezza del pianerottolo non si legge dal disegno)
+    const sc = stairPrims(st).ris.reduce((t, r) => { const q = mid(r), o = src[r.k]; return t + (o ? Math.hypot(q[0] - o[0], q[1] - o[1]) : 9); }, 0);
+    if (!best || sc < best.sc) best = {sc, st}; }));
+  anchorStair(pl, best.st); (pl.stairs = pl.stairs || []).push(best.st); }
 // crea il rilievo nuovo: un solo piano, muri al loro posto, nessuna misura scritta
 function dxfCrea(walls, nome, aps, scale, add, own) {
   // add = true: il disegno diventa un piano nuovo del rilievo aperto (stessa origine del primo DXF, così i piani restano sovrapposti)
@@ -4620,9 +4642,9 @@ function dxfCrea(walls, nome, aps, scale, add, own) {
       if (a.tipo === 'porta') { const al = p => I.H ? p[0] - x0 - I.a.x : p[1] - y0 - I.a.y, sd = p => I.H ? p[1] - y0 - I.a.y - I.o : p[0] - x0 - I.a.x - I.o; ap.pt = ''; ap.cx = al(a.H) > al(a.Ec); ap.vx = sd(a.Eo) > 0; }
       w.ap = w.ap || []; w.ap.push(ap); });
     // scale: dritta con la larghezza, il passo e il numero di alzate del disegno (proposte); il verso di salita non si legge dal DXF: si gira dal pannello
-    scale.forEach(c => { const st = newStair('dritta', 0, 0), tw = c.bb[2] - c.bb[0], th = c.bb[3] - c.bb[1]; Object.assign(st, {b:f2(c.t1 - c.t0), n:String(c.n), p:f2(c.th)});
+    scale.forEach(c => { if (c.U) { dxfScalaU(pl, c, x0, y0); return; } const bq = c.bbN || c.bb, st = newStair('dritta', 0, 0), tw = bq[2] - bq[0], th = bq[3] - bq[1]; Object.assign(st, {b:f2(c.m1 !== undefined ? c.m1 - c.m0 : c.t1 - c.t0), n:String(c.n), p:f2(c.th)});
       let best = 1e9; [0, 90].forEach(r => { st.rot = r; const b = stairPrims(st).bbox, e = Math.abs(b[2] - b[0] - tw) + Math.abs(b[3] - b[1] - th); if (e < best) { best = e; st.rotB = r; } }); st.rot = st.rotB; delete st.rotB;
-      const b = stairPrims(st).bbox; st.x = r4(num(st.x) + c.bb[0] - x0 - b[0]); st.y = r4(num(st.y) + c.bb[1] - y0 - b[1]); anchorStair(pl, st); (pl.stairs = pl.stairs || []).push(st); }); }
+      const b = stairPrims(st).bbox; st.x = r4(num(st.x) + bq[0] - x0 - b[0]); st.y = r4(num(st.y) + bq[1] - y0 - b[1]); anchorStair(pl, st); (pl.stairs = pl.stairs || []).push(st); }); }
   finally { R = old; }
   return n;
 }
@@ -4690,7 +4712,7 @@ function dxfDisegna() {
   dlg.innerHTML = `<div class="cardh">Muri trovati <small>${esc(S.name)}</small></div>${svgF}
     <p style="margin:8px 0 0"><b>${keep.length}</b> muri (${nP} perimetrali, ${keep.length - nP - nF} tramezzi o altro, ${nF} fuori dalla casa: balconi, pergolato, in viola) · spessori: ${Object.keys(th).sort().map(k => k + ' m ×' + th[k]).join(', ') || '—'}<br>
     <span class="mut"><b>${r.sole.length}</b> linee senza coppia scartate (grigie)${S.off.size ? ' · ' + S.off.size + ' scartati da te' : ''}</span></p>
-    <p style="margin:6px 0 0"><b>${nS}</b> scale (verde acqua): gradini in fila diventati una scala dritta con larghezza e passo del disegno; il verso di salita lo giri dal pannello della scala.</p>
+    <p style="margin:6px 0 0"><b>${nS}</b> scale (verde acqua)${r.scale.some(c => c.U && !S.off.has(c.id)) ? ', di cui ' + r.scale.filter(c => c.U && !S.off.has(c.id)).length + ' a U (due rampe affiancate con pianerottolo)' : ''}: gradini in fila con larghezza e passo del disegno; il verso di salita non si legge dal disegno, lo giri dal pannello della scala.</p>
     <p style="margin:6px 0 0"><b>${inf.length}</b> aperture: ${ni('finestra')} finestre, ${ni('uscita')} porte-finestre, ${ni('porta')} porte, ${ni('varco')} varchi senza infisso <span class="mut">(riquadri colorati: verde finestra, verde acqua porta-finestra, rosso porta, arancio varco)</span></p>
     ${!keep.length ? `<p class="b w" style="margin:8px 0;display:block;padding:8px">Non ho trovato muri. I muri devono essere disegnati con <b>due linee parallele</b> (i due lati): una linea sola (l'asse) o un riempimento pieno non si riconoscono. Torna indietro e controlla i layer${r.sole.length ? ` (ho scartato ${r.sole.length} linee senza coppia)` : ''}.</p>` : ''}
     ${r.gradini.length && !r.scale.length ? `<p class="b w" style="margin:8px 0;display:block;padding:8px">Ho trovato <b>${r.gradini.length}</b> gradini che non formano una scala dritta (scala obliqua, curva o a chiocciola): non vengono importati. Aggiungila a mano con «Scala».</p>` : ''}
