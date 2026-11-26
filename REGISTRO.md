@@ -3,6 +3,11 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 26 novembre 2026 — Nuova grafica della pianta (a scelta)
+- In **Impostazioni → Pianta** c'è la casella «Nuova grafica»: muri pieni neri, porte e finestre in grigio scuro, stanze con fondo grigio, **balconi, terrazzi e marciapiedi bianchi** (dalla destinazione dell'ambiente), fondo a puntini ogni 0,50 m al posto delle righe. La pianta resta chiara anche con il tablet in tema scuro.
+- È **spenta di norma** e vale per il dispositivo. Le misure restano tutte come prima (lucchetti, pallini, rosso se non tornano).
+- La **Scheda PDF** e lo **script AutoCAD** non cambiano.
+
 ## 24 novembre 2026 — Importa DXF: layer, più piante, avvisi, velocità
 Provato anche con un DXF vero dello studio (sottotetto, due scale): muri, 17 aperture e le due scale (11 e 9 gradini, passo 0,28 m) tornano come prima.
 - **Anteprima vuota con i DXF veri**: il disegno veniva sempre incluso dall'origine, quindi con coordinate di migliaia di metri i muri restavano un puntino. Ora l'anteprima si adatta ai muri.

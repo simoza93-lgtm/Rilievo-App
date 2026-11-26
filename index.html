@@ -79,6 +79,7 @@ label.tb:has(input:checked){color:var(--acc);background:var(--accbg)}
 @media(min-width:701px){body.full.hassel #appan{right:calc(min(380px,44vw) + 14px)}}
 #cv{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--cv)}
 #svg{display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+#svg.gn{background:#f1f1f3;--ink:#111418;--mut:#5f6675;--line:#dde1e8;--acc:#1f5fbf;--accbg:#d6e4ff;--bad:#c0392b;--todo:#e8890c;--wall:#111418;--wP:#111418;--wI:#111418;--wR:#555d6b;--cv:#fff;--note:#c99a06;--notebg:#fff8d9;--inkc:#7c3aed}
 #empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mut);pointer-events:none;padding:30px}
 #toast{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:8px 14px;border-radius:9px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90%;text-align:center}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 10px}
@@ -296,7 +297,7 @@ const DEF_AP = {finestra:{l:'1,20', h:'1,40', dav:'0,90'}, incassata:{l:'1,20', 
 
 /* ================= stato ================= */
 let R, G = null, tab = 'pianta';
-const ui = {mnew:(() => { try { return localStorage.getItem('rilievo-mstile') !== 'classico'; } catch (e) { return true; } })(), labels:(() => { try { return localStorage.getItem('rilievo-etichette') !== '0'; } catch (e) { return true; } })(), mode:'draw', newType:'P', view:{x:-2, y:-2, s:45}, sel:null, W:800, H:560, undo:[], nbb:new Map()};
+const ui = {pnew:(() => { try { return localStorage.getItem('rilievo-pstile') === 'nuova'; } catch (e) { return false; } })(), mnew:(() => { try { return localStorage.getItem('rilievo-mstile') !== 'classico'; } catch (e) { return true; } })(), labels:(() => { try { return localStorage.getItem('rilievo-etichette') !== '0'; } catch (e) { return true; } })(), mode:'draw', newType:'P', view:{x:-2, y:-2, s:45}, sel:null, W:800, H:560, undo:[], nbb:new Map()};
 
 function blank() {
   return {nome:'', indirizzo:'', data:today(), fg:'', pla:'', sub:'', P:'0,30', T:'0,10', incP:'0,15', rai:'8', hA:'2,70', hC:'2,40',
@@ -2759,7 +2760,11 @@ function draw() {
   const pl = piano(), v = ui.view, X = SX, Y = SY;
   const col = {P:'var(--wP)', I:'var(--wI)', R:'var(--wR)', W:'var(--wR)'}, sw = {P:2.4, I:1.5, R:1, W:1};
   let s = '';
-  if (v.s >= 12) { const x0 = Math.floor(WX(0)), x1 = Math.ceil(WX(ui.W)), y0 = Math.floor(WY(ui.H)), y1 = Math.ceil(WY(0));
+  const GN = ui.pnew && !ui.perScheda; svg.classList.toggle('gn', GN);   // grafica «muri neri», solo a schermo
+  if (GN) { const p = v.s / 2;   // puntini ogni 0,50 m e fondo delle stanze, sotto lo sfondo importato
+    if (v.s >= 12) s += `<pattern id="gnp" patternUnits="userSpaceOnUse" x="${X(0) - p / 2}" y="${Y(0) - p / 2}" width="${p}" height="${p}"><circle cx="${p / 2}" cy="${p / 2}" r="1.1" fill="#c6cad3"/></pattern><rect width="${ui.W}" height="${ui.H}" fill="url(#gnp)"/>`;
+    (pl.rooms || []).forEach(r => { const cc = G.comps[r._c]; if (cc && cc.room) s += `<g class="gnr" fill="${DEST[r.dest] === 'E' ? '#fff' : '#e3e3e6'}">` + roomRects(cc) + '</g>'; }); }
+  if (!GN && v.s >= 12) { const x0 = Math.floor(WX(0)), x1 = Math.ceil(WX(ui.W)), y0 = Math.floor(WY(ui.H)), y1 = Math.ceil(WY(0));
     for (let x = x0; x <= x1; x++) s += `<line x1="${X(x)}" y1="0" x2="${X(x)}" y2="${ui.H}" stroke="var(--grid)" stroke-opacity=".64"/>`;
     for (let y = y0; y <= y1; y++) s += `<line x1="0" y1="${Y(y)}" x2="${ui.W}" y2="${Y(y)}" stroke="var(--grid)" stroke-opacity=".64"/>`; }
   if (!lOff('B')) s += bgSvg(pl);
@@ -2769,7 +2774,7 @@ function draw() {
   if (selRoom && G.comps[selRoom._c]) { /* evidenzia l'ambiente */ const cc = G.comps[selRoom._c]; s += `<g fill="var(--accbg)">` + roomRects(cc) + '</g>'; }
   const selPieno = selRoom && G.comps[selRoom._c] && !G.comps[selRoom._c].room;
   const lv = l => !lOff(l === 'R' ? 'R' : l === 'P' ? 'P' : l === 'W' ? 'W' : l === 'E' ? 'E' : 'I');   // muri, ringhiere, superfici e infissi per layer
-  s += '<g fill="var(--wI)" fill-opacity=".6">' + (G.fpolys || []).filter(poly => poly.l === 'E' && lv('E')).map(poly => `<path fill-rule="evenodd" d="${poly.map(r => 'M' + r.map(p => X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' L') + ' Z').join(' ')}"/>`).join('')
+  s += `<g fill="${GN ? '#9a9ea6' : 'var(--wI)'}" fill-opacity=".6">` + (G.fpolys || []).filter(poly => poly.l === 'E' && lv('E')).map(poly => `<path fill-rule="evenodd" d="${poly.map(r => 'M' + r.map(p => X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' L') + ' Z').join(' ')}"/>`).join('')
     + G.fills.filter(b => b[4] === 'E' && lv('E')).map(b => `<rect x="${X(b[0])}" y="${Y(b[3])}" width="${(b[2] - b[0]) * v.s + 0.3}" height="${(b[3] - b[1]) * v.s + 0.3}"/>`).join('') + '</g>';
   s += '<g fill="var(--wR)" fill-opacity=".35">' + (G.fpolys || []).filter(poly => poly.l === 'W' && lv('W')).map(poly => `<path fill-rule="evenodd" d="${poly.map(r => 'M' + r.map(p => X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' L') + ' Z').join(' ')}"/>`).join('')
     + G.fills.filter(b => b[4] === 'W' && lv('W')).map(b => `<rect x="${X(b[0])}" y="${Y(b[3])}" width="${(b[2] - b[0]) * v.s + 0.3}" height="${(b[3] - b[1]) * v.s + 0.3}"/>`).join('') + '</g>';
@@ -4076,7 +4081,8 @@ function renderSet() {
   <p class="hint">Per un muro diverso (portante interno, muro vecchio più spesso) selezionalo e scegli «Spessore diverso».</p></div>
   <div class="card"><div class="cardh">Limiti dei controlli</div><div class="grid">${i('rai', 'RAI minimo 1/…')}${i('hA', 'Altezza min. abitabili (m)')}${i('hC', 'Altezza min. accessori (m)')}${i('pedInt', 'Scale: pedata minima sul lato interno dei gradini ritoccati (m)')}</div>
   <p class="hint">Pedata minima sul lato interno: vuoto = nessun avviso. Valori di partenza del D.M. 5 luglio 1975. Il regolamento edilizio del comune può prevedere valori diversi.</p></div>
-  <div class="card"><div class="cardh">Pianta</div><label class="chk"><input type="checkbox" data-pref="mclassic" ${ui.mnew ? '' : 'checked'}> Misure con la grafica classica (caselle per ogni tratto, come prima del 9 novembre)</label>
+  <div class="card"><div class="cardh">Pianta</div><label class="chk"><input type="checkbox" data-pref="pnuova" ${ui.pnew ? 'checked' : ''}> Nuova grafica: muri neri, stanze grigie (balconi e terrazzi bianchi), fondo a puntini</label>
+  <p class="hint">Cambia solo la pianta a schermo: la Scheda PDF e lo script AutoCAD restano come sono. Vale per questo dispositivo.</p><label class="chk"><input type="checkbox" data-pref="mclassic" ${ui.mnew ? '' : 'checked'}> Misure con la grafica classica (caselle per ogni tratto, come prima del 9 novembre)</label>
   <p class="hint">Grafica nuova: linee di quota con il lucchetto sulle misure prese, pallini arancioni sui tratti da misurare; toccando una stanza o un muro compaiono anche le misure ricavate e le caselle da riempire. Vale per questo dispositivo.</p></div>
   <div class="card"><div class="cardh">Script AutoCAD</div>${c('qInt', 'Quote parziali interne, lato per lato (tratti di muro tra spigoli e vani)')}${c('vani', 'Larghezza dei vani (porte, finestre, ingressi, uscite)')}${c('qExt', 'Quote esterne d\'ingombro')}${c('testi', 'Nome e superficie degli ambienti')}${c('porte', 'Porte con anta e arco, girate come in pianta')}${c('note', 'Note scritte con «Testo» (nel punto in cui le hai messe)')}${c('mano', 'Note a mano (polilinee sul layer degli infissi e testi)')}
   <p class="hint">Layer PLAN_MURI_PERIM, PLAN_MURI_INT e PLAN_INFISSI_TESTI, stile di quota STUDIO, delle porte solo il vano, osnap dello studio riattivati alla fine. Le quote libere messe con «Quota» vanno sempre nello script. I totali interni non si scrivono da soli: mettili tu con «Quota».</p></div>`;
@@ -4288,6 +4294,7 @@ document.addEventListener('input', e => {
   else if (t.id === 'cLab') { ui.labels = t.checked; try { localStorage.setItem('rilievo-etichette', t.checked ? '1' : '0'); } catch (e) {} draw(); }
   else if (t.dataset.sol) { const pl = R.piani.find(x => x.id === t.dataset.sol); if (pl) { undemo(); pl.sol = t.value; save(); } }
   else if (t.dataset.pref === 'studio') { try { localStorage.setItem('rilievo-studio', t.value); } catch (e) {} }
+  else if (t.dataset.pref === 'pnuova') { ui.pnew = t.checked; try { localStorage.setItem('rilievo-pstile', t.checked ? 'nuova' : 'attuale'); } catch (e) {} }
   else if (t.dataset.pref === 'mclassic') { ui.mnew = !t.checked; try { localStorage.setItem('rilievo-mstile', t.checked ? 'classico' : 'nuovo'); } catch (e) {} }
   else if (t.dataset.o) { R.opt[t.dataset.o] = t.checked; save(); }
 });
@@ -4303,6 +4310,7 @@ function schedaPiante() {   // disegna ogni piano su un foglio fisso, senza sele
   const keep = {cur:R.cur, vrot:R.vrot, sel:ui.sel, view:ui.view, tab}, PW = 1000, PH = 1150, out = [];
   if (tab !== 'pianta') { tab = 'pianta'; render(); }
   const svg = $('#svg');
+  ui.perScheda = true;
   try {
     R.piani.forEach((pl, i) => {
       R.cur = i; R.vrot = 0; ui.sel = null; recompute();
@@ -4312,7 +4320,7 @@ function schedaPiante() {   // disegna ogni piano su un foglio fisso, senza sele
       out.push({nome:pl.nome, vuoto, tab:schedaTab(pl), svg:`<svg viewBox="0 0 ${PW} ${PH}" width="${PW}" height="${PH}">${svg.innerHTML.replace(/ id="[^"]*"/g, '')}</svg>`});
     });
   } finally {
-    R.cur = keep.cur; R.vrot = keep.vrot; ui.sel = keep.sel; ui.view = keep.view; tab = keep.tab; render();
+    ui.perScheda = false; R.cur = keep.cur; R.vrot = keep.vrot; ui.sel = keep.sel; ui.view = keep.view; tab = keep.tab; render();
   }
   return out;
 }
