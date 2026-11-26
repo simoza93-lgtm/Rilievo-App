@@ -25,6 +25,7 @@ const { chromium } = require('playwright');
     if (!q) return console.log('manca la casella', ax, s); await p.mouse.click(q[0], q[1]); await p.waitForTimeout(200); const t = await p.textContent('#inl .ms'); for (const k of v) await p.click(`#inl [data-k="${k}"]`); await p.click('#inl [data-k="ok"]'); await p.waitForTimeout(250); console.log('scritto', v, 'da «' + t + '» →', await dove()); };
   console.log('caselle prima:', await p.evaluate(() => (ui.pbb || []).filter(x => x.hb.kind === 'pil').length), 'in «Prossima»:', await p.evaluate(() => guideList().filter(x => x.hb.kind === 'pil').length));
   await scrivi('x', 1, '1,20');
+  console.log('scritta a sinistra, casella di destra toccabile:', await p.evaluate(() => { ui.sel = {k:'pil', id:piano().pil[0].id}; draw(); return (ui.pbb || []).some(x => x.hb.kind === 'pil' && x.hb.ax === 'x' && x.hb.s === -1); }));
   await scrivi('y', 1, '0,80');
   await p.screenshot({path:require('path').join(OUT, 'pilastro.png')});
   // la misura segue il muro: la stanza si allunga, il pilastro resta a 1,20 e 0,80; si misura anche dall'altra parte
@@ -49,6 +50,19 @@ const { chromium } = require('playwright');
   console.log('layer muri perimetrali spento:', await p.evaluate(() => { lSet('P', 'off', true); draw(); const r = document.querySelectorAll('#svg .pil').length; lSet('P', 'off', false); draw(); return [r, document.querySelectorAll('#svg .pil').length]; }));
   await p.waitForTimeout(1500); await p.reload(); await p.waitForTimeout(600); await p.evaluate(() => { tab = 'pianta'; render(); update(true); });
   console.log('riaperta:', await p.evaluate(() => R.id), await dove(), await stanza());
+  // appoggiato al muro di sopra: 0,00 da quel lato (si può correggere), il lato lontano non si chiede
+  const contro = () => p.evaluate(() => { const q = piano().pil[0]; ui.sel = {k:'pil', id:q.id}; draw(); return {caselle:measItems().filter(x => x.pil && x.hb && x.hb.ax === 'y').map(x => x.hb.s + ':' + x.st + ':' + f2(x.val)), chieste:guideList().filter(x => x.hb.kind === 'pil' && x.hb.ax === 'y').length}; });
+  await p.evaluate(() => { const q = piano().pil[0], c = G.comps.find(c => c.room).bbox; q.anc = null; q.y = c[3] - 0.5; snapStair(q); q.y = c[3] - (pilBox(q)[3] - pilBox(q)[1]); anchorStair(piano(), q, false); update(true); ui.mode = 'select'; fit(); draw(); });
+  console.log('contro il muro sopra:', await contro());
+  await scrivi('y', -1, '0,20'); console.log('corretta:', await contro());
+  // il tasto «Perimetrali» dopo un pilastro disegna ancora i muri; una porta accanto al pilastro resta toccabile
+  await p.reload(); await p.waitForTimeout(600); await p.evaluate(() => { tab = 'pianta'; render(); update(true); }); await p.waitForTimeout(200);
+  const tasto = () => p.evaluate(() => ({modo:ui.mode, posa:ui.placeSc || '', tasto:document.querySelector('[data-g="muri"] [data-fly] span').textContent}));
+  await p.click('[data-g="muri"] [data-fly]'); await p.waitForTimeout(200); console.log('primo tocco su «Perimetrali»:', await tasto());
+  await p.click('[data-g="muri"] .tfly [data-pil]'); await p.waitForTimeout(150); console.log('scelto Pilastro:', await tasto());
+  await p.click('[data-pil]', {force:true}).catch(() => {}); await p.evaluate(() => { ui.placeSc = false; ui.mode = 'select'; updTools(); }); await p.waitForTimeout(150);
+  await p.click('[data-g="muri"] [data-fly]'); await p.waitForTimeout(200); console.log('poi di nuovo «Perimetrali»:', await tasto());
+  await p.evaluate(() => { ui.mode = 'select'; closeFly(); updTools(); });
   // finestra di selezione ed eliminazione
   console.log('eliminato con la selezione a finestra:', await p.evaluate(() => { ui.mode = 'select'; fit(); draw(); const b = pilBox(piano().pil[0]); winSelect([SX(b[0] - 0.1), SY(b[3] + 0.1)], [SX(b[2] + 0.1), SY(b[1] - 0.1)]); const k = ui.sel && ui.sel.k; if (k === 'pil') { renderSide(); document.querySelector('#bDelPil').click(); } else if (k === 'm') delMulti(); return [k, piano().pil.length, f2(cArea(G.comps.find(c => c.room)))]; }));
   console.log('errors', errs); await b.close();

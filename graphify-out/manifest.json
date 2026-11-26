@@ -474,9 +474,9 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1795735963.250105,
-    "seen": 1795736103.2251549,
-    "ast_hash": "1d26c7524646d7937835b91a1216a274",
+    "mtime": 1795736337.8987184,
+    "seen": 1795736515.1728778,
+    "ast_hash": "5305076dc947d5405dc898cc5e731fb1",
     "semantic_hash": ""
   },
   "test/attesi/allinea.txt": {
@@ -1002,15 +1002,15 @@
     "semantic_hash": ""
   },
   "test/pilastro.js": {
-    "mtime": 1795735792.8100426,
-    "seen": 1795736103.2251549,
-    "ast_hash": "66122cb807e71e2a06803706f89255eb",
+    "mtime": 1795736337.8992226,
+    "seen": 1795736515.1728778,
+    "ast_hash": "475dbe077fe0b942b16815b3aa06dfa8",
     "semantic_hash": ""
   },
   "test/attesi/pilastro.txt": {
-    "mtime": 1795735887.6620364,
-    "seen": 1795736103.2251549,
-    "ast_hash": "6dfb37e965d5625bb7b0cb3faffd604b",
+    "mtime": 1795736377.4257824,
+    "seen": 1795736515.1728778,
+    "ast_hash": "865300d0bb6d288ce4777941db366718",
     "semantic_hash": ""
   },
   "package-lock.json": {
