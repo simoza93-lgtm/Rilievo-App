@@ -9,5 +9,6 @@ ordine
   PX · tratto di muro
 Xa Totale del lato · Xrale, lato sotto · AX 1
 X ["m 5,80"] ["5,80"]
-ricavo ["d 5,80"] si legge 2
+ricavo ["d 5,80"] si legge 1
+a stanza 2
 errors []

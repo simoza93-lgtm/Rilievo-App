@@ -25,7 +25,9 @@ const { chromium } = require('playwright');
   await p.screenshot({path:require('path').join(OUT, 'totali.png')});
   // scritto solo il lato opposto: il totale del lato con la porta si ricava e si vede in grigio
   await p.evaluate(() => { const pl = piano(); pl.fm = {}; pl.mord = []; const r = G.runs.filter(r => !r.ext && r.H && !r.chain)[0]; setMeasure(pl, 'r', r.key, '5,80'); update(true); });
-  console.log('ricavo', JSON.stringify(await tot()), 'si legge', await p.evaluate(() => [...document.querySelectorAll('#svg text')].filter(t => t.textContent === '5,80').length));
+  const letti = () => p.evaluate(() => [...document.querySelectorAll('#svg text')].filter(t => t.textContent === '5,80').length);
+  console.log('ricavo', JSON.stringify(await tot()), 'si legge', await letti());
+  await p.evaluate(() => { ui.sel = {k:'r', id:piano().rooms[0].id}; draw(); }); console.log('a stanza', await letti());
   await p.screenshot({path:require('path').join(OUT, 'totali-grigio.png')});
   console.log('errors', errs); await b.close();
 })();

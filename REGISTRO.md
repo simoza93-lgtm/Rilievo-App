@@ -4,7 +4,7 @@ Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembr
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
 ## 26 novembre 2026 — Totale del lato anche con porte, finestre e scale
-- Sui lati con vani (o con una scala accostata) in pianta, oltre alle parziali, c'è ora il **totale del lato**: una linea più dentro la stanza, tratteggiata arancione con il pallino se è da prendere, grigia se si ricava dalle altre misure, nera col lucchetto se l'hai scritta. Si tocca e si scrive: non serve più «Quota».
+- Sui lati con vani (o con una scala accostata) in pianta, oltre alle parziali, c'è ora il **totale del lato**: una linea più dentro la stanza, tratteggiata arancione con il pallino se è da prendere, grigia (solo toccando la stanza) se si ricava dalle altre misure, nera col lucchetto se l'hai scritta. Si tocca e si scrive: non serve più «Quota».
 - **Prossima** in ogni stanza chiede prima i totali dei lati, poi parziali e larghezze (il numero tra parentesi cresce).
 - Lo **script AutoCAD non cambia**: il totale scritto qui guida il disegno ma non diventa una quota (per quella resta «Quota»).
 - Vale per la grafica delle misure predefinita; quella «classica» resta come prima.

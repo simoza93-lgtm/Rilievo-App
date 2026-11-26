@@ -2826,7 +2826,7 @@ function draw() {
     if (it.st === 'x' && !it.tot && !foc && !cur && !ed && !sel) {   // da misurare: solo un pallino a metà del tratto
       const r0 = Math.max(3, 4.5 * K); s += `<circle cx="${M[0].toFixed(1)}" cy="${M[1].toFixed(1)}" r="${r0.toFixed(1)}" fill="var(--todo)" stroke="var(--cv)" stroke-width="1.5"/>`;
       if (it.hb) ui.pbb.push({box:[M[0] - 12, M[1] - 12, 24, 24], hb:it.hb}); return; }
-    if (it.st === 'd' && !it.tot && !foc && !cur && !ed && !sel) return;   // ricavata: si vede toccando la stanza
+    if (it.st === 'd' && !foc && !cur && !ed && !sel) return;   // ricavata: si vede toccando la stanza
     const col = cur || ed ? 'var(--acc)' : it.bad ? 'var(--bad)' : it.st === 'm' ? 'var(--ink)' : it.st === 'd' ? 'var(--mut)' : 'var(--todo)';
     if (cur) s += `<path d="M${A[0].toFixed(1)} ${A[1].toFixed(1)}L${B[0].toFixed(1)} ${B[1].toFixed(1)}" stroke="var(--acc)" stroke-width="10" stroke-opacity=".28" stroke-linecap="round" fill="none"/>`;   // tratto della misura guidata
     const tk = q => `M${(q[0] - 3.5 * K).toFixed(1)} ${(q[1] + 3.5 * K).toFixed(1)}L${(q[0] + 3.5 * K).toFixed(1)} ${(q[1] - 3.5 * K).toFixed(1)}`;
@@ -4092,7 +4092,7 @@ function renderSet() {
   <p class="hint">Cambia solo la pianta a schermo: la Scheda PDF e lo script AutoCAD restano come sono. Vale per questo dispositivo.</p><label class="chk"><input type="checkbox" data-pref="mclassic" ${ui.mnew ? '' : 'checked'}> Misure con la grafica classica (caselle per ogni tratto, come prima del 9 novembre)</label>
   <p class="hint">Grafica nuova: linee di quota con il lucchetto sulle misure prese, pallini arancioni sui tratti da misurare; toccando una stanza o un muro compaiono anche le misure ricavate e le caselle da riempire. Vale per questo dispositivo.</p></div>
   <div class="card"><div class="cardh">Script AutoCAD</div>${c('qInt', 'Quote parziali interne, lato per lato (tratti di muro tra spigoli e vani)')}${c('vani', 'Larghezza dei vani (porte, finestre, ingressi, uscite)')}${c('qExt', 'Quote esterne d\'ingombro')}${c('testi', 'Nome e superficie degli ambienti')}${c('porte', 'Porte con anta e arco, girate come in pianta')}${c('note', 'Note scritte con «Testo» (nel punto in cui le hai messe)')}${c('mano', 'Note a mano (polilinee sul layer degli infissi e testi)')}
-  <p class="hint">Layer PLAN_MURI_PERIM, PLAN_MURI_INT e PLAN_INFISSI_TESTI, stile di quota STUDIO, delle porte solo il vano, osnap dello studio riattivati alla fine. Le quote libere messe con «Quota» vanno sempre nello script. I totali interni non si scrivono da soli: mettili tu con «Quota».</p></div>`;
+  <p class="hint">Layer PLAN_MURI_PERIM, PLAN_MURI_INT e PLAN_INFISSI_TESTI, stile di quota STUDIO, delle porte solo il vano, osnap dello studio riattivati alla fine. Le quote libere messe con «Quota» vanno sempre nello script. I totali dei lati con porte, finestre o scale non vanno nello script, anche se li hai scritti in pianta: per averli come quota usa «Quota».</p></div>`;
 }
 
 /* ================= eventi ================= */
