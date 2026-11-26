@@ -12,6 +12,7 @@ const { chromium } = require('playwright');
   await p.getByText('Impostazioni', {exact:true}).click(); await p.check('[data-pref="pnuova"]'); await p.getByText('Pianta', {exact:true}).first().click(); await p.waitForTimeout(200);
   console.log('accesa', JSON.stringify(await stato()));
   await p.evaluate(() => { piano().rooms[0].dest = 'Terrazzo'; update(true); }); console.log('con terra', JSON.stringify(await stato()));
+  console.log('muro e foglio vuoto', JSON.stringify(await p.evaluate(() => { const w = piano().walls.find(w => w.tipo === 'P'); ui.mode = 'select'; ui.sel = {k:'w', id:w.id}; draw(); const op = [...document.querySelectorAll('#svg line[stroke="var(--acc)"][stroke-opacity]')].map(e => e.getAttribute('stroke-opacity')); ui.sel = null; const r = R; R = blank(); R.id = 'vv'; render(); const txt = getComputedStyle(document.querySelector('#empty')).color; R = r; render(); return {op:[...new Set(op)], txt}; })));
   await p.screenshot({path:require('path').join(OUT, 'grafica.png')});
   const sch = await p.evaluate(() => { const x = schedaPiante(); return {nuova:x.some(q => /gnr|gnp/.test(q.svg)), grid:x.some(q => /var\(--grid\)/.test(q.svg))}; });
   console.log('in stampa', JSON.stringify(sch)); console.log('poi', JSON.stringify(await stato()));

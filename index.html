@@ -80,6 +80,7 @@ label.tb:has(input:checked){color:var(--acc);background:var(--accbg)}
 #cv{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--cv)}
 #svg{display:block;touch-action:none;user-select:none;-webkit-user-select:none}
 #svg.gn{background:#f1f1f3;--ink:#111418;--mut:#5f6675;--line:#dde1e8;--acc:#1f5fbf;--accbg:#d6e4ff;--bad:#c0392b;--todo:#e8890c;--wall:#111418;--wP:#111418;--wI:#111418;--wR:#555d6b;--cv:#fff;--note:#c99a06;--notebg:#fff8d9;--inkc:#7c3aed}
+#cv:has(#svg.gn) #empty{color:#4a5160}
 #empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mut);pointer-events:none;padding:30px}
 #toast{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:8px 14px;border-radius:9px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90%;text-align:center}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 10px}
@@ -2761,6 +2762,7 @@ function draw() {
   const col = {P:'var(--wP)', I:'var(--wI)', R:'var(--wR)', W:'var(--wR)'}, sw = {P:2.4, I:1.5, R:1, W:1};
   let s = '';
   const GN = ui.pnew && !ui.perScheda; svg.classList.toggle('gn', GN);   // grafica «muri neri», solo a schermo
+  const selOp = GN ? '.75' : '.35';   // sul nero l'evidenziazione chiara non si vede
   if (GN) { const p = v.s / 2;   // puntini ogni 0,50 m e fondo delle stanze, sotto lo sfondo importato
     if (v.s >= 12) s += `<pattern id="gnp" patternUnits="userSpaceOnUse" x="${X(0) - p / 2}" y="${Y(0) - p / 2}" width="${p}" height="${p}"><circle cx="${p / 2}" cy="${p / 2}" r="1.1" fill="#c6cad3"/></pattern><rect width="${ui.W}" height="${ui.H}" fill="url(#gnp)"/>`;
     (pl.rooms || []).forEach(r => { const cc = G.comps[r._c]; if (cc && cc.room) s += `<g class="gnr" fill="${DEST[r.dest] === 'E' ? '#fff' : '#e3e3e6'}">` + roomRects(cc) + '</g>'; }); }
@@ -2781,7 +2783,7 @@ function draw() {
   s += '<g fill="var(--wall)">' + G.fills.filter(b => b[4] !== 'W' && b[4] !== 'E' && lv(b[4] || 'P')).map(b => `<rect x="${X(b[0])}" y="${Y(b[3])}" width="${(b[2] - b[0]) * v.s + 0.3}" height="${(b[3] - b[1]) * v.s + 0.3}"/>`).join('')
     + (lOff('P') && lOff('I') ? [] : G.wedges || []).map(q => `<path d="M${q.map(p => X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' L')} Z"/>`).join('')
     + (G.fpolys || []).filter(poly => poly.l !== 'W' && poly.l !== 'E' && lv(poly.l || 'P')).map(poly => `<path fill-rule="evenodd" d="${poly.map(r => 'M' + r.map(p => X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' L') + ' Z').join(' ')}"/>`).join('') + '</g>';
-  if (selPieno) s += `<g fill="var(--acc)" fill-opacity=".35">` + roomRects(G.comps[selRoom._c]) + '</g>';
+  if (selPieno) s += `<g fill="var(--acc)" fill-opacity="${selOp}">` + roomRects(G.comps[selRoom._c]) + '</g>';
   (G.ops || []).filter(o => o.bad && o.at).forEach(o => { const d = o.I.t, q = [o.at(o.s0, -0.03), o.at(o.s1, -0.03), o.at(o.s1, d + 0.03), o.at(o.s0, d + 0.03)];
     s += `<path d="M${q.map(v => X(v[0]).toFixed(1) + ' ' + Y(v[1]).toFixed(1)).join(' L')} Z" fill="var(--bad)" fill-opacity=".3" stroke="var(--bad)" stroke-width="2" stroke-dasharray="5 3"/>`; });
   if (ui.sel && ui.sel.k === 'a') { const o = G.ops.find(o => o.ap.id === ui.sel.ap && o.at); if (o) { const d = o.I.t, q = [o.at(o.s0, -0.04), o.at(o.s1, -0.04), o.at(o.s1, d + 0.04), o.at(o.s0, d + 0.04)];
@@ -2798,10 +2800,10 @@ function draw() {
   if (!lOff('S')) (pl.stairs || []).forEach(st => { s += stairSvg(st, (ui.sel && ui.sel.k === 's' && ui.sel.id === st.id) || inM('s', st.id), false); });
   if (ui.scGhost) s += stairSvg(ui.scGhost, false, true);
   // muri della selezione a finestra
-  if (ui.sel && ui.sel.k === 'm') ui.sel.w.forEach(id => { const I = G.T.info.get(id); if (I) s += `<line x1="${X(I.a.x + (I.H ? 0 : I.o))}" y1="${Y(I.a.y + (I.H ? I.o : 0))}" x2="${X(I.b.x + (I.H ? 0 : I.o))}" y2="${Y(I.b.y + (I.H ? I.o : 0))}" stroke="var(--acc)" stroke-width="${Math.max(8, I.t * v.s)}" stroke-opacity=".35" stroke-linecap="butt"/>`; });
+  if (ui.sel && ui.sel.k === 'm') ui.sel.w.forEach(id => { const I = G.T.info.get(id); if (I) s += `<line x1="${X(I.a.x + (I.H ? 0 : I.o))}" y1="${Y(I.a.y + (I.H ? I.o : 0))}" x2="${X(I.b.x + (I.H ? 0 : I.o))}" y2="${Y(I.b.y + (I.H ? I.o : 0))}" stroke="var(--acc)" stroke-width="${Math.max(8, I.t * v.s)}" stroke-opacity="${selOp}" stroke-linecap="butt"/>`; });
   // muro selezionato
-  if (ui.sel && ui.sel.k === 'w') { const J = G.T.oinfo && G.T.oinfo.get(ui.sel.id); if (J) s += `<line x1="${X(J.a.x)}" y1="${Y(J.a.y)}" x2="${X(J.b.x)}" y2="${Y(J.b.y)}" stroke="var(--acc)" stroke-width="${Math.max(8, J.t * v.s)}" stroke-opacity=".35" stroke-linecap="butt"/>`; }
-  if (ui.sel && ui.sel.k === 'w') { const I = G.T.info.get(ui.sel.id); if (I) s += `<line x1="${X(I.a.x + (I.H ? 0 : I.o))}" y1="${Y(I.a.y + (I.H ? I.o : 0))}" x2="${X(I.b.x + (I.H ? 0 : I.o))}" y2="${Y(I.b.y + (I.H ? I.o : 0))}" stroke="var(--acc)" stroke-width="${Math.max(8, I.t * v.s)}" stroke-opacity=".35" stroke-linecap="butt"/>`; }
+  if (ui.sel && ui.sel.k === 'w') { const J = G.T.oinfo && G.T.oinfo.get(ui.sel.id); if (J) s += `<line x1="${X(J.a.x)}" y1="${Y(J.a.y)}" x2="${X(J.b.x)}" y2="${Y(J.b.y)}" stroke="var(--acc)" stroke-width="${Math.max(8, J.t * v.s)}" stroke-opacity="${selOp}" stroke-linecap="butt"/>`; }
+  if (ui.sel && ui.sel.k === 'w') { const I = G.T.info.get(ui.sel.id); if (I) s += `<line x1="${X(I.a.x + (I.H ? 0 : I.o))}" y1="${Y(I.a.y + (I.H ? I.o : 0))}" x2="${X(I.b.x + (I.H ? 0 : I.o))}" y2="${Y(I.b.y + (I.H ? I.o : 0))}" stroke="var(--acc)" stroke-width="${Math.max(8, I.t * v.s)}" stroke-opacity="${selOp}" stroke-linecap="butt"/>`; }
   // nodi
   if (ui.mode === 'draw') s += pl.nodes.map(n => `<circle cx="${X(n.x)}" cy="${Y(n.y)}" r="3" fill="var(--acc)"/>`).join('');
   // misure sulle facce (lato per lato, stanza per stanza)
