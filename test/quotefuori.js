@@ -31,5 +31,27 @@ const { chromium } = require('playwright');
     st([[0,0],[7.3,0],[7.3,5],[10.3,5],[10.3,7],[0,7],[0,0]], 'P'); st([[0,4],[7.3,4]], 'P'); if (balcone) st([[7.3,0.9],[9.3,0.9],[9.3,3.6],[7.3,3.6]], 'W');
     update(true); ui.sel = null; ui.mode = 'select'; ui.fitted = false; render(); fit(); draw(); const q = quoteFuori(piano());
     return G.facs.filter(f => !f.interno && !f.H && f.out > 0).map(f => f.nome + ' ' + f2(f.tot) + ' linea ' + f2(f.a1 - f.a0) + ' riga ' + q.fila.get(f)).sort().join(' | '); }, balcone));
+  // sulla facciata spezzata il totale esterno si scrive toccando la quota (pianta col balcone, rimasta dal giro sopra)
+  const scrivi = async v => { const q = await p.evaluate(() => { const f = G.facs.find(f => !f.interno && !f.H && f.out > 0 && f2(f.tot) !== '2,30'), bx = ui.fbb.get(f.key), c = [bx[0] + bx[2] / 2, bx[1] + bx[3] / 2], r = document.querySelector('#svg').getBoundingClientRect(); return [r.left + c[0], r.top + c[1]]; });
+    await p.mouse.click(q[0], q[1]); await p.waitForTimeout(200); if (!await p.$('#inl')) return console.log('il tocco sulla quota NON apre il tastierino');
+    const titolo = await p.textContent('#inl .ms'), canc = await p.$('#inl [data-k="del"]'); for (let i = 0; canc && i < 5; i++) await p.click('#inl [data-k="⌫"]');
+    for (const k of v) await p.click(`#inl [data-k="${k}"]`); await p.click('#inl [data-k="ok"]'); await p.waitForTimeout(200); console.log('scritto ' + v + ' da «' + titolo + '»:', await totale()); };
+  const totale = () => p.evaluate(() => { const pl = piano(), f = G.facs.find(f => !f.interno && !f.H && f.out > 0 && f.mis > 0); if (!f) return 'nessun totale esterno, interni ' + JSON.stringify(Object.values(pl.faci || {}));
+    return 'quota ' + f2(f.mis) + ', dal disegno ' + f2(f.tot) + ', avvisi ' + G.warns.filter(w => /^Verifica esterna/.test(w.t)).length + (nonTorna() ? ', non torna' : ', torna') + ', interni ' + JSON.stringify(Object.values(pl.faci || {})); });
+  await scrivi('5,00');
+  // con i lati interni già misurati, un totale esterno sbagliato resta una verifica: la pianta non cambia e c'è l'avviso
+  await p.evaluate(() => { const pl = piano(), f = G.facs.find(f => !f.interno && !f.H && f.out > 0 && f.mis > 0); setMeasure(pl, 'r', f.ext.key, ''); update(true);
+    G.runs.filter(r => r.sg === -f.out && f.walls.includes(r.walls[0])).map(r => [r.key, f2(r.face)]).forEach(([k, v]) => setMeasure(pl, 'r', k, v)); update(true); fit(); draw(); });
+  await scrivi('4,60');
+  // totale scritto prima, ringhiera aggiunta dopo: resta un totale esterno
+  await p.evaluate(() => { const st = (pts, tipo) => { ui.newType = tipo; const s = []; for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], c = pts[i + 1]; for (let k = 0; k < 6; k++) s.push([SX(a[0] + (c[0] - a[0]) * k / 6), SY(a[1] + (c[1] - a[1]) * k / 6)]); } s.push([SX(pts[pts.length - 1][0]), SY(pts[pts.length - 1][1])]); finishStroke(s); update(true); };
+    R = blank(); R.id = 'qdopo'; tab = 'pianta'; render(); ui.view = {x:-3, y:-9, s:55}; G = geometry(piano()); st([[0,0],[7.3,0],[7.3,5],[10.3,5],[10.3,7],[0,7],[0,0]], 'P'); st([[0,4],[7.3,4]], 'P'); update(true);
+    const f = G.facs.find(f => !f.interno && !f.H && f.out > 0 && f2(f.tot) === '5,00'); setMeasure(piano(), 'r', f.ext.key, '5,00'); update(true);
+    st([[7.3,0.9],[9.3,0.9],[9.3,3.6],[7.3,3.6]], 'W'); update(true); fit(); draw(); });
+  console.log('ringhiera aggiunta dopo:', await totale());
+  // dopo chiusura e riapertura dell'app il totale resta esterno (campo salvato pl.fx)
+  await p.waitForTimeout(1500); await p.reload(); await p.waitForTimeout(600);
+  await p.evaluate(() => { tab = 'pianta'; render(); update(true); });
+  console.log('riaperta:', await p.evaluate(() => R && R.id), await totale(), await p.evaluate(() => JSON.stringify(Object.values(piano().fm || {}).filter(Boolean))));
   console.log('errors', errs); await b.close();
 })();

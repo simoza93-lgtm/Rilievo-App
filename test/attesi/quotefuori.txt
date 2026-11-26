@@ -18,4 +18,8 @@ stanza di destra come X
   FX in basso 9,15: a un metro dal filo 0,00
 X senza X FX a destra 2,30 linea 2,30 riga 0 | FX a destra 5,00 linea 5,00 riga 0
 X con X FX a destra 2,30 linea 2,30 riga 0 | FX a destra 5,00 linea 5,00 riga 0
+X 5,00 da «Totale X della Xa»: quota 5,00, dal X 5,00, avvisi 0, torna, X []
+X 4,60 da «Totale X della Xa»: quota 4,60, dal X 5,00, avvisi 1, non torna, X []
+Xra Xa dopo: quota 5,00, dal X 5,00, avvisi 0, torna, X []
+Xa: qdopo quota 5,00, dal X 5,00, avvisi 0, torna, X [] ["5,00"]
 errors []

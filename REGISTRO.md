@@ -6,6 +6,10 @@ rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact
 ## 27 novembre 2026 — Quote esterne non allineate vicino a balconi e ringhiere
 - Con una ringhiera (o un altro muro) attaccata **da fuori** a un lato sotto un rientro, la quota esterna contava anche lo spessore dell'angolo rientrante (per esempio 5,00 invece di 4,70): si sovrapponeva alla quota vicina e finiva su una seconda riga. Ora si ferma allo spigolo, come senza balcone, e le due stanno in fila. Vale a schermo, nel pannello e nella Scheda PDF; lo script AutoCAD e le misure prese non cambiano.
 
+## 27 novembre 2026 — Totale esterno sui lati con ringhiera attaccata
+- Su una facciata la cui faccia esterna è spezzata da una ringhiera (o da un muro attaccato da fuori) ora il **totale esterno si scrive**: toccando la sua quota o dal pannello (prima il tocco non faceva niente). Si comporta come sulle altre facciate: con i lati interni già misurati è una verifica (rosso e avviso in «Controlli» se non torna di oltre 3 cm); senza, decide la lunghezza, e pianta e script la seguono.
+- Un totale esterno scritto da ora resta **esterno** anche se dopo si attacca una ringhiera (prima finiva tra le misure interne). Si salva nel nuovo campo facoltativo `pl.fx`: i rilievi vecchi si aprono come prima. I totali scritti con le versioni precedenti non hanno il campo.
+
 ## 26 novembre 2026 — Quote esterne: via dai muri interni, a 1 m dalla pianta
 - Un muro con **ambienti da tutte e due le parti** (anche se «Perimetrale», per esempio un interno da 0,30 delle case vecchie) non ha più la quota esterna: né linea, né pallino, né casella, e nel pannello spariscono i «totali» di facciata (restano se c'era già un totale scritto lì). Balconi, terrazzi e marciapiedi contano come esterno. Spessori e misure interne non cambiano.
 - Le quote esterne stanno **a 1,00 m dall'elemento più esterno** della pianta in quella direzione (muri, ringhiere, scale, porte che aprono fuori, quote libere), allineate sulla stessa riga; vanno su una seconda riga solo se si sovrappongono. Vale a schermo e nella Scheda PDF; lo script AutoCAD era già così.

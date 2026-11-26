@@ -439,6 +439,17 @@ function runsOf(pl, T) {
   runs.forEach(r => { const P = T.N.get(r.p), Q = T.N.get(r.q); r.P = P; r.Q = Q; r.axis = r.H ? Q.x - P.x : Q.y - P.y; r.face = r.axis - r.eA - r.eB; r.mis = num((pl.fm || {})[r.key]); });
   return runs;
 }
+// faccia di una facciata spezzata da una ringhiera o da un muro attaccato da quel lato: intera esiste solo per il totale esterno
+function runIntero(pl, runs, fc, sg) {
+  const pz = runs.filter(r => r.sg === sg && r.walls.every(x => fc.walls.includes(x))).sort((a, b) => axC(a.P, a.H) - axC(b.P, b.H)), a = pz[0], u = pz[pz.length - 1];
+  if (!a || a.p !== fc.A.id || u.q !== fc.B.id) return null;
+  const key = (sg > 0 ? '+' : '-') + ':' + a.p + ':' + u.q, axis = axC(u.Q, fc.H) - axC(a.P, fc.H);
+  return {key, sg, H:fc.H, t:a.t, o:a.o, p:a.p, q:u.q, P:a.P, Q:u.Q, walls:fc.walls, eA:a.eA, eB:u.eB, axis, face:axis - a.eA - u.eB, mis:num((pl.fm || {})[key]), ext:true, intero:true};
+}
+// i totali esterni scritti (pl.fx) la cui faccia ora è spezzata: restano totali esterni di quella facciata
+function totaliSpezzati(pl, runs, facs) {
+  return Object.keys(pl.fx || {}).filter(k => !runs.some(r => r.key === k)).map(k => { const [s, a, b] = k.split(':'), fc = facs.find(f => f.A.id === a && f.B.id === b); return fc && runIntero(pl, runs, fc, s === '+' ? 1 : -1); }).filter(Boolean);
+}
 const latoNome = r => r.H ? (r.sg > 0 ? 'lato sopra' : 'lato sotto') : (r.sg > 0 ? 'lato destro' : 'lato sinistro');
 
 /* ---- vani lungo un lato e quote parziali ----
@@ -533,7 +544,7 @@ function dimRef(pl, T, A, e, H) {
 /* ---- vecchie misure per muro e totali esterni: passano sulle facce ---- */
 function migrate(pl) {
   const legacy = pl.walls.some(w => String(w.mis || '').trim() && w.rif !== 'asse') || Object.keys(pl.facc || {}).length;
-  const T = topo(pl), runs = runsOf(pl, T), keys = new Set(runs.map(r => r.key));
+  const T = topo(pl), runs = runsOf(pl, T), keys = new Set(runs.concat(totaliSpezzati(pl, runs, facades(pl, T))).map(r => r.key));
   if (!pl.fm) pl.fm = {};
   if (legacy) {
     pl.walls.forEach(w => { if (!String(w.mis || '').trim() || w.rif === 'asse') return;
@@ -989,7 +1000,8 @@ function setMeasure(pl, kind, key, v) {
   else if (kind === 'e') { const w = pl.walls.find(x => x.id === key); if (!w) return; w.rient = on ? v : '';
     if (on && !w.rax) { const F = G && G.oblFace && G.oblFace.get(w.id), d = F ? F.fd : [nd(pl, w.b).x - nd(pl, w.a).x, nd(pl, w.b).y - nd(pl, w.a).y]; w.rax = Math.abs(d[0]) <= Math.abs(d[1]) ? 'x' : 'y'; }
     if (!on) delete w.rax; }
-  else { const box = {r:'fm', f:'faci', l:'fl'}[kind]; if (!pl[box]) pl[box] = {}; if (on) pl[box][key] = v; else delete pl[box][key]; }
+  else { if (kind === 'r' && on && G && (G.facs || []).some(f => !f.interno && f.ext && f.ext.key === key)) (pl.fx || (pl.fx = {}))[key] = 1;
+    const box = {r:'fm', f:'faci', l:'fl'}[kind]; if (!pl[box]) pl[box] = {}; if (on) pl[box][key] = v; else delete pl[box][key]; }
   if (on) { if (!pl.mord.includes(k)) pl.mord.push(k); } else pl.mord = pl.mord.filter(x => x !== k);
 }
 function gauss(A, b) {
@@ -1076,10 +1088,11 @@ function solve(pl, extKeys) {
   // misure: prima le interne nell'ordine in cui sono state inserite, poi le esterne (comandano le interne)
   const runs = runsOf(pl, T), byKey = new Map(runs.map(r => [r.key, r])), cons = [], AN = apAnchors(pl, T, runs);
   const prevOut = new Map(((G && G.facs) || []).map(x => [x.key, x.out])), facs = facades(pl, T);
+  totaliSpezzati(pl, runs, facs).forEach(r => byKey.set(r.key, r));
   measureOrder(pl).forEach(k => {
     const kind = k.slice(0, 2), key = k.slice(2);
     if (kind === 'r:') { const r = byKey.get(key); if (!r || !(r.mis > 0)) return;
-      cons.push({k, X:r.H, i:idx.get(r.p), j:idx.get(r.q), val:r.mis + r.eA + r.eB, ext:!!(extKeys && extKeys.has(r.key))}); }
+      cons.push({k, X:r.H, i:idx.get(r.p), j:idx.get(r.q), val:r.mis + r.eA + r.eB, ext:!!(r.intero || (extKeys && extKeys.has(r.key)))}); }
     else if (kind === 'f:') { const fc = facs.find(x => x.key === key); if (!fc || !(fc.mi > 0)) return; let eA = fc.dA, eB = fc.dB; const out = prevOut.get(fc.key);
       if (out) { const rin = runs.filter(r => r.sg === -out && fc.walls.includes(r.walls[0])).sort((a, b) => (a.H ? a.P.x - b.P.x : a.P.y - b.P.y)); if (rin.length) { eA = rin[0].eA; eB = rin[rin.length - 1].eB; } }
       cons.push({k, X:fc.H, i:idx.get(fc.A.id), j:idx.get(fc.B.id), val:fc.mi + eA + eB, ext:false}); }
@@ -1570,22 +1583,22 @@ function geometry(pl) {
     // totali sulla faccia visibile: si ferma contro un muro che arriva da quel lato, gira solo attorno agli spigoli sporgenti
     // la faccia esterna può proseguire oltre la facciata in un muro più sottile messo a filo (parapetto, muretto): vale tutta
     fc.ext = runs.find(r => r.sg === fc.out && r.p === fc.A.id && r.q === fc.B.id) || runs.find(r => r.sg === fc.out && fc.walls.every(x => r.walls.includes(x)));
+    if (!fc.ext && !fc.interno) fc.ext = runIntero(pl, runs, fc, fc.out) || undefined;
     if (fc.ext) fc.tot = fc.ext.face;
     if (rin.length) fc.totInt = fc.axis - rin[0].eA - rin[rin.length - 1].eB;
     fc.sumInt = rin.length && rin.every(r => r.mis > 0) ? rin.reduce((t, r, k) => t + r.mis + (k < rin.length - 1 ? r.eB + rin[k + 1].eA : 0), 0) : null;
     fc.sum = fc.sumInt != null ? fc.sumInt + (fc.tot - fc.totInt) : null;
     fc.a0 = fc.ext ? axC(fc.ext.P, fc.H) + fc.ext.eA : (fc.H ? fc.A.x : fc.A.y) - fc.dA;
     fc.a1 = fc.ext ? axC(fc.ext.Q, fc.H) - fc.ext.eB : (fc.H ? fc.B.x : fc.B.y) + fc.dB;
-    // faccia esterna spezzata (ringhiera o muro attaccato da fuori): va dall'inizio del primo pezzo alla fine dell'ultimo, senza contare l'angolo rientrante
-    if (!fc.ext && !fc.interno) { const pz = runs.filter(r => r.sg === fc.out && r.walls.every(x => fc.walls.includes(x))).sort((a, b) => axC(a.P, a.H) - axC(b.P, b.H)), u = pz[pz.length - 1];
-      if (u && pz[0].p === fc.A.id && u.q === fc.B.id) { fc.a0 = axC(pz[0].P, fc.H) + pz[0].eA; fc.a1 = axC(u.Q, fc.H) - u.eB; fc.tot = fc.a1 - fc.a0; fc.sum = fc.sumInt != null ? fc.sumInt + (fc.tot - fc.totInt) : null; } }
     fc.mis = fc.ext ? fc.ext.mis : NaN;
     fc.det = fc.sumInt != null || detD(fc.A.id, fc.B.id, fc.H);
     if (fc.mi > 0 || fc.mis > 0) fc.walls.forEach(x => covered.add(x.id));
     if (fc.mi > 0) { const ref = fc.sumInt != null ? fc.sumInt : fc.totInt; fc.diffI = ref - fc.mi - dShift(fc.A, fc.B, fc.H);
       if (Math.abs(fc.diffI) > TOL) warns.push({w:fc.walls[0].id, t:`${fc.nome}: misura interna totale ${f2(fc.mi)} m${REJ.has('f:' + fc.key) ? ' NON APPLICATA (non torna con le misure inserite prima)' : ''}, ${fc.sumInt != null ? 'dalla somma dei tratti e dei tramezzi' : 'nel disegno'} viene ${f2(ref)} m, differenza ${fc.diffI > 0 ? '+' : ''}${Math.round(fc.diffI * 100)} cm.`}); }
     if (fc.mis > 0) { const ref = fc.sum != null ? fc.sum : fc.tot; fc.diff = ref - fc.mis - dShift(fc.A, fc.B, fc.H);
-      /* la verifica esterna è segnalata dalla faccia esterna (vedi sopra) */ }
+      const r = fc.ext;   // la verifica esterna è segnalata dalla faccia esterna (vedi sopra); quella intera non è tra i lati e si segnala qui
+      if (r.intero) { r.diff = r.face - r.mis - dShift(fc.A, fc.B, fc.H);
+        if (Math.abs(r.diff) > TOL) warns.push({w:r.walls[0].id, t:`Verifica esterna: misurato ${f2(r.mis)} m (${fc.nome}), dalle misure interne viene ${f2(r.face)} m, differenza ${r.diff > 0 ? '+' : ''}${Math.round(r.diff * 100)} cm. Controlla le misure interne di questo lato.`, ext:true}); } }
   });
   // muri obliqui con aperture: parziali lungo la faccia verso ogni ambiente (spigolo → vano → vano → spigolo), come i lati dritti
   const ochains = [];
@@ -2199,7 +2212,7 @@ function bussola() {
 
 /* ================= script AutoCAD ================= */
 // misure che non tornano di oltre 3 cm (muri, parziali, quote libere)
-const nonTorna = () => G.resid.size || (G.ochains || []).some(ch => ch.pcs.some(pc => Math.abs(pc.diff || 0) > TOL)) || G.runs.some(r => Math.abs(r.diff || 0) > TOL || (r.chain && r.chain.pcs.some(pc => Math.abs(pc.diff || 0) > TOL))) || (G.dims || []).some(q => q.tied && Math.abs(q.diff || 0) > TOL);
+const nonTorna = () => G.resid.size || G.facs.some(f => f.ext && f.ext.intero && Math.abs(f.ext.diff || 0) > TOL) || (G.ochains || []).some(ch => ch.pcs.some(pc => Math.abs(pc.diff || 0) > TOL)) || G.runs.some(r => Math.abs(r.diff || 0) > TOL || (r.chain && r.chain.pcs.some(pc => Math.abs(pc.diff || 0) > TOL))) || (G.dims || []).some(q => q.tied && Math.abs(q.diff || 0) > TOL);
 // cosa va nello script tra quote parziali, larghezze dei vani e quote libere (solo numeri che vengono dalle misure)
 function scrParts() {
   const pcs = [], vani = [], dims = []; let skipP = 0, skipV = 0, skipQ = 0;
