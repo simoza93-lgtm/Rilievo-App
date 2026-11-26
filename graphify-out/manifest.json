@@ -462,21 +462,21 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1795728625.3195152,
-    "seen": 1795728749.308715,
-    "ast_hash": "546f7c4aac1128b93096df4da324cdd0",
+    "mtime": 1795730157.0411963,
+    "seen": 1795730284.5799117,
+    "ast_hash": "808ccd11f34491cc2c375fccda3fc7c2",
     "semantic_hash": ""
   },
   "REGISTRO.md": {
-    "mtime": 1795728625.3195152,
-    "seen": 1795728749.308715,
-    "ast_hash": "c616ca7cb7c0a049e1ec0ea183b43b6c",
+    "mtime": 1795730157.0401928,
+    "seen": 1795730284.5799117,
+    "ast_hash": "831073606415391060ff98e5986f6d2c",
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1795728864.9656854,
-    "seen": 1795729003.2041762,
-    "ast_hash": "7b96ac86abeb827746652a122c1a5434",
+    "mtime": 1795729865.8515458,
+    "seen": 1795730284.5799117,
+    "ast_hash": "0084e2bacc008b1e906f53e3bcf3d21e",
     "semantic_hash": ""
   },
   "test/attesi/allinea.txt": {
@@ -672,9 +672,9 @@
     "semantic_hash": ""
   },
   "test/attesi/mn.txt": {
-    "mtime": 1794261252.764285,
-    "seen": 1795471214.6415677,
-    "ast_hash": "4ccf7e3d8bb1d9c8aac4087eb4663582",
+    "mtime": 1795730141.9205472,
+    "seen": 1795730284.5799117,
+    "ast_hash": "5794e3ec433a491d0e1c0819ed515f35",
     "semantic_hash": ""
   },
   "test/attesi/multi.txt": {
@@ -972,9 +972,21 @@
     "semantic_hash": ""
   },
   "test/attesi/grafica.txt": {
-    "mtime": 1795728867.073451,
-    "seen": 1795729003.2041762,
-    "ast_hash": "12130368da1c6328e8a8d97a29397f33",
+    "mtime": 1795730159.0039246,
+    "seen": 1795730284.5799117,
+    "ast_hash": "11be0ab83eeea4540f87077147d8fe02",
+    "semantic_hash": ""
+  },
+  "test/totali.js": {
+    "mtime": 1795729865.88017,
+    "seen": 1795730284.5799117,
+    "ast_hash": "0f83628591492f5bae4578138b0ea1df",
+    "semantic_hash": ""
+  },
+  "test/attesi/totali.txt": {
+    "mtime": 1795730002.7799268,
+    "seen": 1795730284.5799117,
+    "ast_hash": "c9c455f4701288135775f6efa640bfc8",
     "semantic_hash": ""
   },
   "package-lock.json": {

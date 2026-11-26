@@ -3,6 +3,12 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 26 novembre 2026 — Totale del lato anche con porte, finestre e scale
+- Sui lati con vani (o con una scala accostata) in pianta, oltre alle parziali, c'è ora il **totale del lato**: una linea più dentro la stanza, tratteggiata arancione con il pallino se è da prendere, grigia se si ricava dalle altre misure, nera col lucchetto se l'hai scritta. Si tocca e si scrive: non serve più «Quota».
+- **Prossima** in ogni stanza chiede prima i totali dei lati, poi parziali e larghezze (il numero tra parentesi cresce).
+- Lo **script AutoCAD non cambia**: il totale scritto qui guida il disegno ma non diventa una quota (per quella resta «Quota»).
+- Vale per la grafica delle misure predefinita; quella «classica» resta come prima.
+
 ## 26 novembre 2026 — Nuova grafica della pianta (a scelta)
 - In **Impostazioni → Pianta** c'è la casella «Nuova grafica»: muri pieni neri, porte e finestre in grigio scuro, stanze con fondo grigio, **balconi, terrazzi e marciapiedi bianchi** (dalla destinazione dell'ambiente), fondo a puntini ogni 0,50 m al posto delle righe. La pianta resta chiara anche con il tablet in tema scuro.
 - È **spenta di norma** e vale per il dispositivo. Le misure restano tutte come prima (lucchetti, pallini, rosso se non tornano).

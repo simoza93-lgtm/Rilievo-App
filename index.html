@@ -2566,7 +2566,9 @@ function zoomAt(f, px, py) { closeInline(true); const wx = WX(px), wy = WY(py); 
 function measItems() { const out = [], seenAp = new Set();
   ((G && G.runs) || []).forEach(r => { if (r.ext || r.pieno) return;
     const base = {r, H:r.H, face:(r.H ? r.P.y : r.P.x) + r.o + r.sg * r.t / 2, sg:r.sg, comp:r.comp, wid:r.walls[0].id};
+    const whole = () => { const m = r.mis > 0; return Object.assign({}, base, {a:axC(r.P, r.H) + r.eA, b:axC(r.Q, r.H) - r.eB, hb:{kind:'r', key:r.key}, st:m ? 'm' : r.det ? 'd' : 'x', val:m ? r.mis : r.det ? r.face : NaN, bad:m && Math.abs(r.diff || 0) > TOL}); };
     if (r.chain) {
+      out.push(Object.assign(whole(), {tot:true}));
       r.chain.pcs.forEach(pc => { if (pc.len < 0.02 && !(pc.meas >= 0)) return;
         const hb = r.chain.stair ? (pc.sp ? {kind:'sp', rk:r.key, st:pc.sp.st, side:pc.sp.side, wid:r.walls[0].id} : null) : {kind:'p', rk:r.key, nx:pc.nx ? pc.nx.id : '', pv:pc.pv ? pc.pv.id : '', last:pc.last, wid:r.walls[0].id};
         const m = pc.meas >= 0; out.push(Object.assign({}, base, {a:pc.a, b:pc.b, hb, st:m ? 'm' : pc.known ? 'd' : 'x', val:m ? pc.meas : pc.known ? pc.len : NaN, bad:m && Math.abs(pc.diff || 0) > TOL})); });
@@ -2577,8 +2579,7 @@ function measItems() { const out = [], seenAp = new Set();
           one('ris', {a:op.s, b:ls, hb:{kind:'ris', ap:op.ap.id}, st:risMis(op.ap) ? 'm' : 'x', val:risOf(op.ap), w:true, ap:op.ap});
           one('w', {a:ls, b:ls + num(op.ap.l), hb:{kind:'w', ap:op.ap.id}, st:op.ap.lp ? 'x' : 'm', val:num(op.ap.l), w:true, ap:op.ap}); }
         else one('w', {a:op.s, b:op.e, hb:{kind:'w', ap:op.ap.id}, st:op.ap.lp ? 'x' : 'm', val:num(op.ap.l), w:true, ap:op.ap}); });
-    } else { const m = r.mis > 0;
-      out.push(Object.assign({}, base, {a:axC(r.P, r.H) + r.eA, b:axC(r.Q, r.H) - r.eB, hb:{kind:'r', key:r.key}, st:m ? 'm' : r.det ? 'd' : 'x', val:m ? r.mis : r.det ? r.face : NaN, bad:m && Math.abs(r.diff || 0) > TOL})); } });
+    } else out.push(whole()); });
   // muri obliquí: la lunghezza (si chiede dal lato della faccia misurata)
   if (G && G.T && G.T.oinfo) G.T.oinfo.forEach(J => { const F = G.oblFace.get(J.w.id); if (!F) return; const c = F.sides[F.side > 0 ? 0 : 1], m = [(J.a.x + J.b.x) / 2, (J.a.y + J.b.y) / 2], mis = num(J.w.mis) > 0;
     out.push({o:true, H:true, face:m[1], a:m[0], b:m[0], sg:1, comp:c, wid:J.w.id, hb:{kind:'ob', id:J.w.id}, st:mis ? 'm' : oblChain(piano(), J.w) ? 'd' : 'x', val:mis ? num(J.w.mis) : F.int}); });
@@ -2617,7 +2618,7 @@ function guideNext() { const g = ui.guide; if (!g) return; const C = G.comps || 
   if (!inR.length) { const rooms = [...new Set(L.map(x => x.comp))], ref = C[g.room] ? cen(C[g.room]) : null;
     rooms.sort((a, b) => { const A = cen(C[a]), B = cen(C[b]); return ref ? Math.hypot(A[0] - ref[0], A[1] - ref[1]) - Math.hypot(B[0] - ref[0], B[1] - ref[1]) : (B[1] - A[1]) || (A[0] - B[0]); });
     g.room = rooms[0]; inR = L.filter(x => x.comp === g.room); }
-  inR.sort((a, b) => a.ang - b.ang); const it = inR[0]; g.cur = it.k; g.left = L.length;
+  const dopo = x => x.hb.kind === 'r' ? 0 : 1; inR.sort((a, b) => (dopo(a) - dopo(b)) || (a.ang - b.ang)); const it = inR[0]; g.cur = it.k; g.left = L.length;
   // se il tratto è fuori dallo schermo la vista si sposta
   const al = (it.a + it.b) / 2, wx = it.H ? al : it.face, wy = it.H ? it.face : al, px = SX(wx), py = SY(wy);
   if (px < 60 || px > ui.W - 60 || py < 60 || py > ui.H - 60) { ui.view.x = wx - ui.W / 2 / ui.view.s; ui.view.y = wy - ui.H / 2 / ui.view.s; }
@@ -2819,12 +2820,13 @@ function draw() {
   const QV = !lOff('Q');   // quote e misure
   if (QV && ui.mnew && v.s >= 18) measItems().forEach(it => { if (it.o) return; if (it.w) { apComp.set(it.ap.id, it.comp); return; }
     const H = it.H, sg = it.sg, foc = FOC.has(it.comp), cur = ui.guide && ui.guide.cur === it.k, ed = ui.inl && it.k && ui.inl.key === it.k, sel = ui.sel && ui.sel.k === 'w' && it.r.walls.some(x => x.id === ui.sel.id);
-    const d0 = 12 * K, P = (al, d) => H ? [X(al), Y(it.face) - sg * d] : [X(it.face) + sg * d, Y(al)];
+    const cb = it.tot && G.comps[it.comp] && G.comps[it.comp].bbox, deep = cb ? (H ? cb[3] - cb[1] : cb[2] - cb[0]) * v.s : 0;
+    const d0 = (it.tot ? (deep > 190 * K ? 70 : 44) : 12) * K, P = (al, d) => H ? [X(al), Y(it.face) - sg * d] : [X(it.face) + sg * d, Y(al)];
     const A = P(it.a, d0), B = P(it.b, d0), M = P((it.a + it.b) / 2, d0);
-    if (it.st === 'x' && !foc && !cur && !ed && !sel) {   // da misurare: solo un pallino a metà del tratto
+    if (it.st === 'x' && !it.tot && !foc && !cur && !ed && !sel) {   // da misurare: solo un pallino a metà del tratto
       const r0 = Math.max(3, 4.5 * K); s += `<circle cx="${M[0].toFixed(1)}" cy="${M[1].toFixed(1)}" r="${r0.toFixed(1)}" fill="var(--todo)" stroke="var(--cv)" stroke-width="1.5"/>`;
       if (it.hb) ui.pbb.push({box:[M[0] - 12, M[1] - 12, 24, 24], hb:it.hb}); return; }
-    if (it.st === 'd' && !foc && !cur && !ed && !sel) return;   // ricavata: si vede toccando la stanza
+    if (it.st === 'd' && !it.tot && !foc && !cur && !ed && !sel) return;   // ricavata: si vede toccando la stanza
     const col = cur || ed ? 'var(--acc)' : it.bad ? 'var(--bad)' : it.st === 'm' ? 'var(--ink)' : it.st === 'd' ? 'var(--mut)' : 'var(--todo)';
     if (cur) s += `<path d="M${A[0].toFixed(1)} ${A[1].toFixed(1)}L${B[0].toFixed(1)} ${B[1].toFixed(1)}" stroke="var(--acc)" stroke-width="10" stroke-opacity=".28" stroke-linecap="round" fill="none"/>`;   // tratto della misura guidata
     const tk = q => `M${(q[0] - 3.5 * K).toFixed(1)} ${(q[1] + 3.5 * K).toFixed(1)}L${(q[0] + 3.5 * K).toFixed(1)} ${(q[1] - 3.5 * K).toFixed(1)}`;
@@ -2832,6 +2834,9 @@ function draw() {
     const txt = isFinite(it.val) ? f2(it.val) : '', Lpx = Math.abs(it.b - it.a) * v.s, tw = Math.max(35, txt.length * 7 + 10) * K, short = Lpx < tw + 6;
     const T0 = P((it.a + it.b) / 2, d0 + (short ? 22 : 9) * K), [tx, ty, kk] = freeAt(T0[0], T0[1], H, it.val, H ? [0, -sg] : [sg, 0], 12 * K, 2);
     if (short || kk) s += `<line x1="${M[0].toFixed(1)}" y1="${M[1].toFixed(1)}" x2="${tx.toFixed(1)}" y2="${ty.toFixed(1)}" stroke="${col}" stroke-width=".8" stroke-opacity=".6"/>`;
+    if (it.st === 'x' && it.tot && !foc && !cur && !ed && !sel) {   // totale da prendere: linea intera tratteggiata e pallino
+      s += `<circle class="totd" cx="${tx.toFixed(1)}" cy="${ty.toFixed(1)}" r="${Math.max(3, 4.5 * K).toFixed(1)}" fill="var(--todo)" stroke="var(--cv)" stroke-width="1.5"/>`;
+      if (it.hb) ui.pbb.push({box:[tx - 12, ty - 12, 24, 24], hb:it.hb}); return; }
     if (it.st === 'x' || ed || cur) { const b = mbox(tx, ty, H, it.st === 'x' ? NaN : it.val, it.st === 'm', it.bad, ed || cur, sel); s += b.s; if (it.hb) ui.pbb.push({box:b.box, hb:it.hb}); return; }
     s += dimTxt(tx, ty, H, txt, col, it.st === 'm' ? 700 : 500, it.st === 'm' && !it.bad);
     const bw = tw, bh = 19 * K; if (it.hb) ui.pbb.push({box:H ? [tx - bw / 2, ty - bh / 2, bw, bh] : [tx - bh / 2, ty - bw / 2, bh, bw], hb:it.hb}); });
@@ -3351,7 +3356,7 @@ function openInline(hb) {
   if (kind === 'sp' && spSt && spSt.anc && spSt.anc[spAx] && spSt.anc[spAx].m && spSt.anc[spAx].m.k === hb.rk && spSt.anc[spAx].m.side === hb.side) old = spSt.anc[spAx].m.v;
   // finestra «Modifica misura»: numero grande in metri e tastierino (niente tastiera del tablet)
   const sub = kind === 'ob' ? (() => { const w = pl.walls.find(x => x.id === hb.id); return 'Muro obliquo · lunghezza ' + (w && w.rif === 'est' ? 'della faccia esterna' : w && w.rif === 'asse' ? "dell'asse" : 'della faccia interna'); })() : kind === 'par' ? 'Parallela · distanza dalla linea' : kind === 'il' ? 'Linea · lunghezza (resta fermo il punto da cui sei partito)' : kind === 'sp' ? (hb.side === 'a' ? 'Parziale · dal muro al primo gradino (o al bordo della scala)' : 'Parziale · dalla scala al muro') : kind === 'w' ? (() => { const ap = apOf(hb.ap); return ap && ap.tipo === 'finestra' && ap.inc ? 'Finestra incassata · luce (parte stretta, dove sta l\'infisso)' : 'Larghezza del vano'; })() : kind === 'w2' ? 'Finestra incassata · larghezza della parte larga' : kind === 'ris' ? (() => { const f = dimAp(pl, hb.ap), I = f && G.T.info.get(f.w.id); return 'Finestra incassata · risega ' + (I && !I.H ? 'in basso' : 'a sinistra') + ': dal bordo largo al bordo della luce'; })() : kind === 'q' ? ((pl.dims || []).some(x => x.id === hb.id && x.dg) ? 'Diagonale tra due spigoli' : 'Quota libera') : kind === 'p' ? (hb.last ? 'Parziale · ultimo tratto del lato' : 'Parziale · tratto di muro') : hb.fac ? 'Totale esterno della facciata' :
-    (() => { const r = (G.runs || []).find(x => x.key === hb.key); if (!r) return 'Lato del muro'; const c = r.comp >= 0 && G.comps[r.comp] && G.comps[r.comp].rec ? ' · ' + G.comps[r.comp].rec.nome : ''; return tipoNome(r.walls[0]) + ', ' + latoNome(r) + c; })();
+    (() => { const r = (G.runs || []).find(x => x.key === hb.key); if (!r) return 'Lato del muro'; const c = r.comp >= 0 && G.comps[r.comp] && G.comps[r.comp].rec ? ' · ' + G.comps[r.comp].rec.nome : ''; return (r.chain ? 'Totale del lato · ' : '') + tipoNome(r.walls[0]) + ', ' + latoNome(r) + c; })();
   const gdx = ui.guide ? `Misura guidata · ${ui.guide.left} da prendere · ` : '';
   const pop = document.createElement('div'); pop.id = 'inl'; pop.className = 'mpop' + (ui.guide ? ' guide ' + (ui.guide.px > window.innerWidth / 2 ? 'gl' : 'gr') : '');
   pop.innerHTML = `<div class="mbox" role="dialog" aria-label="Modifica misura"><div class="mhd"><div><div class="mt">Modifica misura</div><div class="ms">${esc(gdx + sub)}</div></div><button class="mx" data-k="x" aria-label="Chiudi">✕</button></div>

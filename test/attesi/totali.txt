@@ -1,0 +1,13 @@
+totali sul lato con porta ["x -"] X 1
+ordine
+  Totale del lato · Xrale, lato sotto · AX 1
+  Xrale, lato Xo · AX 1
+  Xrale, lato sopra · AX 1
+  Xrale, lato destro · AX 1
+  LXa del vano
+  PX · ultimo tratto del lato
+  PX · tratto di muro
+Xa Totale del lato · Xrale, lato sotto · AX 1
+X ["m 5,80"] ["5,80"]
+ricavo ["d 5,80"] si legge 2
+errors []
