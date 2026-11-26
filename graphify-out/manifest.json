@@ -462,21 +462,21 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1795734713.320044,
-    "seen": 1795734842.5308266,
-    "ast_hash": "8f2a3044f0be5f0d12da43b46425c7ae",
+    "mtime": 1795735963.2512333,
+    "seen": 1795736103.2251549,
+    "ast_hash": "2f34525eb9e533d5cf0f61d14d58534e",
     "semantic_hash": ""
   },
   "REGISTRO.md": {
-    "mtime": 1795734713.3195403,
-    "seen": 1795734842.5308266,
-    "ast_hash": "9e2a8b8d10f6e6881aae9f5708fa2522",
+    "mtime": 1795735963.2512333,
+    "seen": 1795736103.2251549,
+    "ast_hash": "4287cd06209ed84f2ad4e77102a16323",
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1795734411.602254,
-    "seen": 1795734842.5308266,
-    "ast_hash": "49ee238b29b9908eb54c6051bf07105f",
+    "mtime": 1795735963.250105,
+    "seen": 1795736103.2251549,
+    "ast_hash": "1d26c7524646d7937835b91a1216a274",
     "semantic_hash": ""
   },
   "test/attesi/allinea.txt": {
@@ -999,6 +999,18 @@
     "mtime": 1795734713.248053,
     "seen": 1795734842.5318296,
     "ast_hash": "4153dcc07f154711e6eb5fa508f501df",
+    "semantic_hash": ""
+  },
+  "test/pilastro.js": {
+    "mtime": 1795735792.8100426,
+    "seen": 1795736103.2251549,
+    "ast_hash": "66122cb807e71e2a06803706f89255eb",
+    "semantic_hash": ""
+  },
+  "test/attesi/pilastro.txt": {
+    "mtime": 1795735887.6620364,
+    "seen": 1795736103.2251549,
+    "ast_hash": "6dfb37e965d5625bb7b0cb3faffd604b",
     "semantic_hash": ""
   },
   "package-lock.json": {

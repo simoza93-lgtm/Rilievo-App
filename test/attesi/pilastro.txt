@@ -1,0 +1,18 @@
+stanza vuota: { netta: '20,00', tolta: '0.000' }
+posato: da Xa 2,05, da sotto 1,35, 0,30 × 0,30 { netta: '19,91', tolta: '0.090' } Xo: PX Elimina Xo
+X prima: 4 in «PX»: 4
+X 1,20 da «PX · Xa dal muro a Xa» → da Xa 1,20, da sotto 1,35, 0,30 × 0,30
+X 0,80 da «PX · Xa dal muro sotto» → da Xa 1,20, da sotto 0,80, 0,30 × 0,30
+stanza a 6,00: da Xa 1,20, da sotto 0,80, 0,30 × 0,30 { netta: '23,91', tolta: '0.090' }
+0,50 da destra: da Xa 5,20, da sotto 0,80, 0,30 × 0,30
+0,40 × 0,50: da Xa 5,10, da sotto 0,80, 0,40 × 0,50 { netta: '23,80', tolta: '0.200' }
+tondo 0,40: da Xa 5,10, da sotto 0,80, 0,40 × 0,40 { netta: '23,87', tolta: '0.125' }
+mezzo nel muro: { netta: '23,92', tolta: '0.080' }
+script Xolare: { pieno: 1, disco: 0, X: 0, quote: 7, Xo: true }
+script tondo: { pieno: 0, disco: 1, X: 1, quote: 7, Xo: true }
+senza Xa X: 6
+scheda PDF col Xo: true
+layer muri Xrali spento: [ 0, 1 ]
+Xa: pil da Xa 1,00, da sotto 1,00, 0,40 × 0,40 { netta: '23,87', tolta: '0.125' }
+Xto con la Xne a Xa: [ 'pil', 0, '24,00' ]
+errors []

@@ -6,6 +6,13 @@ rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact
 ## 27 novembre 2026 — Quote esterne non allineate vicino a balconi e ringhiere
 - Con una ringhiera (o un altro muro) attaccata **da fuori** a un lato sotto un rientro, la quota esterna contava anche lo spessore dell'angolo rientrante (per esempio 5,00 invece di 4,70): si sovrapponeva alla quota vicina e finiva su una seconda riga. Ora si ferma allo spigolo, come senza balcone, e le due stanno in fila. Vale a schermo, nel pannello e nella Scheda PDF; lo script AutoCAD e le misure prese non cambiano.
 
+## 27 novembre 2026 — Pilastro
+- Nuovo **Pilastro** nel menu «Perimetrali»: rettangolare/quadrato (due lati) o tondo (diametro), disegnato pieno, anche nella Scheda PDF. Si posa trascinando, si accosta ai muri e li segue.
+- **Distanze dai muri**, anche in mezzo alla stanza: i pallini arancioni sono le distanze dalla faccia del muro più vicino al bordo del pilastro (ne basta una per direzione); «Prossima» le chiede. Spostando il pilastro a dito si tolgono.
+- Ai **m²** si toglie la parte di pilastro dentro l'ambiente. Layer: «Muri perimetrali».
+- **Script AutoCAD**: contorno su PLAN_MURI_PERIM, pieno su PLAN_INFISSI_TESTI (SOLID, DONUT se tondo), quote solo per le distanze scritte. **Non ancora provato in AutoCAD.**
+- Dati: nuovo campo facoltativo `pl.pil` (i rilievi vecchi si aprono come prima). Non si ruota, non si riporta da solo sugli altri piani.
+
 ## 27 novembre 2026 — Totale esterno sui lati con ringhiera attaccata
 - Su una facciata la cui faccia esterna è spezzata da una ringhiera (o da un muro attaccato da fuori) ora il **totale esterno si scrive**: toccando la sua quota o dal pannello (prima il tocco non faceva niente). Si comporta come sulle altre facciate: con i lati interni già misurati è una verifica (rosso e avviso in «Controlli» se non torna di oltre 3 cm); senza, decide la lunghezza, e pianta e script la seguono.
 - Un totale esterno scritto da ora resta **esterno** anche se dopo si attacca una ringhiera (prima finiva tra le misure interne). Si salva nel nuovo campo facoltativo `pl.fx`: i rilievi vecchi si aprono come prima. I totali scritti con le versioni precedenti non hanno il campo.
