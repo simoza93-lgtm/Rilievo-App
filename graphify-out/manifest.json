@@ -204,9 +204,9 @@
     "semantic_hash": ""
   },
   "test/mano.js": {
-    "mtime": 1794259582.3673906,
-    "seen": 1795471214.6415677,
-    "ast_hash": "6cf370a2b607c9e6999c88a55ad2b4d0",
+    "mtime": 1795732963.0534246,
+    "seen": 1795733133.3885882,
+    "ast_hash": "cc87b217a6ff050c8eae8d8bbcee9d46",
     "semantic_hash": ""
   },
   "test/mn.js": {
@@ -462,21 +462,21 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1795730157.0411963,
-    "seen": 1795730284.5799117,
-    "ast_hash": "808ccd11f34491cc2c375fccda3fc7c2",
+    "mtime": 1795733006.6379375,
+    "seen": 1795733133.3885882,
+    "ast_hash": "126c71edd4a44d74173e815ee83591dc",
     "semantic_hash": ""
   },
   "REGISTRO.md": {
-    "mtime": 1795730403.5966077,
-    "seen": 1795730559.4250798,
-    "ast_hash": "62f26fbc3e704ae41d3811c23f56baec",
+    "mtime": 1795733006.6374333,
+    "seen": 1795733133.3885882,
+    "ast_hash": "488faf53feef7b5d5eda58cce3ddd4ed",
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1795730403.5966077,
-    "seen": 1795730559.4250798,
-    "ast_hash": "9efc8e228eebe9354f916639d1870d9f",
+    "mtime": 1795732949.976732,
+    "seen": 1795733133.3885882,
+    "ast_hash": "8008479a885728ee583ba1a0fcf9f369",
     "semantic_hash": ""
   },
   "test/attesi/allinea.txt": {
@@ -504,9 +504,9 @@
     "semantic_hash": ""
   },
   "test/attesi/anta.txt": {
-    "mtime": 1794435844.2198184,
-    "seen": 1795471214.6415677,
-    "ast_hash": "554f9221170b2191fd310bf85ba1bcab",
+    "mtime": 1795732967.6125295,
+    "seen": 1795733133.3885882,
+    "ast_hash": "8ed00a8b5511b429a5ec8b3fa4818b99",
     "semantic_hash": ""
   },
   "test/attesi/anta3.txt": {
@@ -546,15 +546,15 @@
     "semantic_hash": ""
   },
   "test/attesi/bg.txt": {
-    "mtime": 1794259544.1136186,
-    "seen": 1795471214.6415677,
-    "ast_hash": "cc5bd750fa42bccfa032afbb4a931e1b",
+    "mtime": 1795732972.5114799,
+    "seen": 1795733133.3885882,
+    "ast_hash": "27678b04fb3b4bbd13ea275584b55908",
     "semantic_hash": ""
   },
   "test/attesi/bk.txt": {
-    "mtime": 1794259544.4200773,
-    "seen": 1795471214.6415677,
-    "ast_hash": "d26584306504604b97d3a209b21ed9a2",
+    "mtime": 1795732974.0743296,
+    "seen": 1795733133.3885882,
+    "ast_hash": "5e380b1195f151fb56ef3e2837bf6949",
     "semantic_hash": ""
   },
   "test/attesi/boxporta.txt": {
@@ -666,9 +666,9 @@
     "semantic_hash": ""
   },
   "test/attesi/mano.txt": {
-    "mtime": 1794403621.8125515,
-    "seen": 1795471214.6415677,
-    "ast_hash": "a0d437c7d7e3b34853b39a23c0cc8f21",
+    "mtime": 1795732965.6510196,
+    "seen": 1795733133.3885882,
+    "ast_hash": "c0250fd0a65719da2a97272d71e86ade",
     "semantic_hash": ""
   },
   "test/attesi/mn.txt": {
@@ -987,6 +987,18 @@
     "mtime": 1795730406.611026,
     "seen": 1795730559.4250798,
     "ast_hash": "78515f0d4e847411d1bc7a16f74b360b",
+    "semantic_hash": ""
+  },
+  "test/quotefuori.js": {
+    "mtime": 1795732699.1194596,
+    "seen": 1795733133.3885882,
+    "ast_hash": "da929371088533ddca9d6febe9c7430a",
+    "semantic_hash": ""
+  },
+  "test/attesi/quotefuori.txt": {
+    "mtime": 1795732756.9648674,
+    "seen": 1795733133.3885882,
+    "ast_hash": "38c54c6d40478d7e1222a51f4560f378",
     "semantic_hash": ""
   },
   "package-lock.json": {

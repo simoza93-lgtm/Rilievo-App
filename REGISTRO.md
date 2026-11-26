@@ -3,6 +3,11 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 26 novembre 2026 — Quote esterne: via dai muri interni, a 1 m dalla pianta
+- Un muro con **ambienti da tutte e due le parti** (anche se «Perimetrale», per esempio un interno da 0,30 delle case vecchie) non ha più la quota esterna: né linea, né pallino, né casella, e nel pannello spariscono i «totali» di facciata (restano se c'era già un totale scritto lì). Balconi, terrazzi e marciapiedi contano come esterno. Spessori e misure interne non cambiano.
+- Le quote esterne stanno **a 1,00 m dall'elemento più esterno** della pianta in quella direzione (muri, ringhiere, scale, porte che aprono fuori, quote libere), allineate sulla stessa riga; vanno su una seconda riga solo se si sovrappongono. Vale a schermo e nella Scheda PDF; lo script AutoCAD era già così.
+- Per farle stare nello schermo, «Adatta» può inquadrare un po' più largo.
+
 ## 26 novembre 2026 — Totale del lato anche con porte, finestre e scale
 - Sui lati con vani (o con una scala accostata) in pianta, oltre alle parziali, c'è ora il **totale del lato**: una linea più dentro la stanza, tratteggiata arancione con il pallino se è da prendere, grigia (solo toccando la stanza) se si ricava dalle altre misure, nera col lucchetto se l'hai scritta. Si tocca e si scrive: non serve più «Quota».
 - **Prossima** in ogni stanza chiede prima i totali dei lati, poi parziali e larghezze (il numero tra parentesi cresce).

@@ -1,0 +1,19 @@
+muro in mezzo da 0,30
+  FX a destra 5,55: X, no quota
+  FX a destra 6,15: a un metro dal filo 9,15
+  FX a Xa 6,15: a un metro dal filo 0,00
+  FX in alto 7,30: X, no quota
+  FX in alto 9,15: a un metro dal filo 6,15
+  FX in basso 9,15: a un metro dal filo 0,00
+Xo del muro X, totali di Xa: false
+con una scala fuori a destra
+  FX a destra 5,55: X, no quota
+  FX a destra 6,15: a un metro dal filo 10,45
+stanza di destra come X
+  FX a destra 5,55: a un metro dal filo 9,15
+  FX a destra 6,15: a un metro dal filo 9,15
+  FX a Xa 6,15: a un metro dal filo 0,00
+  FX in alto 7,30: X, no quota
+  FX in alto 9,15: a un metro dal filo 6,15
+  FX in basso 9,15: a un metro dal filo 0,00
+errors []

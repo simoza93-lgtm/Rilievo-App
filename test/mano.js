@@ -20,8 +20,9 @@ await p.evaluate(([l,t])=>{ const svg=document.querySelector('#svg'); const ev=(
 out.ink2=await p.evaluate(()=>({n:piano().ink.length, pen:!!ui.penSeen}));
 // col dito, dopo la penna, non scrive (sposta la vista)
 const v0=await p.evaluate(()=>ui.view.x);
+// il dito parte da un punto vuoto della pianta (in metri, così non dipende dallo zoom di «Adatta»)
 await p.evaluate(([l,t])=>{ const svg=document.querySelector('#svg'); const ev=(ty,x,y)=>svg.dispatchEvent(new PointerEvent(ty,{pointerId:9,pointerType:'touch',clientX:l+x,clientY:t+y,bubbles:true,isPrimary:true,button:0,buttons:1}));
-  ev('pointerdown',700,500); for(let i=1;i<=10;i++) ev('pointermove',700+i*8,500); ev('pointerup',780,500); }, R);
+  const x=SX(6.46), y=SY(0.83); ev('pointerdown',x,y); for(let i=1;i<=10;i++) ev('pointermove',x+i*8,y); ev('pointerup',x+80,y); }, R);
 out.finger=await p.evaluate(v0=>({n:piano().ink.length, panned:ui.view.x!==v0}), v0);
 await p.screenshot({path:require('path').join(OUT, 'mano1.png')});
 // selezione con un tocco
