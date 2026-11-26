@@ -16,4 +16,6 @@ stanza di destra come X
   FX in alto 7,30: X, no quota
   FX in alto 9,15: a un metro dal filo 6,15
   FX in basso 9,15: a un metro dal filo 0,00
+X senza X FX a destra 2,30 linea 2,30 riga 0 | FX a destra 5,00 linea 5,00 riga 0
+X con X FX a destra 2,30 linea 2,30 riga 0 | FX a destra 5,00 linea 5,00 riga 0
 errors []

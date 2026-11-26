@@ -25,5 +25,11 @@ const { chromium } = require('playwright');
   await p.evaluate(() => { piano().stairs = []; update(true); const r = piano().rooms.slice().sort((a, b) => G.comps[b._c].bbox[2] - G.comps[a._c].bbox[2])[0]; r.dest = 'Balcone'; update(true); fit(); draw(); });
   console.log('stanza di destra come balcone\n  ' + (await stato()).join('\n  '));
   await p.screenshot({path:require('path').join(OUT, 'quotefuori-balcone.png')});
+  // balcone con ringhiera attaccata sotto un rientro: la quota non conta l'angolo e le due di destra stanno sulla stessa riga
+  for (const balcone of [false, true]) console.log(balcone ? 'rientro con balcone' : 'rientro senza balcone', await p.evaluate(balcone => { const st = (pts, tipo) => { ui.newType = tipo; const s = []; for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], c = pts[i + 1]; for (let k = 0; k < 6; k++) s.push([SX(a[0] + (c[0] - a[0]) * k / 6), SY(a[1] + (c[1] - a[1]) * k / 6)]); } s.push([SX(pts[pts.length - 1][0]), SY(pts[pts.length - 1][1])]); finishStroke(s); update(true); };
+    R = blank(); R.id = 'qr' + balcone; tab = 'pianta'; render(); ui.view = {x:-3, y:-9, s:55}; G = geometry(piano());
+    st([[0,0],[7.3,0],[7.3,5],[10.3,5],[10.3,7],[0,7],[0,0]], 'P'); st([[0,4],[7.3,4]], 'P'); if (balcone) st([[7.3,0.9],[9.3,0.9],[9.3,3.6],[7.3,3.6]], 'W');
+    update(true); ui.sel = null; ui.mode = 'select'; ui.fitted = false; render(); fit(); draw(); const q = quoteFuori(piano());
+    return G.facs.filter(f => !f.interno && !f.H && f.out > 0).map(f => f.nome + ' ' + f2(f.tot) + ' linea ' + f2(f.a1 - f.a0) + ' riga ' + q.fila.get(f)).sort().join(' | '); }, balcone));
   console.log('errors', errs); await b.close();
 })();

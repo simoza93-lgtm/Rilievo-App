@@ -3,6 +3,9 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 27 novembre 2026 — Quote esterne non allineate vicino a balconi e ringhiere
+- Con una ringhiera (o un altro muro) attaccata **da fuori** a un lato sotto un rientro, la quota esterna contava anche lo spessore dell'angolo rientrante (per esempio 5,00 invece di 4,70): si sovrapponeva alla quota vicina e finiva su una seconda riga. Ora si ferma allo spigolo, come senza balcone, e le due stanno in fila. Vale a schermo, nel pannello e nella Scheda PDF; lo script AutoCAD e le misure prese non cambiano.
+
 ## 26 novembre 2026 — Quote esterne: via dai muri interni, a 1 m dalla pianta
 - Un muro con **ambienti da tutte e due le parti** (anche se «Perimetrale», per esempio un interno da 0,30 delle case vecchie) non ha più la quota esterna: né linea, né pallino, né casella, e nel pannello spariscono i «totali» di facciata (restano se c'era già un totale scritto lì). Balconi, terrazzi e marciapiedi contano come esterno. Spessori e misure interne non cambiano.
 - Le quote esterne stanno **a 1,00 m dall'elemento più esterno** della pianta in quella direzione (muri, ringhiere, scale, porte che aprono fuori, quote libere), allineate sulla stessa riga; vanno su una seconda riga solo se si sovrappongono. Vale a schermo e nella Scheda PDF; lo script AutoCAD era già così.

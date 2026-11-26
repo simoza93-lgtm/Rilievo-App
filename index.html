@@ -1576,6 +1576,9 @@ function geometry(pl) {
     fc.sum = fc.sumInt != null ? fc.sumInt + (fc.tot - fc.totInt) : null;
     fc.a0 = fc.ext ? axC(fc.ext.P, fc.H) + fc.ext.eA : (fc.H ? fc.A.x : fc.A.y) - fc.dA;
     fc.a1 = fc.ext ? axC(fc.ext.Q, fc.H) - fc.ext.eB : (fc.H ? fc.B.x : fc.B.y) + fc.dB;
+    // faccia esterna spezzata (ringhiera o muro attaccato da fuori): va dall'inizio del primo pezzo alla fine dell'ultimo, senza contare l'angolo rientrante
+    if (!fc.ext && !fc.interno) { const pz = runs.filter(r => r.sg === fc.out && r.walls.every(x => fc.walls.includes(x))).sort((a, b) => axC(a.P, a.H) - axC(b.P, b.H)), u = pz[pz.length - 1];
+      if (u && pz[0].p === fc.A.id && u.q === fc.B.id) { fc.a0 = axC(pz[0].P, fc.H) + pz[0].eA; fc.a1 = axC(u.Q, fc.H) - u.eB; fc.tot = fc.a1 - fc.a0; fc.sum = fc.sumInt != null ? fc.sumInt + (fc.tot - fc.totInt) : null; } }
     fc.mis = fc.ext ? fc.ext.mis : NaN;
     fc.det = fc.sumInt != null || detD(fc.A.id, fc.B.id, fc.H);
     if (fc.mi > 0 || fc.mis > 0) fc.walls.forEach(x => covered.add(x.id));
