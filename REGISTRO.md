@@ -3,6 +3,9 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 26 novembre 2026 — Scale posate che non si vedevano
+- Con il layer «Scale e ascensore» **spento**, una scala posata veniva salvata ma restava invisibile (si vedevano solo le sue parziali). Ora posando una scala, un ascensore, una porta o una finestra il loro layer **si riaccende da solo** e l'app lo scrive. Riaccendendolo compaiono anche le scale posate prima senza vederle: quelle in più si tolgono.
+
 ## 26 novembre 2026 — Totale del lato anche con porte, finestre e scale
 - Sui lati con vani (o con una scala accostata) in pianta, oltre alle parziali, c'è ora il **totale del lato**: una linea più dentro la stanza, tratteggiata arancione con il pallino se è da prendere, grigia (solo toccando la stanza) se si ricava dalle altre misure, nera col lucchetto se l'hai scritta. Si tocca e si scrive: non serve più «Quota».
 - **Prossima** in ogni stanza chiede prima i totali dei lati, poi parziali e larghezze (il numero tra parentesi cresce).

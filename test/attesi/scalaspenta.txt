@@ -1,0 +1,3 @@
+scala {"scale":1,"tratti":true,"spentoS":false,"spentoR":true,"avviso":"Il layer «Scale e Xre» era spento: l’ho Xo"}
+porta {"scale":1,"tratti":true,"spentoS":false,"spentoR":false,"avviso":"Il layer «Porte e Xe» era spento: l’ho Xo"} porte 1
+errors []
