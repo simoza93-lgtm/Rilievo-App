@@ -3106,7 +3106,7 @@ function bindCanvas() {
     if (boxTap) { const hb = boxTap.hb; boxTap = null; stroke = null; const st = $('#stroke'); if (st) st.setAttribute('points', ''); ui.pendBox = null; openInline(hb); return; }
     if (edDrag) { const d = edDrag; edDrag = null; ui.edSnap = null; if (!d.moved) { ui.stK = d.k; draw(); renderSide(); return; } edSync(d.st); update(true); return; }
     if (scDrag) { const d = scDrag; scDrag = null; const pl = piano();
-      if (d.nuovo) { const st = ui.scGhost; ui.scGhost = null; if (ui.apCat !== 'scale') ui.placeSc = false; updTools(); if (!st) return; pushUndo(); undemo(); snapStair(st); anchorStair(pl, st); (pl.stairs = pl.stairs || []).push(st); const acceso = lRiaccendi('S'); update(true); toast(acceso + (st.tipo === 'lift' ? 'Ascensore posato. Con «Seleziona» toccalo per le misure del vano e per girare la porta.' : 'Scala posata. Con «Seleziona» toccala per tipo, verso e misure.')); return; }
+      if (d.nuovo) { const st = ui.scGhost; ui.scGhost = null; if (ui.apCat !== 'scale') ui.placeSc = false; updTools(); if (!st) return; pushUndo(); undemo(); snapStair(st); anchorStair(pl, st); (pl.stairs = pl.stairs || []).push(st); update(true); toast(st.tipo === 'lift' ? 'Ascensore posato. Con «Seleziona» toccalo per le misure del vano e per girare la porta.' : 'Scala posata. Con «Seleziona» toccala per tipo, verso e misure.'); return; }
       if (!d.moved) { ui.sel = {k:'s', id:d.st.id}; draw(); renderSide(); return; }
       pl.walls.forEach(w => (w.ap || []).forEach(ap => { if (ap.sc === d.st.id && ap.pos) { delete ap.pos; ap.dp = true; } }));
       snapStair(d.st); anchorStair(pl, d.st, false); undemo(); update(true); return; }
@@ -3449,7 +3449,6 @@ function opAt(p) { if (!lUse('R')) return null;
   return (G.ops || []).find(o => { if (o.q) { const I = o.I, rx = wx - I.a.x, ry = wy - I.a.y, al = rx * I.u[0] + ry * I.u[1], ac = rx * I.n[0] + ry * I.n[1]; return al >= o.s0 - tol && al <= o.s1 + tol && Math.abs(ac) <= I.t / 2 + tol; }
     return wx >= o.c[0] - tol && wx <= o.c[2] + tol && wy >= o.c[1] - tol && wy <= o.c[3] + tol; }) || null;
 }
-function lRiaccendi(id) { if (!lOff(id)) return ''; lSet(id, 'off', false); return 'Il layer «' + LAYS.find(l => l[0] === id)[1] + '» era spento: l’ho riacceso. '; }
 function dropGhost(gh) {
   const pl = piano();
   if (!gh || gh.free) { toast('Nessun muro lì: appoggiala sopra un muro.'); return false; }
@@ -3463,10 +3462,9 @@ function dropGhost(gh) {
     if (df.inc) { ap.inc = df.inc; ap.l2 = fN(num(df.l) + 0.40); ap.l2p = true; } }
   gh.w.ap = gh.w.ap || []; gh.w.ap.push(ap);
   ui.selAp = ap.tipo === 'porta' ? ap.id : null;
-  const acceso = lRiaccendi('R');
   update(true);   // il pannello non si apre: le misure si inseriscono dopo, selezionando il muro
   if (ap.inc && ap.lw !== 1 && ap.lw !== -1) { const o = G.ops.find(q => q.ap === ap); ap.lw = o && o.side ? o.side : 1; update(true); }   // parte larga verso la stanza
-  toast(acceso + apLab(ap.tipo, ap) + (gh.ap ? ' spostata.' : ' posata.') + (ap.tipo === 'porta' ? ' Girala con i tasti tondi ⇄ e ⇅.' : '') + ' Tocca le caselle accanto per scrivere parziali e larghezza misurate.');
+  toast(apLab(ap.tipo, ap) + (gh.ap ? ' spostata.' : ' posata.') + (ap.tipo === 'porta' ? ' Girala con i tasti tondi ⇄ e ⇅.' : '') + ' Tocca le caselle accanto per scrivere parziali e larghezza misurate.');
   return true;
 }
 /* ---- sagoma di un altro piano: i muri perimetrali di un piano già rilevato, chiari sotto il disegno, per partire dallo stesso punto.
