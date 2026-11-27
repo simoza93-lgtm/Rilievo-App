@@ -42,5 +42,7 @@ const vista=(x,y)=>p.evaluate(([x,y])=>{const W=ui.Wr; return [W-y,x];},[x,y]); 
 const strokeV=async pts=>{ const q=[]; for (const c of pts) q.push(await vista(...c)); await stroke(q,true); };
 await strokeV(wobble(250,300,450,300,20,2)); const G1=await px(0); await strokeV(wobble(G1[1][0]+7,G1[1][1]+6,G1[1][0]+9,450,20,2)); const G2=await px(1); out.girata=vicino(G2[0],G1[1]);
 await p.evaluate(()=>{ R.vrot=0; draw(); });
+// le linee di un layer spento non attirano l'aggancio (a mano H, Linea D, Costruzione C)
+out.layerSpento=await p.evaluate(()=>{ const r={}; for (const [l,f] of [['H',{}],['D',{lin:true}],['C',{cs:true}]]) { piano().ink=[Object.assign({id:'z'+l, pts:[[0,12],[3,12]]},f)]; const vedi=()=>(lnSnap([SX(3)+6, SY(12)+5])||{}).t||'no'; R.lay={}; const acceso=vedi(); R.lay={[l]:{off:true}}; r[l]=acceso+'/'+vedi(); } R.lay={}; piano().ink=[]; draw(); return r; });
 await p.screenshot({path:require('path').join(OUT,'orto.png')});
 console.log(JSON.stringify(out)); console.log('errors',errs); await b.close();})();
