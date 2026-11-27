@@ -318,9 +318,9 @@
     "semantic_hash": ""
   },
   "test/sagoma.js": {
-    "mtime": 1794657027.9999075,
-    "seen": 1795471214.6415677,
-    "ast_hash": "9486dfa6a221fc3d13d5080bc56d41ff",
+    "mtime": 1795812885.591774,
+    "seen": 1795813251.9941156,
+    "ast_hash": "2479042ca45a24216dfea8c96cfdf8e8",
     "semantic_hash": ""
   },
   "test/scalegr.js": {
@@ -462,21 +462,21 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1795735963.2512333,
-    "seen": 1795736103.2251549,
-    "ast_hash": "2f34525eb9e533d5cf0f61d14d58534e",
+    "mtime": 1795812961.813527,
+    "seen": 1795813251.9951296,
+    "ast_hash": "87a5990581e2fd75a5506b6a5c147c0c",
     "semantic_hash": ""
   },
   "REGISTRO.md": {
-    "mtime": 1795735963.2512333,
-    "seen": 1795736103.2251549,
-    "ast_hash": "4287cd06209ed84f2ad4e77102a16323",
+    "mtime": 1795813246.9709058,
+    "seen": 1795813251.9951296,
+    "ast_hash": "e95bb2aab50460182e571a351f17e3a8",
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1795736337.8987184,
-    "seen": 1795736515.1728778,
-    "ast_hash": "5305076dc947d5405dc898cc5e731fb1",
+    "mtime": 1795812929.4046583,
+    "seen": 1795813251.9951296,
+    "ast_hash": "67eff4720ac956559c681fb123296918",
     "semantic_hash": ""
   },
   "test/attesi/allinea.txt": {
@@ -990,15 +990,15 @@
     "semantic_hash": ""
   },
   "test/quotefuori.js": {
-    "mtime": 1795734694.0293915,
-    "seen": 1795734842.5308266,
-    "ast_hash": "fa054b34ec5ec217fa784d865acc0380",
+    "mtime": 1795813076.3743737,
+    "seen": 1795813251.9941156,
+    "ast_hash": "ee880cdc2a0eccf9d7dcdea0c9325221",
     "semantic_hash": ""
   },
   "test/attesi/quotefuori.txt": {
-    "mtime": 1795734713.248053,
-    "seen": 1795734842.5318296,
-    "ast_hash": "4153dcc07f154711e6eb5fa508f501df",
+    "mtime": 1795813091.6551538,
+    "seen": 1795813251.9951296,
+    "ast_hash": "37e84d1eb87cce2e7f85af6997cbc75c",
     "semantic_hash": ""
   },
   "test/pilastro.js": {
@@ -1011,6 +1011,18 @@
     "mtime": 1795736377.4257824,
     "seen": 1795736515.1728778,
     "ast_hash": "865300d0bb6d288ce4777941db366718",
+    "semantic_hash": ""
+  },
+  "test/piani.js": {
+    "mtime": 1795813004.0773122,
+    "seen": 1795813251.9941156,
+    "ast_hash": "d1d790fd10994c61969bc5b0096ed4cd",
+    "semantic_hash": ""
+  },
+  "test/attesi/piani.txt": {
+    "mtime": 1795813087.0641942,
+    "seen": 1795813251.9951296,
+    "ast_hash": "f075534bb73b55235c7dc5d8327b4883",
     "semantic_hash": ""
   },
   "package-lock.json": {

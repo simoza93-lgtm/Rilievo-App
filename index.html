@@ -108,6 +108,23 @@ td.n,th.n{text-align:right}
 ol.help{margin:6px 0 0;padding-left:20px;font-size:14px}
 dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);padding:18px;width:min(760px,94vw);max-height:88vh}
 dialog::backdrop{background:rgba(0,0,0,.45)}
+#bPiani{display:flex;align-items:center;gap:8px;min-height:48px;padding:0 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-size:16px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.12);margin-bottom:8px;max-width:calc(100% - 20px)}
+#bPiani span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#bPiani svg,#cv #bPiani svg{width:20px;height:20px;flex:none;display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#bPiani>*{pointer-events:none}
+#cv #bPiani{position:absolute;left:10px;bottom:10px;z-index:6;margin:0}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px}
+.pwrap{position:relative}
+.pcard{display:flex;align-items:center;justify-content:center;width:100%;height:150px;padding:10px;border:2px solid var(--line);border-radius:12px;background:var(--cv);color:var(--ink)}
+.pcard svg{width:100%;height:100%}
+.pcard.cur{border:3px solid var(--acc)}
+.pcard.padd{border-style:dashed;font-size:46px;font-weight:300;color:var(--mut)}
+.pdots{position:absolute;right:6px;bottom:6px;min-width:48px;min-height:40px;border-radius:9px}
+.pmenu{position:absolute;right:6px;bottom:50px;z-index:2;display:flex;flex-direction:column;gap:6px;padding:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.pmenu button{min-width:140px;min-height:44px}
+.pnome{text-align:center;font-weight:600;margin-top:6px}
+.plist{display:flex;flex-direction:column}
+.plist button{min-height:48px;text-align:left;border-width:0 0 1px;border-radius:0}
 .arow{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px}
 .dxu{display:block;margin:5px 0}.dxl{display:grid;grid-template-columns:18px 1fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}.dxl .sw{width:16px;height:16px;border-radius:4px;border:1px solid var(--line)}
 .arow.cur{border-color:var(--acc);background:var(--accbg)}
@@ -213,10 +230,6 @@ ol.help li{margin-bottom:4px}
 <header>
   <h1>Rilievo <span id="curName" class="mut" style="font-weight:400"></span></h1>
   <button id="bArch">Archivio</button>
-  <select id="selPiano" style="width:auto"></select>
-  <button id="bAddPiano">+ Piano</button>
-  <button id="bRenPiano">Rinomina</button>
-  <button id="bDelPiano" class="bad">Elimina piano</button>
   <span class="sp"></span>
   <button id="bScr" class="pri">Genera script AutoCAD</button>
   <button id="bScheda">Scheda PDF</button>
@@ -235,6 +248,7 @@ ol.help li{margin-bottom:4px}
 <main id="main"></main>
 <dialog id="dArch"></dialog>
 <dialog id="dDxf"></dialog>
+<dialog id="dPiani"></dialog>
 
 <script>/* polygon-clipping 0.15.7 — Mike Fogel, licenza MIT (https://github.com/mfogel/polygon-clipping); include splaytree (MIT). Serve per i muri obliqui. */
 !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define(e):(t="undefined"!=typeof globalThis?globalThis:t||self).polygonClipping=e()}(this,(function(){"use strict";
@@ -1569,6 +1583,7 @@ function geometry(pl) {
   const facs = facades(pl, T), wOut = new Map();
   // qui le stanze non sono ancora riabbinate: balconi e terrazzi si ritrovano dal punto dove stava il loro nome
   const aperti = new Set((pl.rooms || []).filter(r => DEST[r.dest] === 'E').map(r => compAt(r.px, r.py)).filter(c => c >= 0));
+  runs.filter(r => r.comp >= 0 && r.walls.every(x => x.tipo === 'S')).forEach(r => aperti.add(r.comp));   // chiuso da linee «Superficie» = fuori, qualunque destinazione abbia
   facs.forEach(fc => {
     const pn = fc.H ? [0, 1] : [1, 0], mid = fc.H ? [(fc.A.x + fc.B.x) / 2, fc.A.y] : [fc.A.x, (fc.A.y + fc.B.y) / 2];
     const pr = sg => compAt(mid[0] + pn[0] * sg * (fc.t / 2 + 0.03), mid[1] + pn[1] * sg * (fc.t / 2 + 0.03));
@@ -2503,7 +2518,6 @@ function render() {
   if (R.opt && R.opt.vani === undefined) R.opt.vani = true;
   if (R.incP === undefined) R.incP = '0,15';
   recompute();
-  $('#selPiano').innerHTML = R.piani.map((p, i) => `<option value="${i}" ${i === R.cur ? 'selected' : ''}>${esc(p.nome)}</option>`).join('');
   $('#tabs').innerHTML = TABS.map(([k, l]) => `<button data-tab="${k}" class="${tab === k ? 'on' : ''}">${l}</button>`).join('');
   const banner = R.demo ? `<div class="banner"><b>Rilievo di esempio</b> con misure inventate (una non torna apposta, per vedere il controllo). Premi «Nuovo rilievo» per cominciare il tuo.</div>` : '';
   if (tab === 'pianta') {
@@ -2513,13 +2527,13 @@ function render() {
         <div class="tcl tmain"><div class="tg" data-g="sel"><button class="tb" data-fly="sel" data-auto="1"><svg viewBox="0 0 24 24"><path d="M6 3l12 9-6 1 3.5 7-2.5 1-3.5-7L5 18z"/></svg><span>Seleziona</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="select"><svg viewBox="0 0 24 24"><path d="M6 3l12 9-6 1 3.5 7-2.5 1-3.5-7L5 18z"/></svg><span>Seleziona</span></button><button class="tb" data-win="1" title="Tocca un angolo e poi quello opposto (anche dentro gli ambienti)"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1" stroke-dasharray="3 2.5"/><path d="M14 13l6 6M14 13h4M14 13v4"/></svg><span>Rettangolo</span></button><button class="tb" data-mode="pan"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg><span>Sposta vista</span></button></div></div><div class="tg" data-g="muri"><button class="tb" data-fly="muri" data-auto="1"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" stroke-width="2.2"/><path d="M6 8l-3 4M11 8l-6 8M16 8l-6 8M21 8l-6 8M21 13l-2 3" stroke-width="1.2"/></svg><span>Muri</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="draw" data-tw="P"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" stroke-width="2.2"/><path d="M6 8l-3 4M11 8l-6 8M16 8l-6 8M21 8l-6 8M21 13l-2 3" stroke-width="1.2"/></svg><span>Perimetrali</span></button><button class="tb" data-mode="draw" data-tw="T"><svg viewBox="0 0 24 24"><path d="M3 10h18M3 14h18" stroke-width="1.9"/></svg><span>Tramezzi</span></button><button class="tb" data-mode="draw" data-tw="W" title="Ringhiera: rossa, sottile, con altezza"><svg viewBox="0 0 24 24"><path d="M3 12h18" stroke-width="1.2"/><path d="M5 8v8M9 8v8M13 8v8M17 8v8M21 8v8" stroke-width="1.2"/></svg><span>Ringhiere</span></button><button class="tb" data-mode="draw" data-tw="S" title="Superficie esterna: si disegna come un muro (linea gialla sottile). Quando si chiude, scegli la destinazione (marciapiede, terrazzo…) e escono i m²"><svg viewBox="0 0 24 24"><path d="M4 18V7l8-3 8 5v9z" stroke-dasharray="3 2"/></svg><span>Superficie</span></button><button class="tb" data-pil="1" title="Pilastro pieno: tocca, trascina e solleva per posarlo"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" fill="currentColor"/></svg><span>Pilastro</span></button></div></div><button class="tb" data-cat="porte" title="Porte: si apre a destra il pannello con i tipi"><svg viewBox="0 0 24 24"><path d="M2 18h4M18 18h4" stroke-width="2.2"/><path d="M6 18V6M6 6a12 12 0 0 1 12 12"/></svg><span>Porte</span></button><button class="tb" data-cat="finestre" title="Finestre: si apre a destra il pannello con i tipi"><svg viewBox="0 0 24 24"><path d="M3 8h4M17 8h4M3 16h4M17 16h4" stroke-width="2.2"/><path d="M7 8v8M17 8v8M7 11h10M7 13h10"/></svg><span>Finestre</span></button><button class="tb" data-cat="scale" title="Scale e ascensore: si apre a destra il pannello con i tipi"><svg viewBox="0 0 24 24"><path d="M4 20h4v-4h4v-4h4V8h4V4"/><path d="M4 20V16M8 16v-4M12 12V8M16 8V4" stroke-width="1"/></svg><span>Scala</span></button><div class="tg" data-g="quota"><button class="tb" data-fly="quota" data-auto="1" title="Quote: quota libera o diagonale"><svg viewBox="0 0 24 24"><path d="M4 7v10M20 7v10M4 12h16M4 12l3-2.5M4 12l3 2.5M20 12l-3-2.5M20 12l-3 2.5"/></svg><span>Quota</span><i class="car"></i></button><div class="tfly"><button class="tb" data-dim="1" title="Quota libera: tocca due fili e scrivi la misura"><svg viewBox="0 0 24 24"><path d="M4 7v10M20 7v10M4 12h16M4 12l3-2.5M4 12l3 2.5M20 12l-3-2.5M20 12l-3 2.5"/></svg><span>Quota</span></button><button class="tb" data-diag="1" title="Diagonale: tocca due spigoli di una stanza e scrivi la misura (fuori squadra, trilaterazione)"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1" stroke-width="1.3"/><path d="M5 18L19 6" stroke-dasharray="2.5 2"/><circle cx="5" cy="18" r="1.6"/><circle cx="19" cy="6" r="1.6"/></svg><span>Diagonale</span></button></div></div><button class="tb" data-guide="1" title="Misura guidata: ti porta da un tratto da misurare al successivo, stanza per stanza"><svg viewBox="0 0 24 24"><path d="M3 17h12M3 17v-3M15 17v-3M7 17v-2M11 17v-2"/><path d="M14 7h7M18 4l3 3-3 3"/></svg><span>Prossima</span></button><div class="tg" data-g="note"><button class="tb" data-fly="note" data-auto="1"><svg viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z"/><path d="M8 11h8M8 15h5"/></svg><span>Note</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="ink" title="Scrivi o disegna a mano libera con la penna (due dita: zoom e spostamento)"><svg viewBox="0 0 24 24"><path d="M4 20l1-5L16 4l4 4L9 19z"/><path d="M14 6l4 4"/><path d="M3 21c3-1 5 1 8 0" stroke-width="1.3"/></svg><span>A mano</span></button><button class="tb" data-mode="text" title="Nota scritta con la tastiera"><svg viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg><span>Testo</span></button><button class="tb" data-mode="gomma" title="Passa sopra ai tratti a mano per cancellarli"><svg viewBox="0 0 24 24"><path d="M8 20h12"/><path d="M5 15l9-9 5 5-8 8H8z"/><path d="M10 10l5 5"/></svg><span>Gomma</span></button></div></div><div class="tg" data-g="disegno"><button class="tb" data-fly="disegno" data-auto="1"><svg viewBox="0 0 24 24"><path d="M3 21l7-7"/><path d="M14 3l7 7-9 9-3-1-1-3z"/><path d="M3 9h6M6 6v6" stroke-width="1.4"/></svg><span>Disegno</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="linea" title="Linea dritta: si aggancia a spigoli, estremi e incroci; poi scrivi la lunghezza"><svg viewBox="0 0 24 24"><path d="M4 20L20 4"/><circle cx="4" cy="20" r="1.8"/><circle cx="20" cy="4" r="1.8"/></svg><span>Linea</span></button><button class="tb" data-mode="costr" title="Linea di costruzione (proiezioni): tratteggiata, solo per agganciarsi, non va nello script"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20" stroke-dasharray="2.5 2"/></svg><span>Costruzione</span></button><button class="tb" data-mode="paral" title="Parallela a distanza: tocchi una linea, poi il lato dove va, e scrivi la distanza"><svg viewBox="0 0 24 24"><path d="M3 18h18M3 8h18" /><path d="M12 17v-8M10 11l2-2 2 2M10 15l2 2 2-2" stroke-width="1.4"/></svg><span>Parallela</span></button><button class="tb" data-mode="taglia" title="Taglia: tocchi il pezzo di linea da togliere, fra due incroci o fra un incrocio e la fine"><svg viewBox="0 0 24 24"><path d="M3 12h7M14 12h7" /><path d="M12 4v16" stroke-width="1.4"/><path d="M8 9l3 3-3 3" stroke-width="1.3"/></svg><span>Taglia</span></button><button class="tb" data-mode="estendi" title="Estendi: tocchi una linea vicino alla fine da allungare; arriva fino alla prima linea che incontra"><svg viewBox="0 0 24 24"><path d="M3 12h9" /><path d="M12 12h6" stroke-dasharray="2 2"/><path d="M20 4v16" stroke-width="1.4"/><path d="M15 9l3 3-3 3" stroke-width="1.3"/></svg><span>Estendi</span></button><button class="tb" data-csvis="1" title="Mostra o nascondi le linee di costruzione"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Vedi costr.</span></button></div></div><button class="tb" data-foto="1" title="Tocca dove ti trovi e scatta"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Foto</span></button><button class="tb" data-nord="1"><svg viewBox="0 0 24 24"><path d="M12 2l5 18-5-4-5 4z"/><path d="M12 2v14"/></svg><span>Nord</span></button><button class="tb" data-bg="1" title="Planimetria di sfondo da ricalcare (JPEG)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.6"/></svg><span>Sfondo</span></button></div>
         <div class="tcl"><button class="tb sm" id="bZo"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M7.5 10.5h6"/></svg><span>Zoom −</span></button><button class="tb sm" id="bZi"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M7.5 10.5h6M10.5 7.5v6"/></svg><span>Zoom +</span></button><button class="tb sm" id="bFit"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg><span>Adatta</span></button><span class="tsep"></span><button class="tb sm" data-cat="layer" title="Layer: accendi, spegni e blocca"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5M3 16.5l9 5 9-5" stroke-width="1.4"/></svg><span>Layer</span></button><button class="tb sm" id="bFull">${ui.full ? '<svg viewBox="0 0 24 24"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg><span>Esci</span>' : '<svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span>Schermo</span>'}</button></div>
       </div>
-      <div id="cv"><svg id="svg"></svg><div id="appan" hidden></div><div id="vrot"><button id="bRotL" title="Ruota la vista di 90° in senso antiorario"><svg viewBox="0 0 24 24"><path d="M9 4.5A8 8 0 1 0 19.5 9"/><path d="M9 1.5v4.2h4.2" transform="rotate(-15 9 4.5)"/></svg></button><button id="bRot0" title="Rotazione della vista: tocca per tornare a 0°">0°</button><button id="bRotR" title="Ruota la vista di 90° in senso orario"><svg viewBox="0 0 24 24"><path d="M15 4.5A8 8 0 1 1 4.5 9"/><path d="M15 1.5v4.2h-4.2" transform="rotate(15 15 4.5)"/></svg></button></div><div id="empty"></div><div id="toast"></div></div>
+      <div id="cv"><svg id="svg"></svg>${tastoPiani()}<div id="appan" hidden></div><div id="vrot"><button id="bRotL" title="Ruota la vista di 90° in senso antiorario"><svg viewBox="0 0 24 24"><path d="M9 4.5A8 8 0 1 0 19.5 9"/><path d="M9 1.5v4.2h4.2" transform="rotate(-15 9 4.5)"/></svg></button><button id="bRot0" title="Rotazione della vista: tocca per tornare a 0°">0°</button><button id="bRotR" title="Ruota la vista di 90° in senso orario"><svg viewBox="0 0 24 24"><path d="M15 4.5A8 8 0 1 1 4.5 9"/><path d="M15 1.5v4.2h-4.2" transform="rotate(15 15 4.5)"/></svg></button></div><div id="empty"></div><div id="toast"></div></div>
       <div class="legend"><span><i style="border-color:var(--wP)"></i>perimetrali</span><span><i style="border-color:var(--wI)"></i>tramezzi</span><span><i style="border-color:var(--wR)"></i>infissi</span><span><i style="border-color:var(--mut);border-top-style:dashed"></i>vano porta (solo qui)</span><span>▭ casella vuota: lato da misurare (toccala per scrivere)</span><span>numero grigio: ricavato dalle tue misure</span><span>sui lati con vani: parziali tra spigoli e vani; il totale lo metti tu con «Quota»</span><span><em style="color:var(--mut)">corsivo grigio</em>: larghezza proposta, da misurare</span><span style="color:var(--bad)">in rosso: misura che non torna</span></div>
       <div id="fstrip"></div>
     </div><div id="sidecol"><button id="bCloseSide" class="sm" style="margin-bottom:6px;background:var(--card)">Chiudi pannello ✕</button><div class="card" id="side"></div><div class="card" id="msgs"></div></div></div>`;
     sizeCanvas(); bindCanvas(); if (!ui.fitted) { fit(); ui.fitted = true; }
     draw(); renderSide(); updTools(); showMore();
-  } else if (tab === 'calc') $('#main').innerHTML = banner + renderCalc();
+  } else if (tab === 'calc') $('#main').innerHTML = banner + tastoPiani() + renderCalc();
   else if (tab === 'foto') { $('#main').innerHTML = banner + '<div id="fotoTab"></div>'; renderFotoTab(); }
   else $('#main').innerHTML = banner + renderSet();
   loadFotos();
@@ -3651,7 +3665,7 @@ function alliPick(sp) {
 }
 function sagPanHtml() {
   const pl = piano(), others = R.piani.filter(pp => pp !== pl), ref = sagRef(pl), off = lOff('G');
-  if (!others.length) return '<div class="aphint">Sagoma: aggiungi un altro piano con «+ Piano» per vedere qui i suoi muri perimetrali.</div>';
+  if (!others.length) return '<div class="aphint">Sagoma: aggiungi un altro piano (tasto del piano in basso a sinistra) per vedere qui i suoi muri perimetrali.</div>';
   const opt = others.map(pp => `<option value="${pp.id}" ${ref === pp ? 'selected' : ''}>${esc(pp.nome)}${sagHas(pp) ? '' : ' (senza muri perimetrali)'}</option>`).join('');
   return `<div class="sagb"><label class="aphint" style="margin:6px 0 2px;display:block">Sagoma di:</label><select data-sag="1" style="width:100%"${off ? ' disabled' : ''}>${ref ? '' : '<option value="" selected>—</option>'}${opt}</select>
     <button class="sm${ui.alli ? ' on' : ''}" id="bAlli" style="width:100%;margin-top:4px"${off || !sagGeo(pl) || !pl.walls.length ? ' disabled' : ''}>${ui.alli ? 'Annulla allineamento' : 'Allinea questo piano alla sagoma'}</button>
@@ -4333,6 +4347,7 @@ document.addEventListener('click', e => {
     toast(r.ok ? `Stanza fuori squadra: ${r.ok} muri ora sono obliqui, il più lungo resta dritto come riferimento.${r.lost ? ` ${r.lost === 1 ? 'Una parziale dei vani va riscritta' : r.lost + ' parziali dei vani vanno riscritte'} (il lato passava su più muri).` : ''}` : 'Nessun muro da rendere obliquo in questa stanza.'); return; }
   if (id === 'bDelQ') { pushUndo(); const qid = ui.sel && ui.sel.id; pl.dims = (pl.dims || []).filter(d => d.id !== qid); pl.mord = (pl.mord || []).filter(k => k !== 'q:' + qid); ui.sel = null; update(true); return; }
   if (id === 'bFull') return setFull(!ui.full);
+  if (id === 'bPiani') return apriPiani();
   if (id === 'bCloseSide') { ui.sel = null; draw(); renderSide(); return; }
   if (id === 'bZi') return zoomAt(1.25, ui.W / 2, ui.H / 2);
   if (id === 'bZo') return zoomAt(1 / 1.25, ui.W / 2, ui.H / 2);
@@ -4347,7 +4362,7 @@ document.addEventListener('click', e => {
     if (id === 'bLinkS' || id === 'bLinkAll') {
       const up = scs.dir !== 'scende', vano = ui.copyVano !== false ? vanoWalls(pl, scs) : [];
       const last = up ? (id === 'bLinkAll' ? R.piani.length - 1 : R.cur + 1) : R.cur - 1;
-      if (!R.piani[last] || last === R.cur) { toast(up ? 'Aggiungi prima il piano superiore con «+ Piano».' : 'Non c\'è un piano inferiore.'); return; }
+      if (!R.piani[last] || last === R.cur) { toast(up ? 'Aggiungi prima il piano superiore (tasto del piano in basso a sinistra).' : 'Non c\'è un piano inferiore.'); return; }
       const fl = f => ({n:f.n, a:f.a, n1:f.n1});
       let made = 0, nw = 0, prev = scs;
       const step = (ti, dir, vals) => { const tp = R.piani[ti]; let o = (tp.stairs || []).find(x => x.link === scs.link);
@@ -4422,10 +4437,42 @@ document.addEventListener('input', e => {
 });
 document.addEventListener('change', e => { const sg = e.target.closest && e.target.closest('#appan [data-sag]'); if (!sg) return;
   const pl = piano(); if (sg.value) pl.sagP = sg.value; else delete pl.sagP; ui.alli = null; updApPan(); if (!pl.walls.length) fit(); draw(); save(); });
-$('#selPiano').onchange = e => { R.cur = +e.target.value; ui.alli = null; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); save(); };
-$('#bAddPiano').onclick = () => { const n = prompt('Nome del nuovo piano:', 'Piano primo'); if (!n) return; R.piani.push({id:uid(), nome:n, ver:0, nodes:[], walls:[], rooms:[]}); R.cur = R.piani.length - 1; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); save(); };
-$('#bRenPiano').onclick = () => { const n = prompt('Nuovo nome del piano:', piano().nome); if (!n) return; piano().nome = n; render(); save(); };
-$('#bDelPiano').onclick = () => { if (R.piani.length < 2) { alert('Deve restare almeno un piano.'); return; } if (!confirm('Eliminare il piano «' + piano().nome + '» con tutti i suoi muri e le sue foto?')) return; { const pid = piano().id; (ui.fotos || []).filter(f => f.piano === pid).forEach(f => fDel(f.id).catch(() => {})); ui.fotos = (ui.fotos || []).filter(f => f.piano !== pid); } R.piani.splice(R.cur, 1); R.cur = 0; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); save(); };
+/* ---- piani: tasto in basso a sinistra (come magicplan); R.piani è in ordine dal basso: scale e sagoma contano sull'ordine ---- */
+const LIVELLI = {'Interrato':-2, 'Seminterrato':-1, 'Piano terra':0, 'Piano rialzato':0.5, 'Piano primo':1, 'Piano secondo':2, 'Piano terzo':3, 'Piano quarto':4, 'Piano quinto':5, 'Sottotetto':90, 'Copertura':91};
+const PIANI_COMUNI = ['Piano terra', 'Piano primo', 'Piano secondo', 'Piano terzo'];
+const livello = n => { const k = Object.keys(LIVELLI).find(k => k.toLowerCase() === String(n).trim().toLowerCase()); return k ? LIVELLI[k] : null; };
+function tastoPiani() { return `<button id="bPiani" title="Piani del rilievo"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5zM3 12.5l9 5 9-5M3 17l9 5 9-5"/></svg><span>${esc(piano().nome)}</span><svg viewBox="0 0 24 24"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg></button>`; }
+function cambiaPiano(i) { R.cur = i; ui.alli = null; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); save(); }
+// il piano nuovo va sotto il primo piano di livello più alto; con un nome scritto a mano va in cima
+function aggiungiPiano(nome) { const L = livello(nome); let i = L === null ? -1 : R.piani.findIndex(p => livello(p.nome) !== null && livello(p.nome) > L); if (i < 0) i = R.piani.length;
+  R.piani.splice(i, 0, {id:uid(), nome, ver:0, nodes:[], walls:[], rooms:[]}); cambiaPiano(i); }
+function rinominaPiano(i) { const n = prompt('Nuovo nome del piano:', R.piani[i].nome); if (!n) return; R.piani[i].nome = n; render(); save(); }
+function eliminaPiano(i) { if (R.piani.length < 2) { alert('Deve restare almeno un piano.'); return; } if (!confirm('Eliminare il piano «' + R.piani[i].nome + '» con tutti i suoi muri e le sue foto?')) return;
+  const pid = R.piani[i].id, aperto = piano().id; (ui.fotos || []).filter(f => f.piano === pid).forEach(f => fDel(f.id).catch(() => {})); ui.fotos = (ui.fotos || []).filter(f => f.piano !== pid);
+  R.piani.splice(i, 1); const k = R.piani.findIndex(p => p.id === aperto); if (k < 0) return cambiaPiano(0); R.cur = k; render(); save(); }
+function miniPiano(pl) { if (!pl.walls.length) return '<svg viewBox="0 0 10 10"></svg>';
+  const x = pl.nodes.map(n => n.x), y = pl.nodes.map(n => n.y), x0 = Math.min(...x) - 0.4, y1 = Math.max(...y) + 0.4;
+  return `<svg viewBox="0 0 ${Math.max(...x) + 0.4 - x0} ${y1 - Math.min(...y) + 0.4}">` + pl.walls.map(w => { const a = nd(pl, w.a), b = nd(pl, w.b); return `<line x1="${a.x - x0}" y1="${y1 - a.y}" x2="${b.x - x0}" y2="${y1 - b.y}" stroke="currentColor" stroke-width="${Math.max(thick(w), 0.07)}" stroke-linecap="square" opacity="${w.tipo === 'S' || w.tipo === 'W' ? 0.45 : 1}"/>`; }).join('') + '</svg>'; }
+// elenco = nomi del piano da aggiungere; altrimenti le miniature (menu = piano con i tre puntini aperti)
+function apriPiani(elenco, menu) { closeInline(true); const dlg = $('#dPiani'), n = R.piani.length;
+  const testa = t => `<div class="cardh">${t} <span class="sp"></span><button data-pchiudi>Chiudi</button></div>`;
+  if (elenco) { const usati = R.piani.map(p => p.nome.trim().toLowerCase()), voci = l => l.filter(v => !usati.includes(v.toLowerCase())).map(v => `<button data-pnome="${v}">${v}</button>`).join('');
+    const comuni = voci(PIANI_COMUNI);
+    dlg.innerHTML = testa('Aggiungi piano') + (comuni ? `<h3>Più usati</h3><div class="plist">${comuni}</div>` : '') + `<h3>Altri piani</h3><div class="plist">${voci(Object.keys(LIVELLI).filter(v => !PIANI_COMUNI.includes(v)))}<button data-paltro>Altro nome…</button></div>`;
+  } else dlg.innerHTML = testa(`Tutti i piani <small>${n} ${n === 1 ? 'piano' : 'piani'}</small>`) + `<div class="pgrid"><div><button class="pcard padd" data-padd>+</button><div class="pnome">Aggiungi piano</div></div>`
+    + R.piani.map((p, i) => `<div><div class="pwrap"><button class="pcard${i === R.cur ? ' cur' : ''}" data-pvai="${i}">${miniPiano(p)}</button><button class="pdots" data-pmenu="${i}" title="Rinomina o elimina">•••</button>${menu === i ? `<div class="pmenu"><button data-pren="${i}">Rinomina</button><button class="bad" data-pdel="${i}">Elimina</button></div>` : ''}</div><div class="pnome">${esc(p.nome)}</div></div>`).join('') + '</div>';
+  ui.pmenu = menu; if (!dlg.open) dlg.showModal(); }
+$('#dPiani').addEventListener('click', e => { const dlg = $('#dPiani'), t = e.target.closest('button'); e.stopPropagation();
+  if (!t) { if (e.target === dlg) { const r = dlg.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) dlg.close(); } return; }   // tocco fuori: chiude
+  const d = t.dataset;
+  if ('pchiudi' in d) dlg.close();
+  else if ('padd' in d) apriPiani(true);
+  else if (d.pvai) { dlg.close(); if (+d.pvai !== R.cur) cambiaPiano(+d.pvai); }
+  else if (d.pmenu) apriPiani(false, ui.pmenu === +d.pmenu ? undefined : +d.pmenu);
+  else if (d.pren) { rinominaPiano(+d.pren); apriPiani(); }
+  else if (d.pdel) { eliminaPiano(+d.pdel); apriPiani(); }
+  else if (d.pnome) { dlg.close(); aggiungiPiano(d.pnome); }
+  else if ('paltro' in d) { const n = (prompt('Nome del nuovo piano:') || '').trim(); if (n) { dlg.close(); aggiungiPiano(n); } } });
 $('#bNew').onclick = () => { const n = blank(); n.id = uid(); n.unexp = true; n.mod = new Date().toISOString(); arcPut(n); ui.mode = 'draw'; ui.newType = 'P'; openRilievo(n); toast('Nuovo rilievo: il precedente resta nell\'Archivio.'); };
 /* ---- scheda del rilievo: pagine A4 (dati della pratica, una pianta per piano) da salvare in PDF con «Stampa» ---- */
 function schedaPiante() {   // disegna ogni piano su un foglio fisso, senza selezioni, senza rotazione e senza griglia

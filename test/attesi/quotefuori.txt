@@ -22,4 +22,5 @@ X 5,00 da «Totale X della Xa»: quota 5,00, dal X 5,00, avvisi 0, torna, X []
 X 4,60 da «Totale X della Xa»: quota 4,60, dal X 5,00, avvisi 1, non torna, X []
 Xra Xa dopo: quota 5,00, dal X 5,00, avvisi 0, torna, X []
 Xa: qdopo quota 5,00, dal X 5,00, avvisi 0, torna, X [] ["5,00"]
+Xcie X alla casa Camera,Camera,Camera | FX a destra 5,30 | FX a Xa 5,30 | FX in alto 7,30 | FX in basso 7,30
 errors []

@@ -37,7 +37,7 @@ const { chromium } = require('playwright');
   await p.click('[data-cat="layer"]'); await p.waitForTimeout(80);
   out.pannello = await p.evaluate(() => ({riga:[...document.querySelectorAll('#appan .lyr .lyn')].map(e => e.textContent).includes('Sagoma altro piano'), scelte:[...document.querySelectorAll('#appan [data-sag] option')].map(o => o.textContent), bottone:$('#bAlli') && $('#bAlli').textContent}));
   await p.screenshot({path:OUT + '/sagoma_pannello.png'});
-  await p.evaluate(() => { $('#selPiano').value = '0'; $('#selPiano').dispatchEvent(new Event('change')); });
+  await p.evaluate(() => { cambiaPiano(0); });
   out.terraSagoma = await p.evaluate(() => ({rif:(sagRef(piano()) || {}).nome, scelte:[...document.querySelectorAll('#appan [data-sag] option')].map(o => o.textContent)}));
   // 6) piano secondo disegnato fuori posto (sagoma spenta), scelgo come sagoma il piano terra e allineo con due tocchi
   await p.evaluate(() => { R.piani.push({id:uid(), nome:'Piano secondo', ver:0, nodes:[], walls:[], rooms:[]}); R.cur = 2; ui.sel = null; render(); ui.view = {x:-6, y:-6, s:40}; lSet('G', 'off', true); G = geometry(piano());

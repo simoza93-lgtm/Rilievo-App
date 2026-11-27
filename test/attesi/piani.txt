@@ -1,0 +1,29 @@
+in alto X X dei piani: false
+tasto in basso a Xa a X intero: true
+[Piano terra] 16 muri — tasto «Piano terra»
+Xre: 1 con muri Xti: true
+nomi Xi: Piano primo, Piano X, Piano terzo, IXo, SXrato, Piano Xo, Piano quarto, Piano quinto, SXto, CXa
+Xo Piano X: Piano terra 16 muri | [Piano X] 0 muri — tasto «Piano X»
+Xo Piano primo: Piano terra 16 muri | [Piano primo] 0 muri | Piano X 0 muri — tasto «Piano primo»
+Xo IXo: [IXo] 0 muri | Piano terra 16 muri | Piano primo 0 muri | Piano X 0 muri — tasto «IXo»
+nomi X: Piano terzo, SXrato, Piano Xo, Piano quarto, Piano quinto, SXto, CXa
+  X: Nome del nuovo piano:
+IXo 0 muri | Piano terra 16 muri | Piano primo 0 muri | Piano X 0 muri | [SX] 0 muri — tasto «SX»
+X la X Xra: IXo 0 muri | [Piano terra] 16 muri | Piano primo 0 muri | Piano X 0 muri | SX 0 muri — tasto «Piano terra» Xa chiusa: true
+  X: Nuovo nome del piano:
+Xato: IXo 0 muri | [Piano terra] 16 muri | Piano primo 0 muri | Piano X 0 muri | SXto 0 muri — tasto «Piano terra»
+  X: EXe il piano «IXo» con tutti i suoi muri e le sue foto?
+Xta: IXo 0 muri | [Piano terra] 16 muri | Piano primo 0 muri | Piano X 0 muri | SXto 0 muri — tasto «Piano terra»
+  X: EXe il piano «IXo» con tutti i suoi muri e le sue foto?
+Xto l'Xto: [Piano terra] 16 muri | Piano primo 0 muri | Piano X 0 muri | SXto 0 muri — tasto «Piano terra»
+  X: EXe il piano «Piano terra» con tutti i suoi muri e le sue foto?
+Xto quello aperto: [Piano primo] 0 muri | Piano X 0 muri | SXto 0 muri — tasto «Piano primo»
+  a X intero dopo le X: false
+in Calcoli scelto il X: calc Piano X / Piano X
+  X: 
+Xa: Piano primo 0 muri | [Piano X] 0 muri | SXto 0 muri — tasto «Piano X»
+  X: EXe il piano «Piano primo» con tutti i suoi muri e le sue foto?
+  X: EXe il piano «Piano X» con tutti i suoi muri e le sue foto?
+  X: Deve X almeno un piano.
+ultimo piano: [SXto] 0 muri — tasto «SXto»
+errors []

@@ -53,5 +53,9 @@ const { chromium } = require('playwright');
   await p.waitForTimeout(1500); await p.reload(); await p.waitForTimeout(600);
   await p.evaluate(() => { tab = 'pianta'; render(); update(true); });
   console.log('riaperta:', await p.evaluate(() => R && R.id), await totale(), await p.evaluate(() => JSON.stringify(Object.values(piano().fm || {}).filter(Boolean))));
+  // schermata del 27 novembre 2026: terrazzo disegnato con «Superficie» e lasciato «Camera»: i muri verso di lui si quotano
+  console.log('superficie attorno alla casa', await p.evaluate(() => { const st = (pts, tipo) => { ui.newType = tipo; const s = []; for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], c = pts[i + 1]; for (let k = 0; k < 6; k++) s.push([SX(a[0] + (c[0] - a[0]) * k / 6), SY(a[1] + (c[1] - a[1]) * k / 6)]); } s.push([SX(pts[pts.length - 1][0]), SY(pts[pts.length - 1][1])]); finishStroke(s); update(true); };
+    R = blank(); R.id = 'qsup'; tab = 'pianta'; render(); ui.view = {x:-4, y:-9, s:55}; G = geometry(piano()); st([[0,0],[7,0],[7,5],[0,5],[0,0]], 'P'); st([[3,0],[3,5]], 'T'); st([[7,2.5],[8.6,2.5],[8.6,6.6],[-1.6,6.6],[-1.6,-1.6],[8.6,-1.6],[8.6,2.5]], 'S'); update(true);
+    return piano().rooms.map(r => r.dest).join(',') + ' | ' + G.facs.filter(f => !f.interno).map(f => f.nome + ' ' + f2(f.tot)).sort().join(' | '); }));
   console.log('errors', errs); await b.close();
 })();
