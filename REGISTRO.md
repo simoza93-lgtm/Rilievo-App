@@ -3,6 +3,15 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — «Elimina ambiente»: via anche i muri verso balconi e marciapiedi
+- **Difetto:** eliminando una stanza interna, i muri esterni con porte e finestre restavano: confinavano con marciapiede o balcone, contati come «ambienti in comune».
+- Ora, per una **stanza interna**, quei muri spariscono con porte e finestre. Restano solo quelli in comune con altre stanze interne.
+- **Scelta di Simone:** balcone e marciapiede restano chiusi: al posto del muro resta una linea «Superficie»; le linee appoggiate sulla faccia del vecchio muro vengono prolungate fino a lì. I loro m² cambiano un poco (nella prova: marciapiede da 12,32 a 12,76, balcone da 4,91 a 5,10, per lo spessore di 30 cm).
+- Se una misura di un lato rimasto non vale più perché il lato è cambiato, l'avviso la elenca («Da rimisurare…»). Le misure prese da dentro la stanza tolta se ne vanno con lei.
+- Eliminando un balcone, un terrazzo o un marciapiede non cambia niente rispetto a prima.
+- È «esterno» l'ambiente con destinazione Balcone, Terrazzo o Marciapiede, oppure con un lato tutto a «Superficie» o ringhiera. Limiti: una stanza interna con un lato tutto a ringhiera (soppalco) conta come esterna; i muri obliqui diventano linea ma le linee appoggiate su di loro non vengono prolungate.
+- Prova `test/eliminaambiente.js` estesa (con e senza balcone, annulla, avviso).
+
 ## 28 novembre 2026 — «Elimina ambiente» nel pannello
 - Selezionando un ambiente (anche terrazzi a «Superficie» e balconi con ringhiera), in cima al pannello c'è **«Elimina ambiente»**.
 - Toglie i muri, le superfici e le ringhiere che chiudono **solo quell'ambiente**, con le loro porte e finestre. **Quelli in comune con un'altra stanza restano.** Scale, pilastri e note non vengono toccati.
