@@ -5,13 +5,14 @@ rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact
 
 ## 27 novembre 2026 — Piani in basso a sinistra (come magicplan)
 - In alto non ci sono più la scelta del piano, «+ Piano», «Rinomina» ed «Elimina piano». C'è un **tasto col nome del piano in basso a sinistra sul disegno** (anche a schermo intero) e in cima a «Calcoli».
+- Il tasto c'è anche in cima a «Foto». Le domande (nuovo nome, conferma per eliminare) stanno dentro la finestra dei piani, così non si esce dallo schermo intero.
 - Il tasto apre **Tutti i piani**: miniature (solo i muri), «Aggiungi piano», e nei tre puntini **Rinomina** ed **Elimina**.
 - **Aggiungi piano** propone un elenco (Piano terra, primo, secondo, terzo; Interrato, Seminterrato, Piano rialzato, quarto, quinto, Sottotetto, Copertura) senza i nomi già usati, più «Altro nome…».
 - Il piano dell'elenco **va al suo livello** (l'interrato sotto il terra); quello con un nome scritto a mano va in cima. L'ordine conta per scale riportate e sagoma. I piani già esistenti non vengono riordinati.
 
 ## 27 novembre 2026 — Quote esterne mancanti accanto alle superfici
 - Un terrazzo disegnato con «Superficie» e lasciato con la destinazione di partenza («Camera») faceva credere all'app che i muri verso di lui fossero interni: **niente quota esterna** su quei lati (dal 26 novembre).
-- Ora, **per le quote**, tutto ciò che è chiuso con linee «Superficie» vale come esterno. Nomi, destinazioni, m² e dati salvati non cambiano.
+- Ora, **per le quote**, tutto ciò che è chiuso con linee «Superficie» vale come esterno. Nomi, destinazioni, m² e dati salvati non cambiano. Le quote ricompaiono a schermo e nella Scheda PDF; lo script AutoCAD non cambia (confrontato sulla pianta della schermata, senza misure scritte).
 - Visto e non corretto (c'era già): una linea «Superficie» che prosegue **a filo** di un muro può allungare la quota esterna di quel lato fino in fondo alla superficie.
 
 ## 27 novembre 2026 — Quote esterne non allineate vicino a balconi e ringhiere

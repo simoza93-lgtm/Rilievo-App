@@ -468,15 +468,15 @@
     "semantic_hash": ""
   },
   "REGISTRO.md": {
-    "mtime": 1795813246.9709058,
-    "seen": 1795813251.9951296,
-    "ast_hash": "e95bb2aab50460182e571a351f17e3a8",
+    "mtime": 1795813552.9409945,
+    "seen": 1795813700.285831,
+    "ast_hash": "e3277e1ec0f14f90bb20b76dd017089b",
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1795812929.4046583,
-    "seen": 1795813251.9951296,
-    "ast_hash": "67eff4720ac956559c681fb123296918",
+    "mtime": 1795813479.0104592,
+    "seen": 1795813700.285831,
+    "ast_hash": "e04b57e9d361ad91fc3f9c60ba4921b2",
     "semantic_hash": ""
   },
   "test/attesi/allinea.txt": {
@@ -1014,9 +1014,9 @@
     "semantic_hash": ""
   },
   "test/piani.js": {
-    "mtime": 1795813004.0773122,
-    "seen": 1795813251.9941156,
-    "ast_hash": "d1d790fd10994c61969bc5b0096ed4cd",
+    "mtime": 1795813523.4272316,
+    "seen": 1795813700.285831,
+    "ast_hash": "1c5c8ac5c0b45e941af985b332081baa",
     "semantic_hash": ""
   },
   "test/attesi/piani.txt": {

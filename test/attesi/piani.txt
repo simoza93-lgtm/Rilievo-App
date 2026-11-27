@@ -7,10 +7,10 @@ Xo Piano X: Piano terra 16 muri | [Piano X] 0 muri — tasto «Piano X»
 Xo Piano primo: Piano terra 16 muri | [Piano primo] 0 muri | Piano X 0 muri — tasto «Piano primo»
 Xo IXo: [IXo] 0 muri | Piano terra 16 muri | Piano primo 0 muri | Piano X 0 muri — tasto «IXo»
 nomi X: Piano terzo, SXrato, Piano Xo, Piano quarto, Piano quinto, SXto, CXa
-  X: Nome del nuovo piano:
+  X: Nome del nuovo piano
 IXo 0 muri | Piano terra 16 muri | Piano primo 0 muri | Piano X 0 muri | [SX] 0 muri — tasto «SX»
 X la X Xra: IXo 0 muri | [Piano terra] 16 muri | Piano primo 0 muri | Piano X 0 muri | SX 0 muri — tasto «Piano terra» Xa chiusa: true
-  X: Nuovo nome del piano:
+  X: Nuovo nome del piano
 Xato: IXo 0 muri | [Piano terra] 16 muri | Piano primo 0 muri | Piano X 0 muri | SXto 0 muri — tasto «Piano terra»
   X: EXe il piano «IXo» con tutti i suoi muri e le sue foto?
 Xta: IXo 0 muri | [Piano terra] 16 muri | Piano primo 0 muri | Piano X 0 muri | SXto 0 muri — tasto «Piano terra»
@@ -18,9 +18,9 @@ Xta: IXo 0 muri | [Piano terra] 16 muri | Piano primo 0 muri | Piano X 0 muri | 
 Xto l'Xto: [Piano terra] 16 muri | Piano primo 0 muri | Piano X 0 muri | SXto 0 muri — tasto «Piano terra»
   X: EXe il piano «Piano terra» con tutti i suoi muri e le sue foto?
 Xto quello aperto: [Piano primo] 0 muri | Piano X 0 muri | SXto 0 muri — tasto «Piano primo»
-  a X intero dopo le X: false
+ancora a X intero dopo Xe, Xe ed Xzioni: true
 in Calcoli scelto il X: calc Piano X / Piano X
-  X: 
+in Foto si vede il piano: Piano X
 Xa: Piano primo 0 muri | [Piano X] 0 muri | SXto 0 muri — tasto «Piano X»
   X: EXe il piano «Piano primo» con tutti i suoi muri e le sue foto?
   X: EXe il piano «Piano X» con tutti i suoi muri e le sue foto?

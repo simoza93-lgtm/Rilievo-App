@@ -124,6 +124,10 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .pmenu button{min-width:140px;min-height:44px}
 .pnome{text-align:center;font-weight:600;margin-top:6px}
 .plist{display:flex;flex-direction:column}
+.pask{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 0 14px;padding:12px;border:1px solid var(--line);border-radius:12px}
+.pask label{width:100%;margin:0}
+.pask input{flex:1;min-width:180px}
+.pask button{min-height:44px;min-width:110px}
 .plist button{min-height:48px;text-align:left;border-width:0 0 1px;border-radius:0}
 .arow{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px}
 .dxu{display:block;margin:5px 0}.dxl{display:grid;grid-template-columns:18px 1fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}.dxl .sw{width:16px;height:16px;border-radius:4px;border:1px solid var(--line)}
@@ -2534,7 +2538,7 @@ function render() {
     sizeCanvas(); bindCanvas(); if (!ui.fitted) { fit(); ui.fitted = true; }
     draw(); renderSide(); updTools(); showMore();
   } else if (tab === 'calc') $('#main').innerHTML = banner + tastoPiani() + renderCalc();
-  else if (tab === 'foto') { $('#main').innerHTML = banner + '<div id="fotoTab"></div>'; renderFotoTab(); }
+  else if (tab === 'foto') { $('#main').innerHTML = banner + tastoPiani() + '<div id="fotoTab"></div>'; renderFotoTab(); }
   else $('#main').innerHTML = banner + renderSet();
   loadFotos();
 }
@@ -4446,22 +4450,29 @@ function cambiaPiano(i) { R.cur = i; ui.alli = null; ui.sel = null; ui.undo = []
 // il piano nuovo va sotto il primo piano di livello più alto; con un nome scritto a mano va in cima
 function aggiungiPiano(nome) { const L = livello(nome); let i = L === null ? -1 : R.piani.findIndex(p => livello(p.nome) !== null && livello(p.nome) > L); if (i < 0) i = R.piani.length;
   R.piani.splice(i, 0, {id:uid(), nome, ver:0, nodes:[], walls:[], rooms:[]}); cambiaPiano(i); }
-function rinominaPiano(i) { const n = prompt('Nuovo nome del piano:', R.piani[i].nome); if (!n) return; R.piani[i].nome = n; render(); save(); }
-function eliminaPiano(i) { if (R.piani.length < 2) { alert('Deve restare almeno un piano.'); return; } if (!confirm('Eliminare il piano «' + R.piani[i].nome + '» con tutti i suoi muri e le sue foto?')) return;
+function rinominaPiano(i, n) { if (!n) return; R.piani[i].nome = n; render(); save(); }
+function eliminaPiano(i) { if (R.piani.length < 2) return;
   const pid = R.piani[i].id, aperto = piano().id; (ui.fotos || []).filter(f => f.piano === pid).forEach(f => fDel(f.id).catch(() => {})); ui.fotos = (ui.fotos || []).filter(f => f.piano !== pid);
   R.piani.splice(i, 1); const k = R.piani.findIndex(p => p.id === aperto); if (k < 0) return cambiaPiano(0); R.cur = k; render(); save(); }
 function miniPiano(pl) { if (!pl.walls.length) return '<svg viewBox="0 0 10 10"></svg>';
   const x = pl.nodes.map(n => n.x), y = pl.nodes.map(n => n.y), x0 = Math.min(...x) - 0.4, y1 = Math.max(...y) + 0.4;
   return `<svg viewBox="0 0 ${Math.max(...x) + 0.4 - x0} ${y1 - Math.min(...y) + 0.4}">` + pl.walls.map(w => { const a = nd(pl, w.a), b = nd(pl, w.b); return `<line x1="${a.x - x0}" y1="${y1 - a.y}" x2="${b.x - x0}" y2="${y1 - b.y}" stroke="currentColor" stroke-width="${Math.max(thick(w), 0.07)}" stroke-linecap="square" opacity="${w.tipo === 'S' || w.tipo === 'W' ? 0.45 : 1}"/>`; }).join('') + '</svg>'; }
+// la domanda sta dentro la finestra: prompt/confirm del browser fanno uscire dallo schermo intero. q = {k:'ren'|'del'|'altro', i}
+function domandaPiani(q) { if (!q) return '';
+  if (q.k === 'del') return R.piani.length < 2 ? '<div class="msg w">Deve restare almeno un piano.</div>'
+    : `<div class="pask"><b>Eliminare il piano «${esc(R.piani[q.i].nome)}» con tutti i suoi muri e le sue foto?</b><button class="bad" data-psi="${q.i}">Elimina</button><button data-pno>Annulla</button></div>`;
+  return `<form class="pask"><label class="l" for="pNome">${q.k === 'ren' ? 'Nuovo nome del piano' : 'Nome del nuovo piano'}</label><input id="pNome" value="${q.k === 'ren' ? esc(R.piani[q.i].nome) : ''}" autocomplete="off"><button class="pri">OK</button><button type="button" data-pno>Annulla</button></form>`; }
 // elenco = nomi del piano da aggiungere; altrimenti le miniature (menu = piano con i tre puntini aperti)
-function apriPiani(elenco, menu) { closeInline(true); const dlg = $('#dPiani'), n = R.piani.length;
+function apriPiani(elenco, menu, q) { closeInline(true); const dlg = $('#dPiani'), n = R.piani.length;
   const testa = t => `<div class="cardh">${t} <span class="sp"></span><button data-pchiudi>Chiudi</button></div>`;
   if (elenco) { const usati = R.piani.map(p => p.nome.trim().toLowerCase()), voci = l => l.filter(v => !usati.includes(v.toLowerCase())).map(v => `<button data-pnome="${v}">${v}</button>`).join('');
     const comuni = voci(PIANI_COMUNI);
-    dlg.innerHTML = testa('Aggiungi piano') + (comuni ? `<h3>Più usati</h3><div class="plist">${comuni}</div>` : '') + `<h3>Altri piani</h3><div class="plist">${voci(Object.keys(LIVELLI).filter(v => !PIANI_COMUNI.includes(v)))}<button data-paltro>Altro nome…</button></div>`;
-  } else dlg.innerHTML = testa(`Tutti i piani <small>${n} ${n === 1 ? 'piano' : 'piani'}</small>`) + `<div class="pgrid"><div><button class="pcard padd" data-padd>+</button><div class="pnome">Aggiungi piano</div></div>`
+    dlg.innerHTML = testa('Aggiungi piano') + domandaPiani(q) + (comuni ? `<h3>Più usati</h3><div class="plist">${comuni}</div>` : '') + `<h3>Altri piani</h3><div class="plist">${voci(Object.keys(LIVELLI).filter(v => !PIANI_COMUNI.includes(v)))}<button data-paltro>Altro nome…</button></div>`;
+  } else dlg.innerHTML = testa(`Tutti i piani <small>${n} ${n === 1 ? 'piano' : 'piani'}</small>`) + domandaPiani(q) + `<div class="pgrid"><div><button class="pcard padd" data-padd>+</button><div class="pnome">Aggiungi piano</div></div>`
     + R.piani.map((p, i) => `<div><div class="pwrap"><button class="pcard${i === R.cur ? ' cur' : ''}" data-pvai="${i}">${miniPiano(p)}</button><button class="pdots" data-pmenu="${i}" title="Rinomina o elimina">•••</button>${menu === i ? `<div class="pmenu"><button data-pren="${i}">Rinomina</button><button class="bad" data-pdel="${i}">Elimina</button></div>` : ''}</div><div class="pnome">${esc(p.nome)}</div></div>`).join('') + '</div>';
-  ui.pmenu = menu; if (!dlg.open) dlg.showModal(); }
+  ui.pmenu = menu; ui.pask = q; if (!dlg.open) dlg.showModal(); const c = $('#pNome'); if (c) { c.focus(); c.select(); } }
+$('#dPiani').addEventListener('submit', e => { e.preventDefault(); const q = ui.pask, n = $('#pNome').value.trim(); if (!q || !n) return;
+  if (q.k === 'ren') { rinominaPiano(q.i, n); apriPiani(); } else { $('#dPiani').close(); aggiungiPiano(n); } });
 $('#dPiani').addEventListener('click', e => { const dlg = $('#dPiani'), t = e.target.closest('button'); e.stopPropagation();
   if (!t) { if (e.target === dlg) { const r = dlg.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) dlg.close(); } return; }   // tocco fuori: chiude
   const d = t.dataset;
@@ -4469,10 +4480,12 @@ $('#dPiani').addEventListener('click', e => { const dlg = $('#dPiani'), t = e.ta
   else if ('padd' in d) apriPiani(true);
   else if (d.pvai) { dlg.close(); if (+d.pvai !== R.cur) cambiaPiano(+d.pvai); }
   else if (d.pmenu) apriPiani(false, ui.pmenu === +d.pmenu ? undefined : +d.pmenu);
-  else if (d.pren) { rinominaPiano(+d.pren); apriPiani(); }
-  else if (d.pdel) { eliminaPiano(+d.pdel); apriPiani(); }
+  else if (d.pren) apriPiani(false, undefined, {k:'ren', i:+d.pren});
+  else if (d.pdel) apriPiani(false, undefined, {k:'del', i:+d.pdel});
+  else if (d.psi) { eliminaPiano(+d.psi); apriPiani(); }
+  else if ('pno' in d) apriPiani(ui.pask && ui.pask.k === 'altro');
   else if (d.pnome) { dlg.close(); aggiungiPiano(d.pnome); }
-  else if ('paltro' in d) { const n = (prompt('Nome del nuovo piano:') || '').trim(); if (n) { dlg.close(); aggiungiPiano(n); } } });
+  else if ('paltro' in d) apriPiani(true, undefined, {k:'altro'}); });
 $('#bNew').onclick = () => { const n = blank(); n.id = uid(); n.unexp = true; n.mod = new Date().toISOString(); arcPut(n); ui.mode = 'draw'; ui.newType = 'P'; openRilievo(n); toast('Nuovo rilievo: il precedente resta nell\'Archivio.'); };
 /* ---- scheda del rilievo: pagine A4 (dati della pratica, una pianta per piano) da salvare in PDF con «Stampa» ---- */
 function schedaPiante() {   // disegna ogni piano su un foglio fisso, senza selezioni, senza rotazione e senza griglia
