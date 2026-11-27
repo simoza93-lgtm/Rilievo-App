@@ -6,9 +6,9 @@ in stampa {"nuova":false,"grid":true}
 poi {"nuova":true,"muro":"#111418","stanze":5,"bian":1,"dots":true,"righe":false,"misure":59}
 dopo f5 {"nuova":true,"muro":"#111418","stanze":5,"bian":0,"dots":true,"righe":false,"misure":59}
 spenta {"nuova":false,"muro":"#2f3542","stanze":0,"bian":0,"dots":false,"righe":true,"misure":59}
-a X intero {"tasto":"CX","acceso":false,"Xe":true,"intero":true,"gn":false,"X":"X"}
-X {"tasto":"Muri neri","acceso":true,"Xe":true,"intero":true,"gn":true,"X":"nuova"}
+a X intero {"tasto":"Mod scura","barra":64,"acceso":false,"Xe":true,"intero":true,"gn":false,"X":"X"}
+X {"tasto":"Mod chiara","barra":64,"acceso":true,"Xe":true,"intero":true,"gn":true,"X":"nuova"}
 X in IXioni true
-dopo f5 {"tasto":"Muri neri","acceso":true,"Xe":true,"gn":true,"X":"nuova"}
-Xto {"tasto":"CX","acceso":false,"Xe":true,"gn":false,"X":"X"}
+dopo f5 {"tasto":"Mod chiara","barra":137,"acceso":true,"Xe":true,"gn":true,"X":"nuova"}
+Xto {"tasto":"Mod scura","barra":137,"acceso":false,"Xe":true,"gn":false,"X":"X"}
 errors []

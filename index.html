@@ -47,6 +47,7 @@ main{padding:12px 16px 40px;max-width:1600px;margin:0 auto}
 .tb:hover{background:var(--accbg)}
 .tb.on{background:var(--accbg);color:var(--acc);border:0;font-weight:700}
 .tb.sm{min-width:48px}
+#bGrafica{padding-left:1px;padding-right:1px}   /* «Mod chiara» è lungo: così a 1280 px a schermo intero la barra resta su una riga */
 .tb .car{position:absolute;right:4px;bottom:4px;width:0;height:0;border-left:5px solid transparent;border-bottom:5px solid currentColor;opacity:.55}
 .tg{position:relative;display:flex}
 .tfly{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);display:none;gap:2px;padding:4px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.22);z-index:40}
@@ -4217,7 +4218,7 @@ function renderSet() {
   <p class="hint">Per un muro diverso (portante interno, muro vecchio più spesso) selezionalo e scegli «Spessore diverso».</p></div>
   <div class="card"><div class="cardh">Limiti dei controlli</div><div class="grid">${i('rai', 'RAI minimo 1/…')}${i('hA', 'Altezza min. abitabili (m)')}${i('hC', 'Altezza min. accessori (m)')}${i('pedInt', 'Scale: pedata minima sul lato interno dei gradini ritoccati (m)')}</div>
   <p class="hint">Pedata minima sul lato interno: vuoto = nessun avviso. Valori di partenza del D.M. 5 luglio 1975. Il regolamento edilizio del comune può prevedere valori diversi.</p></div>
-  <div class="card"><div class="cardh">Pianta</div><label class="chk"><input type="checkbox" data-pref="pnuova" ${ui.pnew ? 'checked' : ''}> Nuova grafica: muri neri, stanze grigie (balconi e terrazzi bianchi), fondo a puntini</label>
+  <div class="card"><div class="cardh">Pianta</div><label class="chk"><input type="checkbox" data-pref="pnuova" ${ui.pnew ? 'checked' : ''}> Mod chiara: muri neri, stanze grigie (balconi e terrazzi bianchi), fondo a puntini</label>
   <p class="hint">Cambia solo la pianta a schermo: la Scheda PDF e lo script AutoCAD restano come sono. Vale per questo dispositivo.</p><label class="chk"><input type="checkbox" data-pref="mclassic" ${ui.mnew ? '' : 'checked'}> Misure con la grafica classica (caselle per ogni tratto, come prima del 9 novembre)</label>
   <p class="hint">Grafica nuova: linee di quota con il lucchetto sulle misure prese, pallini arancioni sui tratti da misurare; toccando una stanza o un muro compaiono anche le misure ricavate e le caselle da riempire. Vale per questo dispositivo.</p></div>
   <div class="card"><div class="cardh">Script AutoCAD</div>${c('qInt', 'Quote parziali interne, lato per lato (tratti di muro tra spigoli e vani)')}${c('vani', 'Larghezza dei vani (porte, finestre, ingressi, uscite)')}${c('qExt', 'Quote esterne d\'ingombro')}${c('testi', 'Nome e superficie degli ambienti')}${c('porte', 'Porte con anta e arco, girate come in pianta')}${c('note', 'Note scritte con «Testo» (nel punto in cui le hai messe)')}${c('mano', 'Note a mano (polilinee sul layer degli infissi e testi)')}
@@ -4448,7 +4449,7 @@ const PIANI_COMUNI = ['Piano terra', 'Piano primo', 'Piano secondo', 'Piano terz
 const livello = n => { const k = Object.keys(LIVELLI).find(k => k.toLowerCase() === String(n).trim().toLowerCase()); return k ? LIVELLI[k] : null; };
 function setPnew(v) { ui.pnew = v; try { localStorage.setItem('rilievo-pstile', v ? 'nuova' : 'attuale'); } catch (e) {} }
 // scelta rapida della grafica, nella barra (c'è anche a schermo intero): il nome dice quella in uso
-function tastoGrafica() { return `<button class="tb sm${ui.pnew ? ' on' : ''}" id="bGrafica" aria-pressed="${ui.pnew}" title="Cambia la grafica della pianta"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 12h16M12 4v8"${ui.pnew ? ' stroke-width="3"' : ''}/></svg><span>${ui.pnew ? 'Muri neri' : 'Classica'}</span></button>`; }
+function tastoGrafica() { return `<button class="tb sm${ui.pnew ? ' on' : ''}" id="bGrafica" aria-pressed="${ui.pnew}" title="Cambia la grafica della pianta"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 12h16M12 4v8"${ui.pnew ? ' stroke-width="3"' : ''}/></svg><span>${ui.pnew ? 'Mod chiara' : 'Mod scura'}</span></button>`; }
 function tastoPiani() { return `<button id="bPiani" title="Piani del rilievo"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5zM3 12.5l9 5 9-5M3 17l9 5 9-5"/></svg><span>${esc(piano().nome)}</span><svg viewBox="0 0 24 24"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg></button>`; }
 function cambiaPiano(i) { R.cur = i; ui.alli = null; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); save(); }
 // il piano nuovo va sotto il primo piano di livello più alto; con un nome scritto a mano va in cima

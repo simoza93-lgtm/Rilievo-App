@@ -21,7 +21,7 @@ const { chromium } = require('playwright');
   console.log('spenta', JSON.stringify(await stato()));
   // tasto rapido nella barra, a schermo intero
   await p.click('#bFull'); await p.waitForTimeout(200);
-  const rapido = () => p.evaluate(() => { const t = document.querySelector('#bGrafica'), r = t.getBoundingClientRect(); return {tasto:t.textContent, acceso:t.classList.contains('on'), visibile:r.width > 0 && r.right <= innerWidth && r.bottom <= innerHeight, intero:ui.full, gn:document.querySelector('#svg').classList.contains('gn'), salvata:localStorage.getItem('rilievo-pstile')}; });
+  const rapido = () => p.evaluate(() => { const t = document.querySelector('#bGrafica'), r = t.getBoundingClientRect(); return {tasto:t.textContent, barra:Math.round(document.querySelector('.tbar').getBoundingClientRect().height), acceso:t.classList.contains('on'), visibile:r.width > 0 && r.right <= innerWidth && r.bottom <= innerHeight, intero:ui.full, gn:document.querySelector('#svg').classList.contains('gn'), salvata:localStorage.getItem('rilievo-pstile')}; });
   console.log('a schermo intero', JSON.stringify(await rapido()));
   await p.screenshot({path:require('path').join(OUT, 'grafica-intero-classica.png')});
   await p.click('#bGrafica span'); await p.waitForTimeout(150); console.log('toccato', JSON.stringify(await rapido()));

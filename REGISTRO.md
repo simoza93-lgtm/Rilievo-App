@@ -4,7 +4,7 @@ Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembr
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
 ## 27 novembre 2026 — Tasto rapido della grafica
-- Nella barra sopra la pianta, prima di «Layer», c'è un tasto che passa dalla grafica **Classica** a **Muri neri** (stile magicplan) e ritorno. C'è anche a schermo intero; il nome dice la grafica in uso.
+- Nella barra sopra la pianta, prima di «Layer», c'è un tasto che passa da **Mod scura** (la nostra grafica) a **Mod chiara** (muri neri, stile magicplan) e ritorno. C'è anche a schermo intero; il nome dice la grafica in uso.
 - È la stessa scelta della casella in Impostazioni. Lo stile delle misure, la Scheda PDF e lo script non cambiano.
 
 ## 27 novembre 2026 — Piani in basso a sinistra (come magicplan)
