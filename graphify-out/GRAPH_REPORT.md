@@ -1,17 +1,17 @@
-# Graph Report - Rilievo GitHub  (2026-11-27)
+# Graph Report - Rilievo GitHub  (2026-11-28)
 
 ## Corpus Check
-- 87 files · ~136,545 words
+- 88 files · ~137,435 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 5 file(s) not represented in the graph (top: (none) 2, .dxf 2, .webmanifest 1)
 
 ## Summary
-- 321 nodes · 323 edges · 69 communities (8 shown, 61 thin omitted)
+- 324 nodes · 326 edges · 70 communities (8 shown, 62 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 6 edges (avg confidence: 0.75)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `3870272d`
+- Built from commit: `f92143df`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -26,9 +26,9 @@
 - Prova allinea.js
 - run.js
 - ext3.js
-- full.js
+- ang2.js
 - Prova apfit.js
-- Prova apobl.js
+- anta.js
 - Prova balc.js
 - filo3.js
 - Prova balc3.js
@@ -43,14 +43,14 @@
 - ang.js
 - Prova gradini.js
 - diagonali.js
-- Prova incrocio.js
+- dx.js
 - Prova layer.js
 - Prova lift.js
 - pianer.js
-- nodi.js
+- eliminaambiente.js
 - linea.js
 - balc2.js
-- incassata.js
+- inclina.js
 - Prova obliqui.js
 - porte.js
 - Prova p4.js
@@ -58,7 +58,7 @@
 - Prova paral.js
 - grafica.js
 - porte.js
-- sagoma.js
+- linee.js
 - rot.js
 - piani.js
 - mano.js
@@ -68,8 +68,8 @@
 - quotefuori.js
 - pop.js
 - scalepan.js
-- shot38.js
-- zoom.js
+- scalegr.js
+- scheda2.js
 - selsing.js
 - Prova split2.js
 - Prova taglia.js
@@ -85,9 +85,10 @@
 - shot41.js
 - shot35.js
 - shot39.js
+- split.js
 
 ## God Nodes (most connected - your core abstractions)
-1. `playwright` - 83 edges
+1. `playwright` - 84 edges
 2. `Architettura del codice in index.html` - 8 edges
 3. `Importa DXF (tappe 1-3 e scale a righe singole)` - 5 edges
 4. `Muri obliqui (tappe 1-4)` - 5 edges
@@ -118,7 +119,7 @@
 - **Muri obliqui e correzioni collegate** — registro_muri_obliqui, registro_diagonali_fuori_squadra, registro_sistema_inclinando, registro_script_quote_obliqui [INFERRED 0.85]
 - **Famiglia scale e ascensore** — registro_scale_ascensore, registro_scale_pianerottoli, registro_gradini_ritoccati [INFERRED 0.85]
 
-## Communities (69 total, 61 thin omitted)
+## Communities (70 total, 62 thin omitted)
 
 ### Community 0 - "Prove di test (p1-p3...)"
 Cohesion: 0.10
@@ -126,7 +127,7 @@ Nodes (15): { chromium }, fs, OUT, { chromium }, fs, OUT, { chromium }, fs (+7 m
 
 ### Community 1 - "playwright"
 Cohesion: 0.04
-Nodes (28): playwright, { chromium }, { chromium }, { chromium }, OUT, {chromium}, OUT, { chromium } (+20 more)
+Nodes (28): playwright, { chromium }, { chromium }, { chromium }, OUT, { chromium }, { chromium }, OUT (+20 more)
 
 ### Community 2 - "Prodotto, DXF e pubblicazione"
 Cohesion: 0.09
@@ -154,14 +155,14 @@ Nodes (5): casa(), { chromium }, LW(), LY, rc()
 
 ## Knowledge Gaps
 - **19 isolated node(s):** `sw.js service worker`, `Pubblicazione GitHub Pages da main`, `Simone (geometra, utente non programmatore)`, `DXF: riconoscimento porte, finestre e varchi`, `Gradini ritoccati a mano` (+14 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 208 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **61 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 210 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **62 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `playwright` connect `playwright` to `Prove di test (p1-p3...)`, `Configurazione npm e test`, `Prova allinea.js`, `ext3.js`, `full.js`, `Prova apfit.js`, `Prova apobl.js`, `Prova balc.js`, `filo3.js`, `Prova balc3.js`, `Prova bk.js`, `Prova boxporta.js`, `dxf2.js`, `anta3.js`, `Prova dxf.js`, `Prova ext1.js`, `Prova ext2.js`, `bg.js`, `ang.js`, `Prova gradini.js`, `diagonali.js`, `Prova incrocio.js`, `Prova layer.js`, `Prova lift.js`, `pianer.js`, `nodi.js`, `linea.js`, `balc2.js`, `incassata.js`, `Prova obliqui.js`, `porte.js`, `Prova p4.js`, `Prova p5.js`, `Prova paral.js`, `grafica.js`, `porte.js`, `sagoma.js`, `rot.js`, `piani.js`, `mano.js`, `pilastro.js`, `Prova scasc.js`, `Prova scheda.js`, `quotefuori.js`, `pop.js`, `scalepan.js`, `shot38.js`, `zoom.js`, `selsing.js`, `Prova split2.js`, `Prova taglia.js`, `scp.js`, `Prova win4.js`, `totali.js`, `shot37.js`, `spessore.js`, `tbar.js`, `shot41.js`, `shot35.js`, `shot39.js`?**
-  _High betweenness centrality (0.687) - this node is a cross-community bridge._
+- **Why does `playwright` connect `playwright` to `Prove di test (p1-p3...)`, `Configurazione npm e test`, `Prova allinea.js`, `ext3.js`, `ang2.js`, `Prova apfit.js`, `anta.js`, `Prova balc.js`, `filo3.js`, `Prova balc3.js`, `Prova bk.js`, `Prova boxporta.js`, `dxf2.js`, `anta3.js`, `Prova dxf.js`, `Prova ext1.js`, `Prova ext2.js`, `bg.js`, `ang.js`, `Prova gradini.js`, `diagonali.js`, `dx.js`, `Prova layer.js`, `Prova lift.js`, `pianer.js`, `eliminaambiente.js`, `linea.js`, `balc2.js`, `inclina.js`, `Prova obliqui.js`, `porte.js`, `Prova p4.js`, `Prova p5.js`, `Prova paral.js`, `grafica.js`, `porte.js`, `linee.js`, `rot.js`, `piani.js`, `mano.js`, `pilastro.js`, `Prova scasc.js`, `Prova scheda.js`, `quotefuori.js`, `pop.js`, `scalepan.js`, `scalegr.js`, `scheda2.js`, `selsing.js`, `Prova split2.js`, `Prova taglia.js`, `scp.js`, `Prova win4.js`, `totali.js`, `shot37.js`, `spessore.js`, `tbar.js`, `shot41.js`, `shot35.js`, `shot39.js`, `split.js`?**
+  _High betweenness centrality (0.689) - this node is a cross-community bridge._
 - **What connects `sw.js service worker`, `Pubblicazione GitHub Pages da main`, `Simone (geometra, utente non programmatore)` to the rest of the system?**
   _19 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Prove di test (p1-p3...)` be split into smaller, more focused modules?**

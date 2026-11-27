@@ -3,6 +3,11 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — «Elimina ambiente» nel pannello
+- Selezionando un ambiente (anche terrazzi a «Superficie» e balconi con ringhiera), in cima al pannello c'è **«Elimina ambiente»**.
+- Toglie i muri, le superfici e le ringhiere che chiudono **solo quell'ambiente**, con le loro porte e finestre. **Quelli in comune con un'altra stanza restano.** Scale, pilastri e note non vengono toccati.
+- Non chiede conferma (si resta a schermo intero): «Annulla» riporta tutto. Il tasto è spento se non ci sono muri solo suoi o se il loro layer è spento o bloccato.
+
 ## 27 novembre 2026 — Zoom con lo slider sul disegno
 - Dalla barra in alto sono tolti **«Zoom −» e «Zoom +»**; «Adatta» resta.
 - Sul disegno, **sopra il tasto del piano**, c'è un tasto con la **lente**: apre uno slider (in alto avvicina, in basso allontana), anche a schermo intero. Il centro dell'inquadratura resta fermo. Si richiude toccando la lente o in qualunque altro punto.

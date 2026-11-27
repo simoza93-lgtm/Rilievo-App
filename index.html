@@ -737,6 +737,16 @@ function deleteWall(pl, w) {
   const used = new Set(pl.walls.flatMap(x => [x.a, x.b]));
   pl.nodes = pl.nodes.filter(n => used.has(n.id));
 }
+// i muri che chiudono solo questo ambiente (quelli in comune con un'altra stanza restano), esclusi i layer spenti o bloccati
+function muriSoli(pl, cid) { const mie = new Set(), altre = new Set();
+  const segna = (id, c) => { if (c === cid) mie.add(id); else if (G.comps[c] && G.comps[c].room) altre.add(id); };
+  G.runs.forEach(r => r.walls.forEach(w => segna(w.id, r.comp0)));
+  G.oblFace.forEach((F, id) => F.sides.forEach(c => segna(id, c)));
+  return pl.walls.filter(w => mie.has(w.id) && !altre.has(w.id) && lUse(layerOf(w))); }
+function eliminaAmbiente(pl, rec) { const via = muriSoli(pl, rec._c).map(w => w.id); if (!via.length) return 0;
+  pl.rooms = pl.rooms.filter(x => x !== rec);   // altrimenti il suo nome passa a un ambiente vicino
+  via.forEach(id => { const w = pl.walls.find(x => x.id === id); if (w) deleteWall(pl, w); });
+  return via.length; }
 function mergeAt(pl, id) {
   const ws = pl.walls.filter(w => w.a === id || w.b === id); if (ws.length !== 2 || ws.some(isObl)) return;
   let [w1, w2] = ws; const n = nd(pl, id);
@@ -4169,7 +4179,8 @@ ${apFields(x)}
     const pienoBox = `<label class="chk" style="margin:4px 0 10px"><input type="checkbox" data-r="pieno" ${cc && cc.pieno ? 'checked' : ''}> <span><b>Pieno</b>: pilastro, dente o muro (si disegna pieno, fuori dai calcoli)</span></label>`;
     if (cc && !cc.room) { el.innerHTML = `<div class="cardh">${cc.pieno ? 'Spazio pieno' : 'Spazio chiuso molto piccolo'}</div><div class="info">${f2(cc.bbox[2] - cc.bbox[0])} × ${f2(cc.bbox[3] - cc.bbox[1])} m · ${f2(cc.area)} m²</div>${pienoBox}
       <p class="hint">Quando chiudi con il disegno il contorno di un dente o di un pilastro entro 0,30 m², si riempie da solo. Uno spazio chiuso per caso resta vuoto. Spunta o togli «Pieno» per decidere tu (per esempio, un cavedio resta vuoto).${cc.pieno ? ' Il contorno prende il tipo dei muri che lo disegnano: per averlo come perimetrale seleziona quei muri e cambia il tipo.' : ''}</p>`; renderMsgs(); return; }
-    el.innerHTML = `<div class="cardh">Ambiente</div>${pienoBox}<div class="info">Superficie netta <b>${cc && cc.det ? f2(cArea(cc)) + ' m²' : 'da completare'}</b>${cc && cc.foro ? ` <span class="mut">(tolto il vano scala ${f2(cc.foro)} m²)</span>` : ''}${cc && cc.pil > 0.001 ? ` <span class="mut">(tolti i pilastri ${f2(cc.pil)} m²)</span>` : ''}${cc && cc.det ? ` · perimetro ${f2(cc.per)} m` : ' (mancano misure dei muri attorno)'}${cc && !cc.isRect ? ' · forma non rettangolare' : ''}</div>
+    const soli = cc ? muriSoli(pl, r._c).length : 0;
+    el.innerHTML = `<div class="cardh">Ambiente <span class="sp"></span><button class="sm bad" id="bDelAmb"${soli ? '' : ' disabled'}>Elimina ambiente</button></div><p class="hint" style="margin:-2px 0 8px">${soli ? 'Elimina i muri che chiudono solo questo ambiente, con le loro porte e finestre. Quelli in comune con altre stanze restano.' : 'Non ci sono muri solo suoi da eliminare: sono in comune con altre stanze, oppure il loro layer è spento o bloccato.'}</p>${pienoBox}<div class="info">Superficie netta <b>${cc && cc.det ? f2(cArea(cc)) + ' m²' : 'da completare'}</b>${cc && cc.foro ? ` <span class="mut">(tolto il vano scala ${f2(cc.foro)} m²)</span>` : ''}${cc && cc.pil > 0.001 ? ` <span class="mut">(tolti i pilastri ${f2(cc.pil)} m²)</span>` : ''}${cc && cc.det ? ` · perimetro ${f2(cc.per)} m` : ' (mancano misure dei muri attorno)'}${cc && !cc.isRect ? ' · forma non rettangolare' : ''}</div>
       <div class="grid">${inp('nome', r.nome, 'Nome', 'c2', false, 'data-r')}
       <div><label class="l">Destinazione</label><select data-r="dest">${Object.keys(DEST).map(d => `<option ${r.dest === d ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
       ${DEST[r.dest] === 'E' ? '' : inp('H', r.H, 'Altezza (m)', '', true, 'data-r')}</div>
@@ -4375,6 +4386,8 @@ document.addEventListener('click', e => {
     let cid = G.compAt((g.a[0] + g.b[0]) / 2, (g.a[1] + g.b[1]) / 2); if (cid < 0) return toast('Non trovo la stanza della diagonale.');
     pushUndo(); const r = roomFuoriSquadra(pl, cid); update(true);
     toast(r.ok ? `Stanza fuori squadra: ${r.ok} muri ora sono obliqui, il più lungo resta dritto come riferimento.${r.lost ? ` ${r.lost === 1 ? 'Una parziale dei vani va riscritta' : r.lost + ' parziali dei vani vanno riscritte'} (il lato passava su più muri).` : ''}` : 'Nessun muro da rendere obliquo in questa stanza.'); return; }
+  if (id === 'bDelAmb') { const r = ui.sel && ui.sel.k === 'r' && (pl.rooms || []).find(x => x.id === ui.sel.id); if (!r || !muriSoli(pl, r._c).length) return;
+    pushUndo(); undemo(); eliminaAmbiente(pl, r); ui.sel = null; update(true); toast('Ambiente eliminato. «Annulla» lo riporta.'); return; }
   if (id === 'bDelQ') { pushUndo(); const qid = ui.sel && ui.sel.id; pl.dims = (pl.dims || []).filter(d => d.id !== qid); pl.mord = (pl.mord || []).filter(k => k !== 'q:' + qid); ui.sel = null; update(true); return; }
   if (id === 'bFull') return setFull(!ui.full);
   if (id === 'bPiani') return apriPiani();

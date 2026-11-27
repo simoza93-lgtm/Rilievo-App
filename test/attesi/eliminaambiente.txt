@@ -1,0 +1,9 @@
+prima stanze Balcone, Cucina, Sala, TX | muri P6 S3 T1 W3
+Xto TX: stanze Balcone, Cucina, Sala | muri P6 T1 W3
+  X: stanze Balcone, Cucina, Sala, TX | muri P6 S3 T1 W3
+Xto Balcone: stanze Cucina, Sala | muri P6 T1
+  X: stanze Balcone, Cucina, Sala | muri P6 T1 W3
+Xto Sala: stanze Cucina | muri P3 T1
+  X: stanze Cucina, Sala | muri P6 T1
+layer Xi, tasto spento: true
+errors []
