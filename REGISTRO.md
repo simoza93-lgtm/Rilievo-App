@@ -3,6 +3,11 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 27 novembre 2026 — Zoom con lo slider sul disegno
+- Dalla barra in alto sono tolti **«Zoom −» e «Zoom +»**; «Adatta» resta.
+- Sul disegno, **sopra il tasto del piano**, c'è un tasto con la **lente**: apre uno slider (in alto avvicina, in basso allontana), anche a schermo intero. Il centro dell'inquadratura resta fermo. Si richiude toccando la lente o in qualunque altro punto.
+- Lo zoom con due dita e con la rotella non cambia.
+
 ## 27 novembre 2026 — «Linea» e «Costruzione»: gli stessi snap dei muri
 - Mentre tracci una linea orizzontale o verticale, quando arrivi **allo stesso livello** di uno spigolo dei muri o della fine di un'altra linea, la linea **si ferma un attimo**, con la vibrazione e la guida tratteggiata, come per i muri. Proseguendo si sgancia.
 - Anche la **partenza** si mette in livello, se non è già agganciata a un punto, a una linea o a un muro.

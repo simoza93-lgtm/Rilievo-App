@@ -1,0 +1,19 @@
+tasti zoom in barra: 0 Adatta c'è: true
+X sopra il tasto del piano: true
+chiuso {"s":49.4,"centro":[4.9,3.61],"aperto":false,"X":500}
+aperto {"s":49.4,"centro":[4.9,3.61],"aperto":true,"X":502}
+in alto {"s":309.6,"centro":[4.9,3.61],"aperto":true,"X":939}
+in basso {"s":7.8,"centro":[4.9,3.61],"aperto":true,"X":61}
+limiti 400 6
+tocco X, si chiude: true
+X tocco sulla lente, si chiude: true
+X intero sopra il tasto del piano: true
+chiuso {"s":65.9,"centro":[4.9,3.61],"aperto":false,"X":502}
+aperto {"s":65.9,"centro":[4.9,3.61],"aperto":true,"X":571}
+in alto {"s":309.6,"centro":[4.9,3.61],"aperto":true,"X":939}
+in basso {"s":7.8,"centro":[4.9,3.61],"aperto":true,"X":61}
+limiti 400 6
+tocco X, si chiude: true
+X tocco sulla lente, si chiude: true
+X non Xi, muri: 16
+errors []
