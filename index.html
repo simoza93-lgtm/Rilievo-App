@@ -2780,6 +2780,16 @@ function lnEnd(a, p, skip) { const s0 = lnSnap(p, skip); if (s0 && s0.t !== 'o' 
   const ray = {a, b:o}; let best = null, bd = 12; lnSegs(skip).forEach(sg => { const n = segNear(sg, o); if (n.d >= bd) return; const dx = o[0] - a[0], dy = o[1] - a[1], L = Math.hypot(dx, dy) || 1;
     const ext = {a, b:[a[0] + dx / L * (L + 40), a[1] + dy / L * (L + 40)]}, x = segX(ext, sg); if (x) { bd = n.d; best = {p:x, t:'x'}; } });
   return best || {p:o, t:'h'}; }
+// Linea e Costruzione: gli stessi allineamenti dei muri (track), con gli spigoli dei muri e gli estremi delle linee in vista
+function lnTrk() { const pts = (G.walls || []).flatMap(w => w.pts);
+  (piano().ink || []).forEach(k => { if (!lOff(inkLay(k))) pts.push(k.pts[0], k.pts[k.pts.length - 1]); });
+  return {pts:pts.map(q => [SX(q[0]), SY(q[1])]), segs:[], x:null, y:null, n:0, own:[]}; }
+// l'aggancio a un punto vince; sulla linea orizzontale o verticale la fine si ferma al livello di uno spigolo o di un estremo
+function lnTira(a, p) { const e = lnEnd(a, p), T = ui.trk, ax = e.t !== 'h' ? -1 : Math.abs(e.p[1] - a[1]) < 0.5 ? 0 : Math.abs(e.p[0] - a[0]) < 0.5 ? 1 : -1;
+  if (!T || ax < 0) { if (T) T.x = T.y = null; trkShow(null); return e; }
+  T.only = ax; const q = track(p, [a]); if (!T[ax ? 'y' : 'x']) { trkShow(null); return e; }
+  const f = ax ? [a[0], q[1]] : [q[0], a[1]]; trkShow(f); return {p:f, t:''}; }
+function lnStop() { ui.trk = null; trkShow(null); }
 function lnLive(a, e) { inkLive(a ? [a, e.p] : null); let m = $("#svg").querySelector("#lnMark"); if (!a || !e.t) { if (m) m.remove(); return; }
   if (!m) { m = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); m.id = 'lnMark'; m.setAttribute('fill', 'none'); m.setAttribute('stroke', 'var(--acc)'); m.setAttribute('stroke-width', '1.6'); ($("#svg").querySelector("#vg") || $("#svg")).appendChild(m); }
   m.setAttribute('x', (e.p[0] - 6).toFixed(1)); m.setAttribute('y', (e.p[1] - 6).toFixed(1)); m.setAttribute('width', 12); m.setAttribute('height', 12); }
@@ -3126,7 +3136,7 @@ function bindCanvas() {
   svg.addEventListener('pointerdown', e => {
     try { svg.setPointerCapture(e.pointerId); } catch (_) {} const p = pos(e); ptrs.set(e.pointerId, p);
     if (e.pointerType === 'pen') ui.penSeen = true;
-    if (ptrs.size === 2) { inclTap = null; inkS = null; lnS = null; lnLive(null); clearTimeout(inkT); gom = null; inkLive(null); win = null; winShow(null); stroke = null; pan = null; drag = null; boxTap = null; dimTap = null; dmDrag = null; closeInline(true); if (apDrag) { apDrag = null; ui.ghost = null; draw(); } const [a, b] = [...ptrs.values()]; pinch = {d:Math.hypot(a[0] - b[0], a[1] - b[1]), s:ui.view.s, mx:(a[0] + b[0]) / 2, my:(a[1] + b[1]) / 2, wx:WX((a[0] + b[0]) / 2), wy:WY((a[1] + b[1]) / 2)}; const st = $('#stroke'); if (st) st.setAttribute('points', ''); return; }
+    if (ptrs.size === 2) { inclTap = null; inkS = null; if (lnS) lnStop(); lnS = null; lnLive(null); clearTimeout(inkT); gom = null; inkLive(null); win = null; winShow(null); stroke = null; pan = null; drag = null; boxTap = null; dimTap = null; dmDrag = null; closeInline(true); if (apDrag) { apDrag = null; ui.ghost = null; draw(); } const [a, b] = [...ptrs.values()]; pinch = {d:Math.hypot(a[0] - b[0], a[1] - b[1]), s:ui.view.s, mx:(a[0] + b[0]) / 2, my:(a[1] + b[1]) / 2, wx:WX((a[0] + b[0]) / 2), wy:WY((a[1] + b[1]) / 2)}; const st = $('#stroke'); if (st) st.setAttribute('points', ''); return; }
     if (ptrs.size > 2) return;
     // «Sistema inclinando un muro»: il tocco sceglie il muro o l'estremo; trascinando sposti la vista
     if (ui.incl && !ui.incl.done && ptrs.size === 1) { inclTap = p; pan = {p, vx:ui.view.x, vy:ui.view.y, moved:false}; return; }
@@ -3134,7 +3144,7 @@ function bindCanvas() {
     if ((ui.mode === 'taglia' || ui.mode === 'estendi') && ptrs.size === 1 && !(ui.penSeen && e.pointerType === 'touch')) { e.preventDefault(); ptrs.delete(e.pointerId); (ui.mode === 'taglia' ? tagliaTap : estendiTap)(p); return; }
     if (ui.mode === 'paral' && ptrs.size === 1 && !(ui.penSeen && e.pointerType === 'touch')) { e.preventDefault(); ptrs.delete(e.pointerId); parTap(p); return; }
     if ((ui.mode === 'linea' || ui.mode === 'costr') && ptrs.size === 1 && !(ui.penSeen && e.pointerType === 'touch')) { e.preventDefault();
-      const s0 = lnSnap(p); lnS = {a:s0 ? s0.p : p, cs:ui.mode === 'costr'}; lnS.e = {p:lnS.a, t:s0 ? s0.t : ''}; lnLive(lnS.a, lnS.e); return; }
+      const s0 = lnSnap(p); ui.trk = lnTrk(); const a0 = s0 ? s0.p : track(p, [p]); lnS = {a:a0, cs:ui.mode === 'costr'}; lnS.e = {p:a0, t:s0 ? s0.t : ''}; lnLive(a0, lnS.e); trkShow(a0); ui.trk.x = ui.trk.y = null; return; }
     if ((ui.mode === 'ink' || ui.mode === 'gomma') && ptrs.size === 1 && !(ui.penSeen && e.pointerType === 'touch')) {   // con la penna, il dito sposta la vista
       e.preventDefault(); if (ui.mode === 'ink') { inkS = [p]; inkA = null; inkHold(p, inkS); inkLive(inkS); } else { gom = {undo:false}; gomAt(p, gom); } return; }
     if (ptrs.size === 1) { const fb = flipAt(p); if (fb) { e.preventDefault(); ptrs.delete(e.pointerId); flipDoor(fb.k); return; } }
@@ -3173,7 +3183,7 @@ function bindCanvas() {
   });
   svg.addEventListener('pointermove', e => {
     if (!ptrs.has(e.pointerId)) { if (ui.winA && ui.mode === 'select') { winShow(ui.winA, pos(e)); return; } if (ui.placeDim && e.pointerType !== 'touch') { ui.dimHover = dimSnap(pos(e)); draw(); return; } if (ui.place && e.pointerType !== 'touch') { ui.ghost = ghostAt(pos(e), ui.place, num((AP_KIND[ui.place] || DEF_AP[ui.place] || {l:'0,80'}).l), null); draw(); } return; } const p = pos(e); ptrs.set(e.pointerId, p);
-    if (lnS && ptrs.size === 1) { lnS.e = lnEnd(lnS.a, pos(e)); lnLive(lnS.a, lnS.e); return; }
+    if (lnS && ptrs.size === 1) { lnS.e = lnTira(lnS.a, pos(e)); lnLive(lnS.a, lnS.e); return; }
     if (inkS && ptrs.size === 1) { const p = pos(e);
       if (inkS.dritta) { inkDritta(inkS, p); return; }
       const l = inkS[inkS.length - 1]; if (Math.hypot(p[0] - l[0], p[1] - l[1]) >= 1.5) { inkS.push(p); inkLive(inkS); } inkHold(p, inkS); return; }
@@ -3207,7 +3217,7 @@ function bindCanvas() {
   });
   const end = e => {
     if (!ptrs.has(e.pointerId)) return; const p = pos(e); ptrs.delete(e.pointerId);
-    if (lnS) { const L = lnS; lnS = null; lnLive(null); const k = lnSave(L.a, L.e.p, L.cs); if (k && !L.cs) lnAsk(k); return; }
+    if (lnS) { const L = lnS; lnS = null; lnStop(); lnLive(null); const k = lnSave(L.a, L.e.p, L.cs); if (k && !L.cs) lnAsk(k); return; }
     if (inkS) { const pts = inkS; inkS = null; clearTimeout(inkT); lnLive(null); inkSave(pts.dritta ? [pts.ini, pts.fine] : pts, !!pts.dritta); return; }
     if (gom) { gom = null; return; }
     if (pinch) { if (ptrs.size === 0) pinch = null; return; }
@@ -3255,7 +3265,7 @@ function bindCanvas() {
     if (inclTap) { const q = inclTap; inclTap = null; if (pan && !pan.moved) { pan = null; if (ui.alli) alliPick(q); else inclPick(q); return; } }
     if (pan) { const wasMoved = pan.moved; pan = null; if (!wasMoved && ui.mode === 'select') hit(p); else if (!wasMoved && ui.mode === 'text') newNote(p); }
   };
-  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); inclTap = null; inkS = null; lnS = null; lnLive(null); clearTimeout(inkT); gom = null; inkLive(null); bgTap = null; bgDrag = null; win = null; winShow(null); dimTap = null; dmDrag = null; stroke = null; ui.pilGhost = null; ui.trk = null; scDrag = null; fotoTap = null; nordTap = null; ndDrag = null; ui.scGhost = null; pan = null; pinch = null; drag = null; apDrag = null; boxTap = null; ui.ghost = null; draw(); });
+  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); inclTap = null; inkS = null; if (lnS) lnStop(); lnS = null; lnLive(null); clearTimeout(inkT); gom = null; inkLive(null); bgTap = null; bgDrag = null; win = null; winShow(null); dimTap = null; dmDrag = null; stroke = null; ui.pilGhost = null; ui.trk = null; scDrag = null; fotoTap = null; nordTap = null; ndDrag = null; ui.scGhost = null; pan = null; pinch = null; drag = null; apDrag = null; boxTap = null; ui.ghost = null; draw(); });
   svg.addEventListener('click', e => { const el = $('#inl'); if (el && document.activeElement !== el) { e.preventDefault(); el.focus(); } });
   svg.addEventListener('pointerleave', e => { if (ui.place && !ptrs.size && ui.ghost) { ui.ghost = null; draw(); } if (ui.dimHover && !ptrs.size) { ui.dimHover = null; draw(); } });
   svg.addEventListener('wheel', e => { e.preventDefault(); const p = pos(e); zoomAt(e.deltaY < 0 ? 1.15 : 1 / 1.15, p[0], p[1]); }, {passive:false});
@@ -3424,7 +3434,7 @@ function track(p, stroke) {
   if (Math.hypot(vx, vy) > 25 && ang > 12 && ang < 78) { T.x = T.y = null; return res; }
   const cands = T.pts.concat(T.own);
   [0, 1].forEach(ax => {
-    const key = ax ? 'y' : 'x', o = 1 - ax; let cur = T[key];
+    const key = ax ? 'y' : 'x', o = 1 - ax; if (T.only != null && ax !== T.only) { T[key] = null; return; } let cur = T[key];
     if (cur) { const d = Math.abs(p[ax] - cur.v); if (d > TRK.MAX || (d > TRK.OUT && now - cur.t > TRK.HOLD)) cur = T[key] = null; }
     if (!cur) {
       let best = null, bd = TRK.IN;

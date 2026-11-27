@@ -3,6 +3,11 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 27 novembre 2026 — «Linea» e «Costruzione»: gli stessi snap dei muri
+- Mentre tracci una linea orizzontale o verticale, quando arrivi **allo stesso livello** di uno spigolo dei muri o della fine di un'altra linea, la linea **si ferma un attimo**, con la vibrazione e la guida tratteggiata, come per i muri. Proseguendo si sgancia.
+- Anche la **partenza** si mette in livello, se non è già agganciata a un punto, a una linea o a un muro.
+- L'aggancio a un estremo, a un incrocio o a uno spigolo vicino vince sull'allineamento. Le linee oblique e i layer spenti non c'entrano. «A mano» non cambia.
+
 ## 27 novembre 2026 — «A mano»: le linee raddrizzate si agganciano tra loro
 - Tenendo ferma la penna a fine tratto, la linea dritta ora si aggancia (alla partenza e all'arrivo) a **estremi, incroci e tratti delle altre linee**, come il tasto «Linea», oltre che a spigoli e facce dei muri. Sull'aggancio compare il **quadratino blu**.
 - Vale anche verso le linee a mano libera. I tratti **non raddrizzati** non vengono mai spostati (scelta di Simone: altrimenti le lettere si attaccano).

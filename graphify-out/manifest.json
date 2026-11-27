@@ -462,21 +462,21 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1795816775.711653,
-    "seen": 1795816958.4469473,
-    "ast_hash": "521534bb85946f06ccf419e3695a5e82",
+    "mtime": 1795817879.9172008,
+    "seen": 1795818039.3306956,
+    "ast_hash": "36dc5b3bb43f889ed4bcd0e62e467392",
     "semantic_hash": ""
   },
   "REGISTRO.md": {
-    "mtime": 1795817127.926446,
-    "seen": 1795817311.8590477,
-    "ast_hash": "d56f0f08c51cab2b2bc569021333cac2",
+    "mtime": 1795817879.918705,
+    "seen": 1795818039.3306956,
+    "ast_hash": "81e2c0524909367df52e7db988b3068e",
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1795817127.9254415,
-    "seen": 1795817311.8590477,
-    "ast_hash": "16535249ba20509283f5d902f0167fb6",
+    "mtime": 1795817837.1867306,
+    "seen": 1795818039.3306956,
+    "ast_hash": "77a53d1ddb2fffed952a6a7129fda967",
     "semantic_hash": ""
   },
   "test/attesi/allinea.txt": {
@@ -660,9 +660,9 @@
     "semantic_hash": ""
   },
   "test/attesi/linee.txt": {
-    "mtime": 1794403621.3661122,
-    "seen": 1795471214.6415677,
-    "ast_hash": "fd348f67968e2c346d6785165412f48a",
+    "mtime": 1795817868.584359,
+    "seen": 1795818039.3306956,
+    "ast_hash": "374e7e179ca50695c6792fbe615e91c0",
     "semantic_hash": ""
   },
   "test/attesi/mano.txt": {
@@ -1023,6 +1023,18 @@
     "mtime": 1795813712.438593,
     "seen": 1795814988.0450912,
     "ast_hash": "5896dbc16c895e8e7a27a401a6863ca0",
+    "semantic_hash": ""
+  },
+  "test/allinealinee.js": {
+    "mtime": 1795817815.9762585,
+    "seen": 1795818039.3306956,
+    "ast_hash": "0788bbcd5b265ad811a51e2b1314fdc7",
+    "semantic_hash": ""
+  },
+  "test/attesi/allinealinee.txt": {
+    "mtime": 1795817882.4680984,
+    "seen": 1795818039.3306956,
+    "ast_hash": "5a16eca34b1d3df8aad6978d9810fdb3",
     "semantic_hash": ""
   },
   "package-lock.json": {
