@@ -19,5 +19,15 @@ const { chromium } = require('playwright');
   await p.reload(); await p.waitForTimeout(300); console.log('dopo f5', JSON.stringify(await stato()));
   await p.getByText('Impostazioni', {exact:true}).click(); await p.uncheck('[data-pref="pnuova"]'); await p.getByText('Pianta', {exact:true}).first().click(); await p.waitForTimeout(200);
   console.log('spenta', JSON.stringify(await stato()));
+  // tasto rapido nella barra, a schermo intero
+  await p.click('#bFull'); await p.waitForTimeout(200);
+  const rapido = () => p.evaluate(() => { const t = document.querySelector('#bGrafica'), r = t.getBoundingClientRect(); return {tasto:t.textContent, acceso:t.classList.contains('on'), visibile:r.width > 0 && r.right <= innerWidth && r.bottom <= innerHeight, intero:ui.full, gn:document.querySelector('#svg').classList.contains('gn'), salvata:localStorage.getItem('rilievo-pstile')}; });
+  console.log('a schermo intero', JSON.stringify(await rapido()));
+  await p.screenshot({path:require('path').join(OUT, 'grafica-intero-classica.png')});
+  await p.click('#bGrafica span'); await p.waitForTimeout(150); console.log('toccato', JSON.stringify(await rapido()));
+  await p.screenshot({path:require('path').join(OUT, 'grafica-intero-neri.png')});
+  await p.click('#bFull'); await p.waitForTimeout(150); await p.getByText('Impostazioni', {exact:true}).click(); console.log('casella in Impostazioni', await p.isChecked('[data-pref="pnuova"]'));
+  await p.getByText('Pianta', {exact:true}).first().click(); await p.reload(); await p.waitForTimeout(300); console.log('dopo f5', JSON.stringify(await rapido()));
+  await p.click('#bGrafica'); await p.waitForTimeout(150); console.log('ritoccato', JSON.stringify(await rapido()));
   console.log('errors', errs); await b.close();
 })();

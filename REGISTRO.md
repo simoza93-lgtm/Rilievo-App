@@ -3,6 +3,10 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 27 novembre 2026 — Tasto rapido della grafica
+- Nella barra sopra la pianta, prima di «Layer», c'è un tasto che passa dalla grafica **Classica** a **Muri neri** (stile magicplan) e ritorno. C'è anche a schermo intero; il nome dice la grafica in uso.
+- È la stessa scelta della casella in Impostazioni. Lo stile delle misure, la Scheda PDF e lo script non cambiano.
+
 ## 27 novembre 2026 — Piani in basso a sinistra (come magicplan)
 - In alto non ci sono più la scelta del piano, «+ Piano», «Rinomina» ed «Elimina piano». C'è un **tasto col nome del piano in basso a sinistra sul disegno** (anche a schermo intero) e in cima a «Calcoli».
 - Il tasto c'è anche in cima a «Foto». Le domande (nuovo nome, conferma per eliminare) stanno dentro la finestra dei piani, così non si esce dallo schermo intero.
