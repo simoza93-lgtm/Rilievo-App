@@ -14,4 +14,9 @@ senza X Cucina 9,68, MXede 12,32, Sala 10,79 | muri P6 S3 T1 | vani 6 | errori 0
   Xta Sala: Cucina 9,68, MXede 12,77 | muri P3 S5 T1 | vani 3 | errori 0
   misure: 6,19 | avviso: AX Xto. «Annulla» lo X. Da Xare, lati Xi: 6,23.
   X: Cucina 9,68, MXede 12,32, Sala 10,79 | muri P6 S3 T1 | vani 6 | errori 0
+giro Cucina 9,81, MXede 36,64, Sala 10,91
+  Xta Sala: Cucina 9,81, MXede 38,11, Vuoto (non è stanza)
+  Xo: Spazio vuoto Rimetti Xe
+  X: AX 3 12,30, Cucina 9,81, MXede 38,11
+  poi via il MXede: Cucina 9,81
 errors []

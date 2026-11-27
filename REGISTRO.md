@@ -10,6 +10,7 @@ rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact
 - Se una misura di un lato rimasto non vale più perché il lato è cambiato, l'avviso la elenca («Da rimisurare…»). Le misure prese da dentro la stanza tolta se ne vanno con lei.
 - Eliminando un balcone, un terrazzo o un marciapiede non cambia niente rispetto a prima.
 - È «esterno» l'ambiente con destinazione Balcone, Terrazzo o Marciapiede, oppure con un lato tutto a «Superficie» o ringhiera. Limiti: una stanza interna con un lato tutto a ringhiera (soppalco) conta come esterna; i muri obliqui diventano linea ma le linee appoggiate su di loro non vengono prolungate.
+- **Spazio vuoto (scelta di Simone):** se le linee «Superficie» tengono chiuso lo spazio (fuori solo marciapiede o balconi), lì resta un vuoto senza nome né m², fuori dai calcoli, e il marciapiede non cambia forma. Toccandolo c'è «Rimetti ambiente». Se lo spazio si riapre, il vuoto sparisce. Nei dati è un campo nuovo facoltativo (`vuoto`): i rilievi vecchi non cambiano.
 - Prova `test/eliminaambiente.js` estesa (con e senza balcone, annulla, avviso).
 
 ## 28 novembre 2026 — «Elimina ambiente» nel pannello
