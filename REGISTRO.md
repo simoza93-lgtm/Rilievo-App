@@ -3,6 +3,10 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 27 novembre 2026 — «A mano»: le linee raddrizzate si agganciano tra loro
+- Tenendo ferma la penna a fine tratto, la linea dritta ora si aggancia (alla partenza e all'arrivo) a **estremi, incroci e tratti delle altre linee**, come il tasto «Linea», oltre che a spigoli e facce dei muri. Sull'aggancio compare il **quadratino blu**.
+- Vale anche verso le linee a mano libera. I tratti **non raddrizzati** non vengono mai spostati (scelta di Simone: altrimenti le lettere si attaccano).
+
 ## 27 novembre 2026 — Tasto rapido della grafica
 - Nella barra sopra la pianta, prima di «Layer», c'è un tasto che passa da **Mod scura** (la nostra grafica) a **Mod chiara** (muri neri, stile magicplan) e ritorno. C'è anche a schermo intero; il nome dice la grafica in uso.
 - È la stessa scelta della casella in Impostazioni. Lo stile delle misure, la Scheda PDF e lo script non cambiano.

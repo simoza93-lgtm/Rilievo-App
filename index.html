@@ -2746,8 +2746,10 @@ function inkW() { return Math.max(1.2, Math.min(4, 0.025 * ui.view.s)).toFixed(2
 let inkT = null, inkA = null, lnS = null;
 function inkHold(p, inkS) { if (inkA && Math.hypot(p[0] - inkA[0], p[1] - inkA[1]) < 5) return; inkA = p; clearTimeout(inkT);
   inkT = setTimeout(() => { if (!inkS || inkS.dritta || inkS.length < 2) return; const a = inkS[0], b = inkS[inkS.length - 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < 30) return; let dv = 0; for (const q of inkS) dv = Math.max(dv, Math.abs((q[0] - a[0]) * (b[1] - a[1]) - (q[1] - a[1]) * (b[0] - a[0])) / L); if (dv > Math.max(8, 0.2 * L)) return;
-    inkS.dritta = true; inkS.ini = inkSnapPt(a, true) || a; inkS.fine = inkEnd(inkS.ini, b); inkLive([inkS.ini, inkS.fine]); try { navigator.vibrate && navigator.vibrate(12); } catch (_) {} }, 480); }
-// aggancio di un estremo: spigolo dei muri (o faccia, per l'inizio)
+    inkS.dritta = true; inkS.ini = (lnSnap(a) || {p:a}).p; inkDritta(inkS, b); try { navigator.vibrate && navigator.vibrate(12); } catch (_) {} }, 480); }
+// la raddrizzata si aggancia come «Linea»: spigoli e facce dei muri, estremi, incroci e tratti delle altre linee (quadratino blu)
+function inkDritta(S, p) { const e = lnEnd(S.ini, p); S.fine = e.p; lnLive(S.ini, e.t === 'h' ? {p:e.p, t:''} : e); }
+// aggancio ai muri: spigolo (o faccia)
 function inkSnapPt(p, face) { const q = typeof dimSnap === 'function' ? dimSnap(p) : null; if (!q || (!face && q.snap !== 'c')) return null; return [SX(q.x), SY(q.y)]; }
 // fine della linea dritta: spigolo vicino, altrimenti angolo agganciato a orizzontale, verticale e multipli di 15°
 function inkEnd(a, p) { const c = inkSnapPt(p, false); if (c) return c; const dx = p[0] - a[0], dy = p[1] - a[1], L = Math.hypot(dx, dy); if (L < 1) return p;
@@ -3173,7 +3175,7 @@ function bindCanvas() {
     if (!ptrs.has(e.pointerId)) { if (ui.winA && ui.mode === 'select') { winShow(ui.winA, pos(e)); return; } if (ui.placeDim && e.pointerType !== 'touch') { ui.dimHover = dimSnap(pos(e)); draw(); return; } if (ui.place && e.pointerType !== 'touch') { ui.ghost = ghostAt(pos(e), ui.place, num((AP_KIND[ui.place] || DEF_AP[ui.place] || {l:'0,80'}).l), null); draw(); } return; } const p = pos(e); ptrs.set(e.pointerId, p);
     if (lnS && ptrs.size === 1) { lnS.e = lnEnd(lnS.a, pos(e)); lnLive(lnS.a, lnS.e); return; }
     if (inkS && ptrs.size === 1) { const p = pos(e);
-      if (inkS.dritta) { inkS.fine = inkEnd(inkS.ini, p); inkLive([inkS.ini, inkS.fine]); return; }
+      if (inkS.dritta) { inkDritta(inkS, p); return; }
       const l = inkS[inkS.length - 1]; if (Math.hypot(p[0] - l[0], p[1] - l[1]) >= 1.5) { inkS.push(p); inkLive(inkS); } inkHold(p, inkS); return; }
     if (gom && ptrs.size === 1) { gomAt(pos(e), gom); return; }
     if (pinch && ptrs.size >= 2) { const [a, b] = [...ptrs.values()]; const d = Math.hypot(a[0] - b[0], a[1] - b[1]), mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2; ui.view.s = Math.max(6, Math.min(400, pinch.s * d / pinch.d)); ui.view.x = pinch.wx - mx / ui.view.s; ui.view.y = pinch.wy - (ui.H - my) / ui.view.s; draw(); return; }
@@ -3206,7 +3208,7 @@ function bindCanvas() {
   const end = e => {
     if (!ptrs.has(e.pointerId)) return; const p = pos(e); ptrs.delete(e.pointerId);
     if (lnS) { const L = lnS; lnS = null; lnLive(null); const k = lnSave(L.a, L.e.p, L.cs); if (k && !L.cs) lnAsk(k); return; }
-    if (inkS) { const pts = inkS; inkS = null; clearTimeout(inkT); inkLive(null); inkSave(pts.dritta ? [pts.ini, pts.fine] : pts, !!pts.dritta); return; }
+    if (inkS) { const pts = inkS; inkS = null; clearTimeout(inkT); lnLive(null); inkSave(pts.dritta ? [pts.ini, pts.fine] : pts, !!pts.dritta); return; }
     if (gom) { gom = null; return; }
     if (pinch) { if (ptrs.size === 0) pinch = null; return; }
     if (bgTap) { const q = bgTap; bgTap = null; if (Math.hypot(p[0] - q[0], p[1] - q[1]) <= 12) bgCalTap(q); return; }
