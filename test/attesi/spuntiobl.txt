@@ -28,6 +28,7 @@
   "Xe": 1,
   "fili": 0,
   "errori": 0
- }
+ },
+ "vuotiCX": 2
 }
 errors []

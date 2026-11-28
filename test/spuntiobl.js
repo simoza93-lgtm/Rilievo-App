@@ -14,6 +14,7 @@ const { chromium } = require('playwright');
       if (Math.abs(x1 * y2 - y1 * x2) < 1e-3 * Math.hypot(x1, y1) * Math.hypot(x2, y2) && x1 * x2 + y1 * y2 < 0) n++; } })); return n; };
     const prove = [['finestra', {}], ['uscita', {}], ['porta', {}], ['porta', {cx:true, vx:true}], ['finestra', {inc:'scal', l2:'1,60', lw:1}], ['finestra', {inc:'strom', l2:'1,60', lw:-1}]];
     prove.forEach(([tipo, x], i) => { w.ap = [Object.assign({id:uid(), tipo, d:'1,50', l:'1,20', h:'1,40', dav:'0,90', inv:false, dp:true, lp:true}, x)]; update(true); out[i + ' ' + tipo + (x.inc || '')] = {aperture:G.ops.length, fili:fili(), errori:G.errs.length}; });
+    ui.pnew = true; draw(); out.vuotiColorati = document.querySelectorAll('#svg .gno').length;   // l'incassata ha due pezzi: luce e parte larga, tutti e due col colore della stanza
     return out; });
   console.log(JSON.stringify(r, null, 1)); console.log('errors', errs); await b.close();
 })();

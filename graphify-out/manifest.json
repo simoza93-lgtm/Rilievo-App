@@ -468,15 +468,15 @@
     "semantic_hash": ""
   },
   "REGISTRO.md": {
-    "mtime": 1795865619.401466,
-    "seen": 1795865619.9915771,
-    "ast_hash": "33d52e1f85be59bb0cec9eb721ffd7d0",
+    "mtime": 1795867710.9292169,
+    "seen": 1795867995.3961606,
+    "ast_hash": "2c52ae258c226a44bf74b0476460eed9",
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1795865381.6707096,
-    "seen": 1795865619.9915786,
-    "ast_hash": "4d1fa5ab7e11e615574f7417a69c075a",
+    "mtime": 1795867657.7858057,
+    "seen": 1795867995.3961613,
+    "ast_hash": "06cbeb04e27c139d9284bce3b61e8705",
     "semantic_hash": ""
   },
   "test/attesi/allinea.txt": {
@@ -1128,15 +1128,15 @@
     "semantic_hash": ""
   },
   "test/spuntiobl.js": {
-    "mtime": 1795865381.1635299,
-    "seen": 1795865619.9915648,
-    "ast_hash": "876982972f93d9a06f71c82fbb79fbff",
+    "mtime": 1795867657.7858057,
+    "seen": 1795867995.3961492,
+    "ast_hash": "0db221b7f93a6919324af4024312497f",
     "semantic_hash": ""
   },
   "test/attesi/spuntiobl.txt": {
-    "mtime": 1795865603.2627175,
-    "seen": 1795865619.9916723,
-    "ast_hash": "aeb933e2f8f44d9906fdb1eb36130921",
+    "mtime": 1795867710.9098077,
+    "seen": 1795867995.396248,
+    "ast_hash": "e320dc95c19e2aaaa75661d351ccf0b8",
     "semantic_hash": ""
   },
   "package-lock.json": {

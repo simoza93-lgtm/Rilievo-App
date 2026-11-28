@@ -3,6 +3,10 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — Grafica «muri neri»: finestre incassate senza spigoli chiari
+- Nella grafica «muri neri», sulle **finestre e porte incassate nei muri obliqui** la parte larga del vano restava chiara agli estremi (si vedevano due spigoli bianchi). Ora ha lo stesso colore della stanza.
+- Cambia solo il disegno a schermo. Prova `test/spuntiobl.js` allargata.
+
 ## 28 novembre 2026 — Porte e finestre sui muri obliqui: niente più riga nera a metà
 - Su un muro obliquo, con **porta, finestra, porta-finestra o finestra incassata**, lungo le facce del vano restava una **riga nera sottile**, nera per metà e poi sparita. Ora il vano è pulito su tutta la lunghezza.
 - Cambia solo il disegno: misure, aperture, Scheda PDF e script non cambiano.
