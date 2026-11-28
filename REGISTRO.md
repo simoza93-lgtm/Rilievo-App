@@ -3,6 +3,13 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — Sezioni: script AutoCAD e scheda PDF
+- Nella pagina della sezione c'è il tasto **«Script AutoCAD»**: scarica uno script `.scr` per ogni sezione (a parte da quello delle piante). Origine 0,0 in basso a sinistra dell'ingombro, quota ±0,00 sul pavimento del Piano terra, unità metri, 1:100.
+- **Layer esistenti:** muri, solai e scale tagliati **pieni** sul layer `PLAN_MURI_PERIM`; infissi nel taglio, proiezione (le parti nascoste da muri più vicini non si scrivono), nomi degli ambienti, livelli e quote sul layer `PLAN_INFISSI_TESTI`. Quote con lo stile `STUDIO` (testo 0,17, 2 decimali): orizzontali a 1,00 m sotto l'edificio, verticali a destra.
+- **Solo quote misurate:** solaio e altezza ancora «proposti» (grigio corsivo) non vengono scritti; il totale verticale esce solo se tutti i valori sono misurati. Una riga di commento lo dice.
+- **Scheda PDF:** dopo le piante c'è una pagina per ogni sezione. **Pacchetto «Esporta»:** gli script delle sezioni stanno in `script-autocad/` (`..._Sezione_A-A.scr`).
+- Prova nuova `test/sezione5.js`.
+
 ## 28 novembre 2026 — Sezioni: scale e ascensore in proiezione, corpo continuo
 - **Scale e ascensore oltre la linea** ora si vedono (gradini a lastre sottili, ascensore come vano), come muri e aperture.
 - **Corpo continuo in proiezione:** un muro visto oltre la linea ora è disegnato intero, dal solaio sotto al piano fino al soffitto, e sull'ultimo piano anche con la copertura. Prima si spezzava a ogni solaio.

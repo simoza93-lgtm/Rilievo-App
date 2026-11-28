@@ -1,0 +1,3 @@
+piani 2
+{"s0":{"righe":true,"solid":true,"line":true,"dim":10,"nan":false,"testi":true,"Xa":true},"s1":{"righe":true,"solid":true,"line":true,"dim":10,"nan":false,"testi":true,"Xa":true},"scheda":{"pagine":2,"svg":true,"titolo":true}}
+errors []

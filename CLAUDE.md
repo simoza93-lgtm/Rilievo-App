@@ -108,7 +108,7 @@ Tutti i muri sono orizzontali o verticali (le coordinate del mondo hanno la y ve
   `d` ricavato, `x` da misurare; li usano la grafica nuova delle misure (`ui.mnew`, preferenza
   `rilievo-mstile` nel localStorage, «classico» per la grafica a caselle) e la misura guidata
   (`startGuide`, `guideNext`, `ui.guide`). `focusComps()` dice quali stanze mostrano anche ricavate e caselle.
-- `genScript(pl)` — lo script `.scr`.
+- `genScript(pl)` — lo script `.scr`. `genScriptSez(d, nome)` — lo script `.scr` di una sezione (layer esistenti, tagli pieni, solo quote misurate); le sezioni (`sezioneDati`, `sezioneSvg`) entrano anche nella scheda PDF e nel pacchetto. Prove `sezione`–`sezione5`.
 
 Salvataggio: `localStorage` per i rilievi, IndexedDB `rilievo-foto` (store foto e `sfondi`) per foto e
 planimetrie di sfondo. Non cambiare i formati dei dati senza una conversione per i rilievi già salvati:
