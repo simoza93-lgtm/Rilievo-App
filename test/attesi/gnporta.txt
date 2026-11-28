@@ -1,0 +1,2 @@
+{"stanze":2,"porte":1,"vuoti":1}
+errors []

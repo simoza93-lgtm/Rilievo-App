@@ -3117,7 +3117,11 @@ function draw() {
   const selOp = GN ? '.75' : '.35';   // sul nero l'evidenziazione chiara non si vede
   if (GN) { const p = v.s / 2;   // puntini ogni 0,50 m e fondo delle stanze, sotto lo sfondo importato
     if (v.s >= 12) s += `<pattern id="gnp" patternUnits="userSpaceOnUse" x="${X(0) - p / 2}" y="${Y(0) - p / 2}" width="${p}" height="${p}"><circle cx="${p / 2}" cy="${p / 2}" r="1.1" fill="#c6cad3"/></pattern><rect width="${ui.W}" height="${ui.H}" fill="url(#gnp)"/>`;
-    (pl.rooms || []).forEach(r => { const cc = G.comps[r._c]; if (cc && cc.room) s += `<g class="gnr" fill="${DEST[r.dest] === 'E' ? '#fff' : '#e3e3e6'}">` + roomRects(cc) + '</g>'; }); }
+    (pl.rooms || []).forEach(r => { const cc = G.comps[r._c]; if (cc && cc.room) s += `<g class="gnr" fill="${DEST[r.dest] === 'E' ? '#fff' : '#e3e3e6'}">` + roomRects(cc) + '</g>'; });
+    // il vuoto di porte e finestre prende il colore della stanza accanto (senza, i puntini della griglia si vedono dentro il muro)
+    (G.ops || []).forEach(o => { if (!o.at || !(o.I.t > 0)) return; const rs = (o.cs || []).map(c => (pl.rooms || []).find(r => r._c === c && G.comps[c] && G.comps[c].room)).filter(Boolean); if (!rs.length) return;
+      const q = [o.at(o.s0, 0), o.at(o.s1, 0), o.at(o.s1, o.I.t), o.at(o.s0, o.I.t)];
+      s += `<path class="gno" fill="${rs.some(r => DEST[r.dest] !== 'E') ? '#e3e3e6' : '#fff'}" d="M${q.map(p => X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' L')} Z"/>`; }); }
   if (!GN && v.s >= 12) { const x0 = Math.floor(WX(0)), x1 = Math.ceil(WX(ui.W)), y0 = Math.floor(WY(ui.H)), y1 = Math.ceil(WY(0));
     for (let x = x0; x <= x1; x++) s += `<line x1="${X(x)}" y1="0" x2="${X(x)}" y2="${ui.H}" stroke="var(--grid)" stroke-opacity=".64"/>`;
     for (let y = y0; y <= y1; y++) s += `<line x1="0" y1="${Y(y)}" x2="${ui.W}" y2="${Y(y)}" stroke="var(--grid)" stroke-opacity=".64"/>`; }

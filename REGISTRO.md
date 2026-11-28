@@ -3,6 +3,11 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — Grafica «muri neri»: niente griglia dentro porte e finestre
+- Nella grafica «muri neri», il vuoto lasciato da una **porta o finestra** nel muro ora ha il **colore della stanza accanto** (grigio, o bianco se la stanza è esterna). Prima ci si vedevano i puntini della griglia.
+- Cambia solo il disegno a schermo: misure, Scheda PDF e script non cambiano.
+- Prova nuova `test/gnporta.js`.
+
 ## 28 novembre 2026 — Posizione del sopralluogo (come magicplan)
 - Nella pagina del rilievo c'è il **riquadro con il segnaposto**: l'indirizzo e, toccandolo, **Google Maps** sul punto salvato (se il punto manca, sull'indirizzo scritto).
 - **«Salva la posizione»** (anche «Usa la mia posizione» sotto l'indirizzo in «Nuovo» e «Modifica»): salva le coordinate nel rilievo e **propone via e comune**; l'indirizzo si scrive solo con «Usa questo indirizzo», dopo averlo controllato (il civico spesso manca).
