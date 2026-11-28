@@ -1336,7 +1336,9 @@ function geoPoly1(pl, T, rects, ops, warns, prec) {
   // pieni (pilastri, denti): diventano muro perimetrale
   const recs = pl.rooms || []; comps.forEach(c => { const rec = recs.find(r => holeAt(r.px, r.py) === c.id); c.pieno = !!(rec && rec.pieno === true); c.vuoto = !!(rec && rec.vuoto === true); c.room = !c.pieno && !c.vuoto && c.area >= 0.25; if (c.pieno) put('P', [c.ring]); });
   // materiale dei muri meno le aperture; i cunei delle strombate tornano muro
-  const holes = ops.flatMap(o => o.q ? [ring(o.q), ...(o.q2 ? [ring(o.q2)] : [])] : o.c2 ? [R(o.c), R(o.c2)] : [R(o.c)]), HO = U0(holes);
+  // i vani obliqui sporgono di 5 mm oltre le facce: se coincidono per un soffio il taglio lascia sul muro un filo nero a metà
+  const oBig = (o, q) => q.map(p => { const ac = (p[0] - o.I.a.x) * o.I.n[0] + (p[1] - o.I.a.y) * o.I.n[1], e = Math.abs(ac) > o.I.t / 2 - 1e-6 ? 0.005 * Math.sign(ac) : 0; return [p[0] + o.I.n[0] * e, p[1] + o.I.n[1] * e]; });
+  const holes = ops.flatMap(o => o.q ? [ring(oBig(o, o.q)), ...(o.q2 ? [ring(oBig(o, o.q2))] : [])] : o.c2 ? [R(o.c), R(o.c2)] : [R(o.c)]), HO = U0(holes);
   const wedges = []; ops.forEach(o => { if (!o.inc || !o.inc.strom) return; const {I} = o, {lw, p, w0, w1} = o.inc, h = I.t / 2;
     const P = (al, ac) => apPt(I, al, ac), fw = lw * h, fd = lw * (p - h);
     [[w0, o.s0], [w1, o.s1]].forEach(([wa, la]) => { if (Math.abs(la - wa) >= 0.005) wedges.push({lay:layerOf(o.w), r:ring([P(wa, fw), P(wa, fd), P(la, fd)])}); }); });

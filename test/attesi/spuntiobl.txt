@@ -1,0 +1,33 @@
+{
+ "0 Xa": {
+  "Xe": 1,
+  "fili": 0,
+  "errori": 0
+ },
+ "1 uscita": {
+  "Xe": 1,
+  "fili": 0,
+  "errori": 0
+ },
+ "2 porta": {
+  "Xe": 1,
+  "fili": 0,
+  "errori": 0
+ },
+ "3 porta": {
+  "Xe": 1,
+  "fili": 0,
+  "errori": 0
+ },
+ "4 Xascal": {
+  "Xe": 1,
+  "fili": 0,
+  "errori": 0
+ },
+ "5 Xastrom": {
+  "Xe": 1,
+  "fili": 0,
+  "errori": 0
+ }
+}
+errors []

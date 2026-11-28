@@ -3,6 +3,11 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — Porte e finestre sui muri obliqui: niente più riga nera a metà
+- Su un muro obliquo, con **porta, finestra, porta-finestra o finestra incassata**, lungo le facce del vano restava una **riga nera sottile**, nera per metà e poi sparita. Ora il vano è pulito su tutta la lunghezza.
+- Cambia solo il disegno: misure, aperture, Scheda PDF e script non cambiano.
+- Prova nuova `test/spuntiobl.js` (finestra, uscita, porta, porta ribaltata, incassata a scalino e strombata).
+
 ## 28 novembre 2026 — Grafica «muri neri»: niente griglia dentro porte e finestre
 - Nella grafica «muri neri», il vuoto lasciato da una **porta o finestra** nel muro ora ha il **colore della stanza accanto** (grigio, o bianco se la stanza è esterna). Prima ci si vedevano i puntini della griglia.
 - Cambia solo il disegno a schermo: misure, Scheda PDF e script non cambiano.
