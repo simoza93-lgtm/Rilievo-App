@@ -3,6 +3,17 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — «Esporta» crea il pacchetto completo (zip)
+- Nella pagina del rilievo **«Esporta il pacchetto (zip)»** scarica un solo file con: `scheda.pdf`, `script-autocad/` (uno script per ogni piano disegnato), `foto/` con `didascalie.csv` (solo se ci sono foto), `sfondi/` e `dati/`.
+- **La scheda PDF del pacchetto è fatta di pagine a immagine** (scelta di Simone): non si seleziona né si cerca il testo. Le tabelle lunghe continuano sul foglio dopo, con «(segue)». Il riquadro «Scheda PDF» (finestra di stampa, testo vero) e «Genera script AutoCAD» restano.
+- Se in un piano ci sono errori o misure che non tornano, avvisa una volta (dice il piano) e, se confermi, crea lo stesso.
+- Gli script del pacchetto alzano il numero di versione come «Genera script AutoCAD».
+- **«Importa» riapre lo zip** con piante, foto, segnaposto e sfondi, anche se il computer l'ha rifatto compresso. Importando una copia, foto e sfondi hanno codici nuovi: l'originale non si tocca. Uno zip rovinato non importa niente. I vecchi `.json` si importano ancora (senza foto, e l'avviso lo dice).
+- «Da esportare» torna anche quando elimini una foto o cambi una didascalia. Se il pacchetto esce incompleto (scheda non creata, foto o sfondo mancanti) l'app lo dice e il rilievo resta «da esportare».
+- Il pacchetto sostituisce il file `.json` di «Esporta»: chiude il difetto «foto e sfondi non esportati».
+- Prove al computer: nuova `test/pacchetto.js`; con 60 foto e processore rallentato 4 volte circa 20 secondi, zip 49 MB. In `home.js` atteso cambiato apposta (zip e numero di versione dello script).
+- Limite: una singola nota più alta di un foglio resta tagliata nella scheda.
+
 ## 28 novembre 2026 — Menu iniziale e pagina del rilievo (stile magicplan)
 - **All'avvio si apre il menu:** i rilievi con la miniatura, «Nuovo rilievo», «Importa» e l'ingranaggio «Impostazioni».
 - **Nuovo:** dati del rilievo, spessori e solai; accanto «Disegna da zero», foto della planimetria (galleria o fotocamera) e «Importa DXF» (il disegno va dentro il rilievo nuovo). Se esci senza scrivere né disegnare niente, non resta nessun rilievo vuoto.

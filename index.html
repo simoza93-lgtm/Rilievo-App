@@ -237,6 +237,8 @@ ol.help li{margin-bottom:4px}
 #fview .fvimg img{max-width:100%;max-height:100%;object-fit:contain}
 #fview input{flex:1;min-width:200px}
 #scheda{display:none}
+#lavoro{position:fixed;inset:0;z-index:80;background:rgba(10,12,18,.55);display:flex;align-items:center;justify-content:center}
+#lavoro>div{background:var(--card);color:var(--ink);border-radius:14px;padding:18px 26px;max-width:80%;font-weight:600}
 @media print{
   @page{size:A4 portrait;margin:12mm}
   body>*:not(#scheda){display:none!important}
@@ -273,7 +275,7 @@ ol.help li{margin-bottom:4px}
 <header>
   <button id="bBack" hidden></button>
   <h1>Rilievo <span id="curName" class="mut" style="font-weight:400"></span></h1>
-  <input type="file" id="fImp" accept=".json,application/json" hidden>
+  <input type="file" id="fImp" accept=".zip,.json,application/zip,application/x-zip-compressed,application/json" hidden>
   <input type="file" id="fDxf" accept=".dxf" hidden>
   <input type="file" id="fCam" accept="image/*" capture="environment" hidden>
   <input type="file" id="fGal" accept="image/*" multiple hidden>
@@ -2290,6 +2292,152 @@ async function exportZip() {
   catch (e) { say('Zip non riuscito: ' + esc(e && e.message || e)); }
 }
 
+/* ================= pacchetto della pratica (zip) ================= */
+// «Esporta»: scheda.pdf, uno script per piano, foto, sfondi e i dati per riaprire tutto con «Importa».
+// La scheda si disegna pagina per pagina come immagine (niente finestra di stampa): CSS della stampa → SVG → tela → JPEG → PDF.
+const PAG_W = 794, PAG_H = 1123, PAG_K = 2.5;   // A4 a 96 punti per pollice, ingrandito 2,5 volte
+const cssScheda = () => [...document.styleSheets].flatMap(x => [...x.cssRules]).filter(r => r.media && r.media.mediaText === 'print').flatMap(r => [...r.cssRules]).filter(r => r.selectorText && r.selectorText.startsWith('#scheda')).map(r => r.cssText).join('\n');
+const SCATOLA = 'display:block;width:186mm;height:273mm;padding:12mm;box-sizing:content-box;background:#fff;overflow:hidden';
+const comeDato = b => new Promise((res, rej) => { const f = new FileReader(); f.onload = () => res(f.result); f.onerror = () => rej(f.error); f.readAsDataURL(b); });
+// le tabelle più alte di un foglio continuano sul foglio dopo (la stampa lo fa da sola, qui il foglio è un'immagine: il resto sparirebbe)
+function spezzaPagine(pagine, css) {
+  const st = document.createElement('style'); st.textContent = css; const box = document.createElement('div'); box.id = 'scheda';
+  box.style.cssText = 'display:block;position:fixed;left:-10000px;top:0;width:186mm;color:#1c2230;font:11pt Arial,sans-serif'; document.head.appendChild(st); document.body.appendChild(box);
+  const out = [];
+  try {
+    const H = (() => { const m = document.createElement('div'); m.style.height = '271mm'; box.appendChild(m); const h = m.offsetHeight; m.remove(); return h; })();
+    pagine.forEach(pg => {
+      if (!pg.classList.contains('stab')) { out.push(pg); return; }
+      const figli = [...pg.children], testa = figli.shift(); let cur, righe = 0;
+      const nuova = () => { if (cur) { out.push(cur.cloneNode(true)); cur.remove(); } cur = document.createElement('div'); cur.className = 'stab'; cur.appendChild(testa.cloneNode(true)); box.appendChild(cur); righe = 0; };
+      const troppo = () => cur.offsetHeight > H;
+      nuova(); let titolo = null;
+      figli.forEach(el => {
+        if (el.tagName !== 'TABLE') { cur.appendChild(el); if (el.tagName === 'H2') titolo = el; if (troppo() && righe) { el.remove(); nuova(); cur.appendChild(el); } return; }
+        const capo = el.tHead, vuota = () => { const t = el.cloneNode(false); if (capo) t.appendChild(capo.cloneNode(true)); const tb = document.createElement('tbody'); t.appendChild(tb); cur.appendChild(t); return tb; };
+        let tb = vuota(), inTab = 0;
+        [...el.querySelectorAll(':scope > tbody > tr')].forEach(tr => {
+          tb.appendChild(tr);
+          // shortcut: una riga sola più alta di un foglio (nota lunghissima) resta tagliata; se capita, spezzare il testo della nota
+          if (troppo() && righe) { tr.remove(); let h = titolo;
+            if (!inTab) { tb.parentNode.remove(); if (h && h.parentNode === cur) h.remove(); else h = null; nuova(); if (h) cur.appendChild(h); }
+            else { nuova(); if (titolo) { const c = titolo.cloneNode(true); c.textContent += ' (segue)'; cur.appendChild(c); } }
+            tb = vuota(); tb.appendChild(tr); inTab = 0; }
+          righe++; inTab++;
+        });
+      });
+      out.push(cur.cloneNode(true)); cur.remove();
+    });
+  } finally { box.remove(); st.remove(); }
+  return out;
+}
+async function paginaJpg(pg, css) {
+  const w = document.createElement('div'); w.id = 'scheda'; w.style.cssText = SCATOLA + ';color:#1c2230;font:11pt Arial,sans-serif';
+  const st = document.createElement('style'); st.textContent = css; w.append(st, pg);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${PAG_W * PAG_K}" height="${PAG_H * PAG_K}" viewBox="0 0 ${PAG_W} ${PAG_H}"><foreignObject width="${PAG_W}" height="${PAG_H}">${new XMLSerializer().serializeToString(w)}</foreignObject></svg>`;
+  const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('pagina non disegnata')); i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); });
+  const c = document.createElement('canvas'); c.width = PAG_W * PAG_K; c.height = PAG_H * PAG_K; const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.9)); if (!blob || blob.size < 1000) throw new Error('pagina vuota');
+  return {blob, w:c.width, h:c.height};
+}
+function pdfDaJpg(jpgs) {   // un foglio A4 per immagine
+  const parts = [], offs = []; let pos = 0; const add = x => { parts.push(x); pos += typeof x === 'string' ? x.length : x.size; }, obj = (n, t) => { offs[n] = pos; add(`${n} 0 obj\n${t}\nendobj\n`); };
+  add('%PDF-1.4\n'); const n = jpgs.length; obj(1, '<</Type/Catalog/Pages 2 0 R>>'); obj(2, `<</Type/Pages/Count ${n}/Kids[${jpgs.map((_, i) => `${3 + i * 3} 0 R`).join(' ')}]>>`);
+  jpgs.forEach((j, i) => { const a = 3 + i * 3, cs = 'q 595.28 0 0 841.89 0 0 cm /I Do Q'; obj(a, `<</Type/Page/Parent 2 0 R/MediaBox[0 0 595.28 841.89]/Resources<</XObject<</I ${a + 2} 0 R>>>>/Contents ${a + 1} 0 R>>`); obj(a + 1, `<</Length ${cs.length}>>\nstream\n${cs}\nendstream`);
+    offs[a + 2] = pos; add(`${a + 2} 0 obj\n<</Type/XObject/Subtype/Image/Width ${j.w}/Height ${j.h}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${j.blob.size}>>\nstream\n`); add(j.blob); add('\nendstream\nendobj\n'); });
+  const xr = pos, tot = 3 + n * 3; let x = `xref\n0 ${tot}\n0000000000 65535 f \n`; for (let i = 1; i < tot; i++) x += String(offs[i]).padStart(10, '0') + ' 00000 n \n';
+  add(x + `trailer\n<</Size ${tot}/Root 1 0 R>>\nstartxref\n${xr}\n%%EOF\n`);
+  return new Blob(parts, {type:'application/pdf'});
+}
+async function schedaPDF(dici) {
+  let h = await schedaHTML();
+  for (const u of new Set(h.match(/blob:[^"')]+/g) || [])) h = h.split(u).join(await comeDato(await (await fetch(u)).blob()));   // dentro l'immagine della pagina valgono solo i dati incorporati
+  const css = cssScheda(), box = document.createElement('template'); box.innerHTML = h;
+  const pagine = spezzaPagine([...box.content.children].map(x => document.importNode(x, true)), css), jpgs = [];
+  for (const [i, pg] of pagine.entries()) { dici(`Scheda PDF: pagina ${i + 1} di ${pagine.length}…`); jpgs.push(await paginaJpg(pg, css)); }
+  return pdfDaJpg(jpgs);
+}
+function velo(t) { let el = $('#lavoro'); if (t == null) { if (el) el.remove(); return; } if (!el) { el = document.createElement('div'); el.id = 'lavoro'; document.body.appendChild(el); } el.innerHTML = `<div>${esc(t)}</div>`; }
+const nomeFile = t => (ascii(t) || 'piano').replace(/[^A-Za-z0-9_-]+/g, '_');
+// controlli su tutti i piani disegnati: gli stessi di «Genera script AutoCAD»
+function controlliPiani() {
+  const keep = R.cur, out = []; ui.zitto = true;
+  try { R.piani.forEach((pl, i) => { if (!pl.walls.length) return; R.cur = i; recompute(); G.errs.forEach(x => out.push(pl.nome + ': ' + x.t)); if (nonTorna()) out.push(pl.nome + ': ci sono misure che non tornano (vedi Controlli).'); }); }
+  finally { R.cur = keep; recompute(); ui.zitto = false; }
+  return out;
+}
+async function creaPacchetto() {
+  if (ui.esporta) return; ui.esporta = true;
+  const ril = R;
+  try {
+    const avv = controlliPiani();
+    if (avv.length && !confirm('Attenzione:\n\n- ' + avv.slice(0, 12).join('\n- ') + (avv.length > 12 ? '\n- … e altre ' + (avv.length - 12) : '') + '\n\nCreare il pacchetto lo stesso?')) return;
+    velo('Preparo il pacchetto…');
+    await loadFotos(true);
+    const manca = []; if (ui.fotoErr) manca.push('le foto non si leggono');
+    // script: uno per piano disegnato, con la numerazione di versione di «Genera script AutoCAD»
+    const ent = [], scr = [], usati = new Set(), keep = R.cur; ui.zitto = true;
+    try { R.piani.forEach((pl, i) => { if (!pl.walls.length) return; R.cur = i; recompute(); pl.ver = (pl.ver || 0) + 1;
+      let nm = nomeFile(pl.nome), k = 2; while (usati.has(nm.toLowerCase())) nm = nomeFile(pl.nome) + '_' + k++; usati.add(nm.toLowerCase());
+      scr.push({name:`script-autocad/${fileBase()}_${nm}_v${pl.ver}.scr`, blob:new Blob([genScript(pl)], {type:'text/plain'})}); }); }
+    finally { R.cur = keep; recompute(); ui.zitto = false; }
+    let pdf = null;
+    try { pdf = await schedaPDF(velo); } catch (e) { manca.push('la scheda PDF non è stata creata (' + (e && e.message || e) + '): usa il riquadro «Scheda PDF»'); }
+    if (pdf) ent.push({name:'scheda.pdf', blob:pdf});
+    ent.push(...scr);
+    velo('Raccolgo foto e sfondi…');
+    const meta = [], cnt = {}, righe = ['File;Piano;Ambiente;Didascalia;Data e ora;Pixel;MB'];
+    fotoOrder().forEach(f => { if (!f.blob) { manca.push('una foto non ha più il file'); return; }
+      const k = fPiano(f) + '|' + fRoom(f); cnt[k] = (cnt[k] || 0) + 1; let nm = fotoName(f, cnt[k]), n = 2; while (usati.has(nm)) nm = fotoName(f, cnt[k]).replace(/(\.\w+)$/, '_' + n++ + '$1'); usati.add(nm);
+      ent.push({name:'foto/' + nm, blob:f.blob}); const m = Object.assign({}, f, {file:'foto/' + nm}); delete m.blob; delete m._zip; meta.push(m);
+      righe.push([nm, (R.piani[fPiano(f)] || {}).nome || '', fRoom(f), (f.nome || '').replace(/[;\r\n]+/g, ' '), new Date(f.data).toLocaleString('it-IT'), f.w + 'x' + f.h, mb(f.size || 0)].join(';')); });
+    if (meta.length) ent.push({name:'foto/didascalie.csv', blob:new Blob(['﻿' + righe.join('\r\n') + '\r\n'], {type:'text/csv'})});
+    const sfondi = [];
+    for (const pl of R.piani) if (pl.bg && !sfondi.some(x => x.id === pl.bg.id)) { let rec = null; try { rec = await bgGet(pl.bg.id); } catch (e) {}
+      if (!rec) { manca.push('manca la planimetria di sfondo del piano «' + pl.nome + '»'); continue; }
+      const nm = `sfondi/${nomeFile(pl.nome)}_${pl.bg.id}.jpg`; ent.push({name:nm, blob:rec.blob}); sfondi.push({id:rec.id, file:nm}); }
+    const json = (name, v) => ({name, blob:new Blob([JSON.stringify(v)], {type:'application/json'})});
+    ent.push(json('dati/rilievo.json', Object.assign({}, R, {unexp:false, demo:false})), json('dati/foto.json', meta), json('dati/sfondi.json', sfondi));
+    const zip = await makeZip(ent, (i, n) => velo(`Chiudo lo zip: ${i} di ${n}…`));
+    if (R !== ril) return;
+    saveBlob(`${fileBase()}_pacchetto_${R.data || today()}.zip`, zip);
+    if (!R.demo) { clearTimeout(tSave); if (!manca.length) R.unexp = false; arcPut(R); }   // incompleto = resta «da esportare»
+    velo(null); updExpBadge();
+    if (manca.length) alert('Pacchetto scaricato, ma INCOMPLETO:\n\n- ' + [...new Set(manca)].join('\n- '));
+    else toast(`Pacchetto scaricato (${mb(zip.size)} MB): scheda, ${scr.length} script, ${meta.length} foto.`);
+  } catch (e) { velo(null); alert('Pacchetto non creato: ' + (e && e.message || e)); }
+  finally { velo(null); ui.esporta = false; }
+}
+// legge uno zip: quelli dell'app (senza compressione) e quelli rifatti col computer (compressi)
+async function leggiZip(file) {
+  const coda = await file.slice(Math.max(0, file.size - 65557)).arrayBuffer(), t = new DataView(coda); let p = coda.byteLength - 22;
+  while (p >= 0 && t.getUint32(p, true) !== 0x06054b50) p--;
+  if (p < 0) throw new Error('lo zip è rovinato o incompleto');
+  const n = t.getUint16(p + 10, true), cs = t.getUint32(p + 12, true), co = t.getUint32(p + 16, true), cd = await file.slice(co, co + cs).arrayBuffer(), v = new DataView(cd), dec = new TextDecoder(), voci = {};
+  for (let i = 0, o = 0; i < n; i++) { const met = v.getUint16(o + 10, true), crc = v.getUint32(o + 16, true), sz = v.getUint32(o + 20, true), nl = v.getUint16(o + 28, true), lo = v.getUint32(o + 42, true);
+    voci[dec.decode(new Uint8Array(cd, o + 46, nl))] = {met, crc, sz, lo}; o += 46 + nl + v.getUint16(o + 30, true) + v.getUint16(o + 32, true); }
+  return {nomi:Object.keys(voci), async leggi(nome, tipo) { const x = voci[nome]; if (!x) throw new Error('nello zip manca «' + nome + '»');
+    const lh = new DataView(await file.slice(x.lo, x.lo + 30).arrayBuffer()), da = x.lo + 30 + lh.getUint16(26, true) + lh.getUint16(28, true); let b = file.slice(da, da + x.sz);
+    if (x.met === 8) b = await new Response(b.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob(); else if (x.met !== 0) throw new Error('compressione dello zip non riconosciuta');
+    if (crc32(new Uint8Array(await b.arrayBuffer())) !== x.crc) throw new Error('il file «' + nome + '» nello zip è rovinato');
+    return b.slice(0, b.size, tipo || ''); }};
+}
+async function apriPacchetto(file) {
+  const z = await leggiZip(file), dove = z.nomi.find(x => x === 'dati/rilievo.json' || x.endsWith('/dati/rilievo.json'));
+  if (!dove) throw new Error('non è un pacchetto di questa app');
+  const base = dove.slice(0, -'dati/rilievo.json'.length), json = async nome => JSON.parse(await (await z.leggi(base + nome)).text());
+  return {d:await json('dati/rilievo.json'), z, base, foto:await json('dati/foto.json'), sfondi:await json('dati/sfondi.json')};
+}
+// foto e sfondi del pacchetto entrano sempre con codici nuovi: importando una copia non si toccano quelli dell'originale
+async function salvaAllegati(p, n) {
+  const nuovi = new Map();
+  for (const s of p.sfondi) { const id = uid(); await bgPut({id, ril:n.id, blob:await p.z.leggi(p.base + s.file, 'image/jpeg')}); nuovi.set(s.id, id); }
+  n.piani.forEach(pl => { if (pl.bg && nuovi.has(pl.bg.id)) pl.bg.id = nuovi.get(pl.bg.id); });
+  for (const f of p.foto) { const tipo = /^image\/[\w.+-]+$/.test(f.type || '') ? f.type : 'image/jpeg', rec = Object.assign({}, f, {id:uid(), ril:n.id, type:tipo, blob:await p.z.leggi(p.base + f.file, tipo)}); delete rec.file;
+    if (!/^data:image\/[a-z]+;base64,[A-Za-z0-9+/=]*$/.test(rec.thumb || '')) rec.thumb = '';
+    await fPut(rec); }
+}
+
 /* ================= nord ================= */
 // angolo in gradi, in senso orario dall'alto del foglio; vale per tutti i piani. Simbolo: cerchio di raggio 0,50 (1 cm a 1:100)
 const nordAng = () => { const a = num(R.nordAng); return isFinite(a) ? a : 0; };
@@ -2502,7 +2650,6 @@ function load() {
 }
 function updExpBadge() { const b = $('#bExp'); if (b) { b.classList.toggle('dirty', !!R.unexp && !R.demo); b.title = R.unexp && !R.demo ? 'Ci sono modifiche non ancora esportate' : ''; } const c = $('#curName'); if (c) c.textContent = tab === 'home' ? '' : tab === 'cfg' ? '· impostazioni' : R.demo ? '· esempio' : '· ' + (R.nome || 'senza nome'); }
 function openRilievo(r) { clearTimeout(tSave); if (!R.demo) arcPut(R); R = r; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; vai('prj'); try { localStorage.setItem('rilievo-corrente', r.id); } catch (e) {} }
-function exportR(r) { download((ascii(r.nome) || 'rilievo').replace(/[^A-Za-z0-9_-]+/g, '_') + '_' + r.data + '.json', JSON.stringify(Object.assign({}, r, {unexp:false}), null, 1), 'application/json'); }
 const quando = iso => { if (!iso) return ''; const d = new Date(iso); return d.toLocaleDateString('it-IT') + ' ' + d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'}); };
 window.addEventListener('beforeunload', e => { clearTimeout(tSave); if (!R.demo) arcPut(R); if (R.unexp && !R.demo) { e.preventDefault(); e.returnValue = ''; } });
 function undemo() { if (R.demo) { R.demo = false; R.id = uid(); R.nome = R.nome === 'Esempio' ? 'Esempio (modificato)' : R.nome; } }
@@ -4351,7 +4498,7 @@ function renderPrj() {
     <div class="card"><div class="cardh">Totali <span class="sp"></span><button class="sm" data-vai="calc">Vedi tutto</button></div>
       <div class="tot"><div><b>${f2(t.int)} m²</b><span>interni</span></div><div><b>${f2(t.est)} m²</b><span>esterni</span></div><div><b>${R.piani.length}</b><span>${R.piani.length === 1 ? 'piano' : 'piani'}</span></div><div><b>${t.amb}</b><span>${t.amb === 1 ? 'ambiente' : 'ambienti'}</span></div></div>
       ${t.err ? '<p class="hint">Totali non calcolati: apri «Vedi tutto».</p>' : t.senza ? `<p class="hint">${t.senza === 1 ? 'Un ambiente non ha ancora i m²: non è nei totali.' : t.senza + ' ambienti non hanno ancora i m²: non sono nei totali.'}</p>` : ''}</div>
-    <div class="card azioni"><button id="bExp">Esporta il rilievo (file .json)</button><button id="bDup" ${R.demo ? 'disabled' : ''}>Duplica</button><button id="bElim" class="bad" ${R.demo ? 'disabled' : ''}>Elimina</button></div>
+    <div class="card azioni"><button id="bExp">Esporta il pacchetto (zip)</button><button id="bDup" ${R.demo ? 'disabled' : ''}>Duplica</button><button id="bElim" class="bad" ${R.demo ? 'disabled' : ''}>Elimina</button></div>
   </div><div>
     <div class="card"><div class="cardh">Piante <span class="sp"></span><button class="sm" data-ptutti>Vedi tutti (${R.piani.length})</button></div>
       <div class="fila"><button class="piu" data-piu title="Aggiungi piano">+</button>${R.piani.map((p, i) => `<div class="pp"><div class="pwrap"><button class="pcard" data-pdis="${i}">${miniPiano(p)}</button><button class="pdots" data-ppunti="${i}" title="Rinomina o elimina">•••</button></div><div class="pnome">${esc(p.nome)}</div></div>`).join('')}</div></div>
@@ -4403,7 +4550,7 @@ $('#main').addEventListener('click', e => {
   else if (t.id === 'bDxf') { ui.dxfDa = 'nuovo'; $('#fDxf').click(); }
   else if (t.id === 'bScheda') stampaScheda();
   else if (t.id === 'bScr') chiediScript();
-  else if (t.id === 'bExp') { exportR(R); if (!R.demo) { R.unexp = false; arcPut(R); } updExpBadge(); }
+  else if (t.id === 'bExp') creaPacchetto();
   else if (t.id === 'bDup') duplicaRilievo();
   else if (t.id === 'bElim') eliminaRilievo();
 });
@@ -4497,7 +4644,7 @@ document.addEventListener('click', e => {
     if (idv === 'fvClose') closeFoto();
     else if ((idv === 'fvPrev' || idv === 'fvNext') && f) { const L = fotoOrder(), i = L.findIndex(x => x.id === fid), j = (i + (idv === 'fvNext' ? 1 : -1) + L.length) % L.length; openFoto(L[j].id); }
     else if (idv === 'fvDl' && f) saveBlob(fotoName(f, 1).replace(/_01\./, '_' + f.id + '.'), f.blob);
-    else if (idv === 'fvDel' && f && confirm('Eliminare questa foto? Non si potrà recuperare.')) { fDel(f.id).catch(() => {}); ui.fotos = ui.fotos.filter(x => x !== f); closeFoto(); if (tab === 'foto') renderFotoTab(); else if (tab === 'prj') prjFoto(); else draw(); }
+    else if (idv === 'fvDel' && f && confirm('Eliminare questa foto? Non si potrà recuperare.')) { fDel(f.id).catch(() => {}); ui.fotos = ui.fotos.filter(x => x !== f); save(); closeFoto(); if (tab === 'foto') renderFotoTab(); else if (tab === 'prj') prjFoto(); else draw(); }
     else if (idv === 'fvPlan' && f) { const i = fPiano(f); if (i >= 0) { R.cur = i; tab = 'pianta'; ui.sel = null; closeFoto(); ui.hlFoto = f.id; render();
       const q = pinPos(piano(), f); if (q) { ui.view.x = q[0] - ui.W / 2 / ui.view.s; ui.view.y = q[1] - ui.H / 2 / ui.view.s; draw(); } setTimeout(() => { if (ui.hlFoto === f.id) { ui.hlFoto = null; if (tab === 'pianta') draw(); } }, 2500); } }
     return; }
@@ -4594,7 +4741,7 @@ document.addEventListener('focusin', e => { if (e.target.dataset && (e.target.da
 document.addEventListener('input', e => {
   const t = e.target, pl = piano();
   if (t.id === 'iNord') { const a = num(t.value); if (isFinite(a)) { undemo(); R.nordAng = String(((a % 360) + 360) % 360).replace('.', ','); draw(); save(); } return; }
-  if (t.id === 'fvCap') { const f = ui.fview && (ui.fotos || []).find(x => x.id === ui.fview.id); if (!f) return; f.nome = t.value; clearTimeout(ui.tCap); ui.tCap = setTimeout(() => fPut(f).catch(() => {}), 400); return; }
+  if (t.id === 'fvCap') { const f = ui.fview && (ui.fotos || []).find(x => x.id === ui.fview.id); if (!f) return; f.nome = t.value; save(); clearTimeout(ui.tCap); ui.tCap = setTimeout(() => fPut(f).catch(() => {}), 400); return; }
   if (t.dataset.w) { const w = ui.sel && pl.walls.find(x => x.id === ui.sel.id); if (!w) return; if (t.dataset.w === 'filo') lineOf(pl, w).forEach(x => { x.filo = t.value; }); else setW(w, t.dataset.w, t.type === 'checkbox' ? t.checked : t.value); update(t.hasAttribute('data-re')); }
   else if (t.dataset.r) { const r = (pl.rooms || []).find(x => x.id === ui.sel.id); if (!r) return; undemo();
     if (t.dataset.r === 'pieno') { r.pieno = t.checked; update(true); } else { r[t.dataset.r] = t.value; draw(); save(); } }
@@ -4770,13 +4917,15 @@ const onFoto = async e => { const fs = [...e.target.files]; e.target.value = '';
 $('#fCam').onchange = onFoto; $('#fGal').onchange = onFoto;
 $('#fBgGal').onchange = $('#fBgCam').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; if (tab !== 'pianta') { ui.fitted = false; vai('pianta'); } bgLoad(f); };
 $('#fImp').onchange = async e => {
-  const f = e.target.files[0]; if (!f) return;
-  try { const d = JSON.parse(await f.text()); if (!d.piani || !d.piani.length || !d.piani[0].walls) throw new Error('non è un rilievo di questa app');
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try { const zip = /\.zip$/i.test(f.name) || /zip/.test(f.type); if (zip) velo('Apro il pacchetto…');
+    const p = zip ? await apriPacchetto(f) : null, d = p ? p.d : JSON.parse(await f.text()); velo(null);
+    if (!d.piani || !d.piani.length || !d.piani[0].walls) throw new Error('non è un rilievo di questa app');
     const n = Object.assign(blank(), d); n.opt = Object.assign(blank().opt, d.opt || {}); n.cur = 0; n.demo = false;
     if (!n.id || arcIndex().some(x => x.id === n.id)) { if (n.id && !confirm('«' + (d.nome || f.name) + '» è già nel menu. Aggiungerlo come copia?\n(Annulla per non importarlo)')) return; n.id = uid(); }
-    n.unexp = false; n.mod = new Date().toISOString(); arcPut(n); openRilievo(n); toast('Rilievo importato.'); }
-  catch (err) { alert('File non valido: ' + err.message); }
-  e.target.value = '';
+    if (p) { velo('Copio foto e sfondi…'); try { await salvaAllegati(p, n); } catch (err) { await fDelRil(n.id); throw err; } velo(null); }
+    n.unexp = false; n.mod = new Date().toISOString(); if (!arcPut(n)) return; ui.fotos = null; openRilievo(n); toast(p ? `Pacchetto importato: ${p.foto.length} foto.` : 'Rilievo importato (il file .json non contiene foto e sfondi).'); }
+  catch (err) { velo(null); alert('File non valido: ' + err.message); }
 };
 function faiScript() {
   recompute(); const pl = piano();

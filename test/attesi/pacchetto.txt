@@ -1,0 +1,23 @@
+righe della scheda: {"righe":101,"dopo":101,"pagineInPiu":true,"tutteNelFoglio":true}
+file: Casa_di_prova_Xto_DATA.zip | Xti: 1
+dentro: scheda.pdf ; script-X/Casa_di_prova_Piano_terra_v1.scr ; script-X/Casa_di_prova_Piano_primo_v1.scr ; foto/piano-terra_senza-Xe_01.jpg ; foto/piano-terra_senza-Xe_02.jpg ; foto/piano-primo_senza-Xe_01.jpg ; foto/Xlie.csv ; sfondi/Piano_terra_CODICE.jpg ; dati/X.json ; dati/foto.json ; dati/sfondi.json
+pdf: %PDF-1.4 pagine >= 6: true
+script con muri: true
+csv: 3 foto
+dopo X: X 1 | da Xre false | foto Xli 3 | sfondo Xle true | resto sulla pagina: prj false
+foto Xa: X 1 | da Xre true | foto Xli 4 | sfondo Xle true
+  Xella: EXe questa foto? Non si potrà Xare.
+foto tolta: X 1 | da Xre true | foto Xli 3 | sfondo Xle true
+  Xella: «Casa di prova» è già nel menu. AXrlo come copia? | (Annulla per non Xrlo)
+copia: prj | è una copia true | piani 3 | muri 16 | foto 3 | sulla pianta 3 | sfondo true con codice suo true | da Xre false
+  Xella: EXe XXe il X «Casa di prova»?
+copia Xta: X 1 | da Xre true | foto Xli 3 | sfondo Xle true
+tablet nuovo: prj Casa di prova | foto 3 | sfondo true
+  Xella: File non valido: il file «foto/piano-terra_senza-Xe_01.jpg» nello zip è Xo
+zip Xo: X 0
+  Xella: AXne: | - Piano terra: ci sono misure che non X (vedi CXi). | Creare il Xto lo stesso?
+senza foto: scheda.pdf ; script-X/Senza_foto_Piano_terra_v1.scr ; dati/X.json ; dati/foto.json ; dati/sfondi.json
+  Xella: AXne: | - Piano terra: ci sono misure che non X (vedi CXi). | Creare il Xto lo stesso?
+  Xella: PXo Xto, ma INCOMPLETO: | - la scheda PDF non è stata creata (prova): usa il Xo «Scheda PDF»
+senza scheda: script-X/Senza_foto_Piano_terra_v2.scr ; dati/X.json ; dati/foto.json ; dati/sfondi.json | da Xre true
+errors []

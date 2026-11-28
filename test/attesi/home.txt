@@ -11,12 +11,12 @@ stato: da Xre
 Xo: prj | Xo: ‹ Menu | tasti in alto: ‹ Menu | X X: 1
 Xto, X: false
 scheda Xa: true | dopo: prj | Xo: ‹ Menu | tasti in alto: ‹ Menu | X X: 1
-file Xti: Casa_Rossi_DATA.json, Casa_Rossi_Piano_terra_v1.scr
+file Xti: Casa_Rossi_Xto_DATA.zip, Casa_Rossi_Piano_terra_v2.scr
 dopo la scheda, un solo Xo: home | Xo: - | tasti in alto:  | X X: 1
 piano nuovo: pianta | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 1 | Piano primo
 piante: Piano terra, Piano primo
 scelta piano: Piano terra, Piano primo
-script: Casa_Rossi_Piano_terra_v2.scr
+script: Casa_Rossi_Piano_terra_v3.scr
 Xato: prj | Xo: ‹ Menu | tasti in alto: ‹ Menu | X X: 1 | Piano terra, SXto, AX piano, Piano terra, SXto
 tocco pianta: pianta | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 1 | Piano terra, muri 4
 vedi tutto: calc | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 1
