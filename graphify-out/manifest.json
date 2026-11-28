@@ -468,15 +468,15 @@
     "semantic_hash": ""
   },
   "REGISTRO.md": {
-    "mtime": 1795888467.80811,
-    "seen": 1795888470.967424,
-    "ast_hash": "84158e3066ecec666adc20cb6262f1f2",
+    "mtime": 1795888814.2583957,
+    "seen": 1795888815.1810145,
+    "ast_hash": "637fc7518cad558276fb79693b89868f",
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1795888174.6707184,
-    "seen": 1795888470.9674256,
-    "ast_hash": "3a377d8ab9813aa1e9a2d3a2a2cdb9ca",
+    "mtime": 1795888519.8204813,
+    "seen": 1795888815.181016,
+    "ast_hash": "d874ff6b5cbacf55659a8d071fabebcb",
     "semantic_hash": ""
   },
   "test/attesi/allinea.txt": {
@@ -1257,6 +1257,18 @@
     "mtime": 1795888190.0989344,
     "seen": 1795888470.9675782,
     "ast_hash": "59f4e158a5536f1d6bdc5f89d3d0cd93",
+    "semantic_hash": ""
+  },
+  "test/sezione7.js": {
+    "mtime": 1795888534.9220605,
+    "seen": 1795888815.1809797,
+    "ast_hash": "6f171c8300e4a78950242078b095b646",
+    "semantic_hash": ""
+  },
+  "test/attesi/sezione7.txt": {
+    "mtime": 1795888543.5069554,
+    "seen": 1795888815.1811252,
+    "ast_hash": "eb3e2b27630a1c6631e204f83196737d",
     "semantic_hash": ""
   },
   "package-lock.json": {

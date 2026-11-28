@@ -3864,6 +3864,7 @@ function sezScan(poly, pv, ax, add, l) { const xs = [];
 const sezMerge = L => { const o = []; L.slice().sort((a, b) => a[0] - b[0]).forEach(x => { const q = o[o.length - 1]; if (q && x[0] <= q[1] + 1e-6) q[1] = Math.max(q[1], x[1]); else o.push([x[0], x[1]]); }); return o; };
 function sezApertura(ap) { const fin = ap.tipo === 'finestra', h = num(ap.h), dv = num(ap.dav), hp = !(h > 0), dp = fin && !(dv >= 0);   // senza misura: proposta
   const z0 = fin ? (dv >= 0 ? dv : 0.90) : 0, hh = h > 0 ? h : fin ? 1.40 : 2.10; return {z0, z1:z0 + hh, p:hp || dp}; }
+const SEZ_INF = {porta:[0], ingresso:[0], finestra:[-0.025, 0.025], uscita:[-0.025, 0.025]};   // linee dell'infisso nel taglio: anta (una), vetro (due); il varco non ha infisso
 const SEZ_TH = 0.30, SEZ_TESTA = 2.0;   // spessore della scala in sezione; sotto questa altezza dal soffitto sotto non si apre il solaio
 // scale e ascensori tagliati dalla linea di sezione: pezzi pieni (poligoni in t, z), vano da aprire nei solai e, per l'ascensore, pareti e vuoto
 function sezScale(c, plans) {
@@ -3978,15 +3979,15 @@ function sezioneSvg(d, mini) {
     p.prj.forEach(x => { const th = 'stroke="var(--ink)" stroke-width=".8"';
       if (x.k === 's') s += `<path d="M${x.poly.map(q => X(q[0]) + ' ' + Z(q[1])).join(' L')} Z" fill="var(--wall)" ${th}/>`;
       else if (x.k === 'w') { const r = sezPrjRect(x, p, d, p === pr[pr.length - 1]); s += rc(r[0], r[1], r[2], r[3], 'var(--wall)', th); }   // il corpo si vede intero: con il solaio sotto e la copertura sopra
-      else { s += rc(x.t0, x.t1, p.zf + x.z0, p.zf + x.z1, 'var(--cv)', th); if (x.tipo !== 'porta' && x.t1 - x.t0 > 0.2 && x.z1 - x.z0 > 0.2) s += rc(x.t0 + 0.05, x.t1 - 0.05, p.zf + x.z0 + 0.05, p.zf + x.z1 - 0.05, 'none', th); } });
+      else { s += rc(x.t0, x.t1, p.zf + x.z0, p.zf + x.z1, 'var(--cv)', th); if (SEZ_INF[x.tipo] && SEZ_INF[x.tipo].length > 1 && x.t1 - x.t0 > 0.2 && x.z1 - x.z0 > 0.2) s += rc(x.t0 + 0.05, x.t1 - 0.05, p.zf + x.z0 + 0.05, p.zf + x.z1 - 0.05, 'none', th); } });
     // solaio di calpestio: copre il piano e, se più largo, il soffitto del piano sotto; si apre dove passano scale e ascensore
     const e = p.e && prev && prev.e ? [Math.min(p.e[0], prev.e[0]), Math.max(p.e[1], prev.e[1])] : p.e;
     if (e) sub(e, p.buchi || []).forEach(([a, b]) => { s += rc(a, b, p.zf - p.sol, p.zf, B); });
     p.muri.forEach(([w0, w1]) => pezzi(w0, w1, p.zf, p.zc, p.aps).forEach(q => { s += rc(q[0], q[1], q[2], q[3], B, `stroke="${B}" stroke-width=".6"`); }));
     // infissi nel taglio: vetro (due linee) o anta (una) nel mezzo del muro; se il taglio corre lungo il muro, il telaio
     p.aps.forEach(a => { const m = (a.t0 + a.t1) / 2, y0 = Z(p.zf + a.z0), y1 = Z(p.zf + a.z1), st = 'stroke="var(--ink)" stroke-width="1.2" fill="none"';
-      if (a.t1 - a.t0 <= 0.6) (a.tipo === 'porta' ? [0] : [-0.025, 0.025]).forEach(o => { s += `<path d="M${X(m + o)} ${y0} L${X(m + o)} ${y1}" ${st}/>`; });
-      else if (a.t1 - a.t0 > 0.2) s += rc(a.t0 + 0.05, a.t1 - 0.05, p.zf + a.z0 + 0.05, p.zf + a.z1 - 0.05, 'none', st); });
+      if (a.t1 - a.t0 <= 0.6) (SEZ_INF[a.tipo] || []).forEach(o => { s += `<path d="M${X(m + o)} ${y0} L${X(m + o)} ${y1}" ${st}/>`; });
+      else if (a.t1 - a.t0 > 0.2 && a.tipo !== 'varco') s += rc(a.t0 + 0.05, a.t1 - 0.05, p.zf + a.z0 + 0.05, p.zf + a.z1 - 0.05, 'none', st); });
     p.rail.forEach(([w0, w1]) => { s += rc(w0, w1, p.zf, p.zf + 1, B); });
     (p.pezzi || []).forEach(poly => { s += `<path d="M${poly.map(q => X(q[0]) + ' ' + Z(q[1])).join(' L')} Z" fill="${B}" stroke="${B}" stroke-width=".6"/>`; });
     if (!mini) p.amb.forEach(a => { s += `<text x="${X((a.t0 + a.t1) / 2)}" y="${Z(p.zf + 0.4)}" text-anchor="middle" font-size="15" fill="var(--ink)">${esc(a.nome)}</text>`; });
@@ -4052,10 +4053,10 @@ function genScriptSez(d, nome) {
   pr.forEach((p, ip) => { const last = ip === pr.length - 1;
     const it = p.prj.map(x => x.k === 's' ? {k:'s', r:[Math.min(...x.poly.map(q => q[0])), Math.max(...x.poly.map(q => q[0])), Math.min(...x.poly.map(q => q[1])), Math.max(...x.poly.map(q => q[1]))]} : {k:x.k, tipo:x.tipo, r:sezPrjRect(x, p, d, last)});
     it.forEach((x, k) => { const occ = it.slice(k + 1).map(y => y.r).concat(cut); rect(x.r, occ);
-      if (x.k === 'o' && x.tipo !== 'porta' && x.r[1] - x.r[0] > 0.2 && x.r[3] - x.r[2] > 0.2) rect([x.r[0] + 0.05, x.r[1] - 0.05, x.r[2] + 0.05, x.r[3] - 0.05], occ); });
+      if (x.k === 'o' && SEZ_INF[x.tipo] && SEZ_INF[x.tipo].length > 1 && x.r[1] - x.r[0] > 0.2 && x.r[3] - x.r[2] > 0.2) rect([x.r[0] + 0.05, x.r[1] - 0.05, x.r[2] + 0.05, x.r[3] - 0.05], occ); });
     p.aps.forEach(a => { const m = (a.t0 + a.t1) / 2;
-      if (a.t1 - a.t0 <= 0.6) (a.tipo === 'porta' ? [0] : [-0.025, 0.025]).forEach(o => w('_.LINE', P(m + o, p.zf + a.z0), P(m + o, p.zf + a.z1), ''));
-      else if (a.t1 - a.t0 > 0.2) rect([a.t0 + 0.05, a.t1 - 0.05, p.zf + a.z0 + 0.05, p.zf + a.z1 - 0.05], []); }); });
+      if (a.t1 - a.t0 <= 0.6) (SEZ_INF[a.tipo] || []).forEach(o => w('_.LINE', P(m + o, p.zf + a.z0), P(m + o, p.zf + a.z1), ''));
+      else if (a.t1 - a.t0 > 0.2 && a.tipo !== 'varco') rect([a.t0 + 0.05, a.t1 - 0.05, p.zf + a.z0 + 0.05, p.zf + a.z1 - 0.05], []); }); });
   // 3) testi e livelli
   w('; ---- testi e livelli', '_-STYLE', 'STUDIO', 'arial.ttf', '0', '1', '0', '_N', '_N');
   pr.forEach(p => { p.amb.filter(a => !a.est).forEach(a => w('_.TEXT', '_S', 'STUDIO', '_J', '_MC', P((a.t0 + a.t1) / 2, p.zf + 0.4), '0.20', '0', (ascii(a.nome) || 'AMBIENTE').toUpperCase()));

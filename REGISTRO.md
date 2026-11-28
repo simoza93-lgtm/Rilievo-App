@@ -3,6 +3,11 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — Sezioni: tutti i tipi di apertura controllati
+- Controllati nel taglio e in proiezione: porta (anche doppia anta, scorrevole, strombata), ingresso, varco, finestra (anche incassata e strombata) e porta-finestra. Quote da terra e altezze erano giuste.
+- **Corretto:** il **varco** (senza infisso) non ha più linee né cornice; l'**ingresso** si disegna come una porta (una linea nel taglio, vano senza cornice in proiezione) e non più come una finestra. Vale anche per lo script AutoCAD.
+- Prova nuova: `test/sezione7.js` (tutti i tipi sullo stesso muro).
+
 ## 28 novembre 2026 — Sezioni: porta dell'ascensore in proiezione
 - Se l'ascensore sta oltre la linea di sezione e la sua **porta di piano guarda verso la linea**, in proiezione si vede il vano porta (0,80 m di larghezza, alto 2,10 m, dal pavimento), preso dalle impostazioni dell'ascensore (larghezza porta e lato). Se la porta è sul lato opposto o di fianco non si vede, come nella realtà. Vale anche nello script AutoCAD e nella scheda.
 - Prova nuova: `test/sezione6.js`.
