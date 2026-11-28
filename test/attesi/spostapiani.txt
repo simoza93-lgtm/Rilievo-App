@@ -1,0 +1,8 @@
+prima {"ordine":["Piano terra","Piano Xrrato","Piano primo"],"aperto":"Piano terra","X":["Piano terra 0.00","Piano Xrrato 3.10","Piano primo 6.05"],"zero":0}
+voci del menu ["RX","⬆ Sposta più in alto","⬇ Sposta più in basso","Elimina"]
+Xrrato sotto {"ordine":["Piano Xrrato","Piano terra","Piano primo"],"aperto":"Piano terra","X":["Piano Xrrato 0.00","Piano terra 3.00","Piano primo 5.95"],"zero":3}
+quote di X ["−3,00","±0,00","+2,95"]
+menu aperto sul piano Xo ["RX","⬆ Sposta più in alto","Elimina"]
+di nuovo su {"ordine":["Piano terra","Piano Xrrato","Piano primo"],"aperto":"Piano terra","X":["Piano terra 0.00","Piano Xrrato 3.10","Piano primo 6.05"],"zero":0}
+piani nel X Piano terra | Piano Xrrato | Piano primo | Sezione A–A | AX piano | Piano terra | Piano Xrrato | Piano primo
+errors []

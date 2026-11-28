@@ -3,6 +3,12 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — Sposta i piani e quota ±0,00 sul Piano terra
+- **Sposta piani:** nella pagina del rilievo, i tre puntini di un piano (scheda Piante) hanno due voci nuove: **Sposta più in alto** e **Sposta più in basso**. L'ordine decide i livelli (scale riportate, sagoma di un altro piano, sezioni); il piano aperto resta lo stesso. Il menu resta aperto per spostare ancora.
+- **Sezioni:** la quota **±0,00** è ora il pavimento del **«Piano terra»** (se non c'è, del piano più basso); i piani sotto hanno quote negative (−3,00). Prima era sempre il piano più basso.
+- Perché «Piano seminterrato» finiva in cima: i nomi scritti a mano vanno sopra gli altri. Ora si può rimetterlo sotto.
+- Prova nuova `test/spostapiani.js`.
+
 ## 28 novembre 2026 — Sezioni, tappe 3 e 4: quote, scale, ascensore, copertura e chiaro/scuro
 - **Quote orizzontali** sotto la sezione: muri e ambienti di ogni piano (una riga sola se due piani hanno le stesse misure) e il totale. I tratti stretti hanno il numero girato.
 - **Quote verticali** a destra: solaio e altezza di ogni piano e il totale. A sinistra le **quote di livello** (±0,00 sul pavimento del primo piano, poi +2,95 e così via) e il nome del piano.

@@ -3932,6 +3932,7 @@ function sezioneDati(s) {
   // scale e ascensore (hanno bisogno delle quote dei piani sopra e sotto)
   ctx.forEach(c => { const r = sezScale(c, out.piani); c.me.pezzi = r.pezzi; c.me.vuoti = r.vuoti; r.buchi.forEach(b => b.p.buchi.push([b.t0, b.t1]));
     if (out.piani.indexOf(c.me) > 0) r.vuoti.forEach(v => c.me.buchi.push(v)); c.me.pareti = r.pareti; c.me.muriP = c.me.muri; c.me.muri = sezMerge(c.me.muri.concat(r.pareti)); if (c.me.e) c.me.e = [Math.min(c.me.e[0], ...r.pareti.map(x => x[0])), Math.max(c.me.e[1], ...r.pareti.map(x => x[1]))]; });
+  const z0 = out.piani.find(p => livello(p.nome) === 0) || out.piani[0]; out.zero = z0 ? z0.zf : 0;   // ±0,00 = pavimento del «Piano terra» (se non c'è, del piano più basso)
   const sc = num(R.solC), up = out.piani[out.piani.length - 1];
   if (up) { out.cop = {sol:sc > 0 ? sc : SEZ_SOL, solP:!(sc > 0), e:up.e, z0:up.zc}; out.zmin = out.piani[0].zf - out.piani[0].sol; out.zmax = up.zc + out.cop.sol; }
   return out; }
@@ -3976,7 +3977,7 @@ function sezioneSvg(d, mini) {
     if (d.cop) q += vt(d.cop.z0, d.zmax, f2(d.cop.sol), d.cop.solP, xv);
     q += `<path d="M${xt} ${Z(d.zmin)} L${xt} ${Z(d.zmax)} ${tk(xt, Z(d.zmin))} ${tk(xt, Z(d.zmax))}" ${pa}/><text transform="translate(${xt - 6} ${Z((d.zmin + d.zmax) / 2)}) rotate(-90)" text-anchor="middle" font-size="12.5" fill="var(--ink)">${f2(d.zmax - d.zmin)}</text>`;
     // quote di livello a sinistra (pavimento finito di ogni piano) e nome del piano
-    pr.forEach(p => { const y = Z(p.zf); q += `<path d="M${X(g0) - 14} ${y} l-7 -9 l14 0 z" fill="var(--ink)"/><text x="${X(g0) - 26}" y="${y - 2}" text-anchor="end" font-size="12.5" fill="var(--ink)">${sezQ(p.zf)}</text>`
+    pr.forEach(p => { const y = Z(p.zf); q += `<path d="M${X(g0) - 14} ${y} l-7 -9 l14 0 z" fill="var(--ink)"/><text x="${X(g0) - 26}" y="${y - 2}" text-anchor="end" font-size="12.5" fill="var(--ink)">${sezQ(p.zf - d.zero)}</text>`
       + `<text x="${X(g0) - 78}" y="${Z(p.zf + p.Hn / 2) + 5}" text-anchor="end" font-size="16" font-weight="700" fill="var(--ink)">${esc(p.nome)}</text>`; }); }
   const top = Z(d.zmax) - 70, bot = Z(d.zmin) + 44 + rows * 44 + 30;
   d.vb = {x:Math.round(x0), y:Math.round(top), w:Math.round(x1 - x0), h:Math.round(bot - top)};
@@ -5090,6 +5091,9 @@ function cambiaPiano(i) { R.cur = i; ui.alli = null; ui.sel = null; ui.undo = []
 function aggiungiPiano(nome) { const L = livello(nome); let i = L === null ? -1 : R.piani.findIndex(p => livello(p.nome) !== null && livello(p.nome) > L); if (i < 0) i = R.piani.length;
   R.piani.splice(i, 0, {id:uid(), nome, ver:0, nodes:[], walls:[], rooms:[]}); cambiaPiano(i); }
 function rinominaPiano(i, n) { if (!n) return; R.piani[i].nome = n; render(); save(); }
+// sposta il piano di un posto (d = -1 più in basso, +1 più in alto): l'ordine dell'elenco è l'ordine dei livelli (scale riportate, sagoma, sezioni)
+function spostaPiano(i, d) { const k = i + d; if (k < 0 || k >= R.piani.length) return; const aperto = piano().id; [R.piani[i], R.piani[k]] = [R.piani[k], R.piani[i]];
+  R.cur = R.piani.findIndex(p => p.id === aperto); render(); save(); }
 function eliminaPiano(i) { if (R.piani.length < 2) return;
   const pid = R.piani[i].id, aperto = piano().id; (ui.fotos || []).filter(f => f.piano === pid).forEach(f => fDel(f.id).catch(() => {})); ui.fotos = (ui.fotos || []).filter(f => f.piano !== pid);
   R.piani.splice(i, 1); const k = R.piani.findIndex(p => p.id === aperto); if (k < 0) return cambiaPiano(0); R.cur = k; render(); save(); }
@@ -5108,7 +5112,7 @@ function apriPiani(elenco, menu, q) { closeInline(true); const dlg = $('#dPiani'
     const comuni = voci(PIANI_COMUNI);
     dlg.innerHTML = testa('Aggiungi piano') + domandaPiani(q) + (comuni ? `<h3>Più usati</h3><div class="plist">${comuni}</div>` : '') + `<h3>Altri piani</h3><div class="plist">${voci(Object.keys(LIVELLI).filter(v => !PIANI_COMUNI.includes(v)))}<button data-paltro>Altro nome…</button></div><h3>Da un file</h3><div class="plist"><button data-pdxf>Piano da un DXF…</button></div>`;
   } else dlg.innerHTML = testa(`Tutti i piani <small>${n} ${n === 1 ? 'piano' : 'piani'}</small>`) + domandaPiani(q) + `<div class="pgrid"><div><button class="pcard padd" data-padd>+</button><div class="pnome">Aggiungi piano</div></div>`
-    + R.piani.map((p, i) => `<div><div class="pwrap"><button class="pcard${i === R.cur ? ' cur' : ''}" data-pvai="${i}">${miniPiano(p)}</button><button class="pdots" data-pmenu="${i}" title="Rinomina o elimina">•••</button>${menu === i ? `<div class="pmenu"><button data-pren="${i}">Rinomina</button><button class="bad" data-pdel="${i}">Elimina</button></div>` : ''}</div><div class="pnome">${esc(p.nome)}</div></div>`).join('') + '</div>';
+    + R.piani.map((p, i) => `<div><div class="pwrap"><button class="pcard${i === R.cur ? ' cur' : ''}" data-pvai="${i}">${miniPiano(p)}</button><button class="pdots" data-pmenu="${i}" title="Rinomina o elimina">•••</button>${menu === i ? `<div class="pmenu"><button data-pren="${i}">Rinomina</button>${i < n - 1 ? `<button data-pmuovi="${i}:1">⬆ Sposta più in alto</button>` : ''}${i > 0 ? `<button data-pmuovi="${i}:-1">⬇ Sposta più in basso</button>` : ''}<button class="bad" data-pdel="${i}">Elimina</button></div>` : ''}</div><div class="pnome">${esc(p.nome)}</div></div>`).join('') + '</div>' + (n > 1 ? '<p class="hint">Con i tre puntini si sposta un piano più in alto o più in basso. L\'ordine decide i livelli: il primo è il più basso (vale per scale riportate, sagoma e sezioni).</p>' : '');
   ui.pmenu = menu; ui.pask = q; if (!dlg.open) dlg.showModal(); const c = $('#pNome'); if (c) { c.focus(); c.select(); } }
 $('#dPiani').addEventListener('submit', e => { e.preventDefault(); const q = ui.pask, n = $('#pNome').value.trim(); if (!q || !n) return;
   if (q.k === 'ren') { rinominaPiano(q.i, n); apriPiani(); } else { const daPrj = tab === 'prj'; $('#dPiani').close(); aggiungiPiano(n); if (daPrj) apriDisegno(R.cur); } });
@@ -5120,6 +5124,7 @@ $('#dPiani').addEventListener('click', e => { const dlg = $('#dPiani'), t = e.ta
   else if ('pdxf' in d) { dlg.close(); ui.dxfDa = 'piano'; $('#fDxf').click(); }
   else if (d.pvai) { dlg.close(); if (tab === 'prj') apriDisegno(+d.pvai); else if (+d.pvai !== R.cur) cambiaPiano(+d.pvai); }
   else if (d.pmenu) apriPiani(false, ui.pmenu === +d.pmenu ? undefined : +d.pmenu);
+  else if (d.pmuovi) { const [i, s] = d.pmuovi.split(':').map(Number); spostaPiano(i, s); apriPiani(false, i + s); }
   else if (d.pren) apriPiani(false, undefined, {k:'ren', i:+d.pren});
   else if (d.pdel) apriPiani(false, undefined, {k:'del', i:+d.pdel});
   else if (d.psi) { eliminaPiano(+d.psi); apriPiani(); }
