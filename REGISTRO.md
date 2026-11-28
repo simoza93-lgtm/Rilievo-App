@@ -3,6 +3,16 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — Sezioni, tappa 2: linee di sezione e scheda della sezione
+- **Quota ▸ Sezione**: si tocca il punto dove parte e il punto dove finisce (la linea viene sempre **dritta, orizzontale o verticale**). Si possono tracciare **al massimo 2 sezioni**, A–A e B–B; la linea si vede su **tutti i piani** (tratto-punto rosso, lettera e freccia dalla parte guardata).
+- Con «Seleziona» toccando la linea compare il pannello: **Vedi la sezione**, **Gira il verso**, **Elimina**. Le linee non si spostano: si elimina e si ritraccia. «Annulla» non le toglie.
+- Nella pagina del rilievo c'è la scheda **Sezioni**, accanto alle Piante, con le miniature; toccandole si apre la **pagina della sezione** (si sposta con un dito, zoom con due dita, tasto «Adatta», cambio A–A / B–B). Solo da vedere, niente modifiche.
+- **Cosa si vede (tutti i piani, dal basso):** muri tagliati e solai in nero, ambienti con il nome, porte e finestre aperte nel muro (con architrave e parapetto sopra e sotto), ringhiere tagliate. Sotto il primo piano c'è il suo solaio.
+- **Come si impilano i piani (scelte mie):** il pavimento del primo piano è la quota ±0,00; il soffitto di un piano è l'altezza più alta dei suoi ambienti; sopra c'è il solaio del piano dopo (dalle Impostazioni, scheda Solai). L'ultimo piano finisce al soffitto. **Senza solaio scritto** si disegna 0,30 m; **senza altezza della finestra o della porta** si usano 1,40 (davanzale 0,90) e 2,10 m: sono proposte, le quote le segnerò in grigio (tappa 3).
+- I dati stanno nel rilievo (`R.sez`, nelle coordinate dell'edificio): i rilievi vecchi non cambiano; Esporta/Importa e Duplica le portano con sé. Lo script AutoCAD non cambia.
+- Prova `test/sezione.js`: numeri della sezione, verso girato = specchiata, scheda e pagina.
+- Ancora da fare: tappa 3 (quote orizzontali e verticali) e tappa 4 (scale, vano scala e ascensore).
+
 ## 28 novembre 2026 — Oggetto selezionato: la pianta scorre a sinistra, senza zoom
 - A schermo intero, toccando un **oggetto** (ascensore, finestra, porta, scala, muro, pilastro, nota, quota) che finirebbe **sotto il pannello**, la pianta **scorre a sinistra** quanto serve per tenerlo visibile. **Lo zoom non cambia.**
 - Se l'oggetto è già lontano dal pannello, la vista non si muove. Con la vista girata o fuori dallo schermo intero non cambia niente.
