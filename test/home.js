@@ -48,7 +48,7 @@ const { chromium } = require('playwright');
   console.log('dxf, tasti:', await p.evaluate(() => [...document.querySelectorAll('#dDxf .btns button')].map(x => x.textContent).join(', ')));
   await tocca('#dxCrea'); console.log('dxf nel rilievo nuovo:', await dove(), '|', await p.evaluate(() => R.nome + ', muri ' + piano().walls.length + ', piani ' + R.piani.length)); await tocca('#bBack'); await tocca('#bBack'); console.log('menu:', await dove());
   // nuovo dalla foto della planimetria
-  await tocca('#bNew'); const [sc2] = await Promise.all([p.waitForEvent('filechooser'), p.click('button[data-nfoto="fBgGal"]')]); await sc2.setFiles(path.join(__dirname, '..', 'icons', 'icon-512.png')); await p.waitForTimeout(900);
+  await tocca('#bNew'); const [sc2] = await Promise.all([p.waitForEvent('filechooser'), p.click('button[data-nfoto="fBgGal"]')]); await sc2.setFiles(path.join(__dirname, '..', 'icons', 'icon-512.png')); await p.waitForTimeout(900); await p.waitForFunction(() => piano().bg, null, {timeout:8000}).catch(() => {});   // l'immagine può metterci di più quando il computer è carico
   console.log('foto planimetria:', await dove(), '| sfondo:', await p.evaluate(() => !!piano().bg)); await tocca('#bBack'); await tocca('#bBack'); console.log('menu:', await dove()); await scatto('4-menu-pieno');
   // impostazioni: colori (restano dopo il riavvio) e limiti validi per tutti
   await tocca('#bCfg'); console.log('impostazioni:', await dove()); await p.selectOption('select[data-pref="tema"]', 'chiaro'); await p.fill('input[data-def="rai"]', '10'); await scatto('5-impostazioni');
