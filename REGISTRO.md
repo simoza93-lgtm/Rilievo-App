@@ -3,6 +3,13 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — Ambiente selezionato: zoom automatico e pannello da accendere o spegnere (come magicplan)
+- **Zoom automatico:** con lo strumento **Seleziona**, toccando un ambiente la vista lo inquadra tutto. Toccando un altro ambiente passa direttamente a quello. Deselezionando (tocco fuori) **torna tutta la planimetria**, come «Adatta». Con porte, finestre, scale o disegno attivi non succede niente.
+- **A schermo intero** la pianta si ferma **a sinistra del pannello**, così non resta coperta.
+- **Icona del pannello** (piccolo quadrato con la striscia a destra) **sotto le frecce di rotazione**: spenta, selezionando l'ambiente si vede l'ambiente colorato con le sue misure interne e **niente pannello**; la pianta si centra su tutto lo schermo. La scelta resta salvata (preferenza `rilievo-pamb`).
+- Muri, porte, scale e note non cambiano: il pannello c'è come prima.
+- Prova nuova `test/zoomambiente.js`.
+
 ## 28 novembre 2026 — Grafica «muri neri»: finestre incassate senza spigoli chiari
 - Nella grafica «muri neri», sulle **finestre e porte incassate nei muri obliqui** la parte larga del vano restava chiara agli estremi (si vedevano due spigoli bianchi). Ora ha lo stesso colore della stanza.
 - Cambia solo il disegno a schermo. Prova `test/spuntiobl.js` allargata.

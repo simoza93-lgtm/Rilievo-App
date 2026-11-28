@@ -1,22 +1,22 @@
 # Graph Report - Rilievo-App  (2026-11-28)
 
 ## Corpus Check
-- 96 files · ~150,020 words
+- 97 files · ~151,113 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 5 file(s) not represented in the graph (top: (none) 3, .webmanifest 1, .dxf 1)
 
 ## Summary
-- 357 nodes · 363 edges · 88 communities (10 shown, 78 thin omitted)
+- 360 nodes · 366 edges · 88 communities (9 shown, 79 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 6 edges (avg confidence: 0.75)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `6d1a9f01`
+- Built from commit: `45e83e50`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- ref_fs
+- run.js
 - playwright
 - Prodotto, DXF e pubblicazione
 - Motore di misura e geometria
@@ -96,17 +96,17 @@
 - porte.js
 - scalegr.js
 - selsing.js
-- run.js
+- zoomambiente.js
 - portastrombata.js
-- ringhiera.js
-- solai.js
+- multi.js
+- spuntiobl.js
 - gnporta.js
 - CLAUDE.md
 - dente.js
 - scrobl.js
 
 ## God Nodes (most connected - your core abstractions)
-1. `playwright` - 89 edges
+1. `playwright` - 90 edges
 2. `Architettura del codice in index.html` - 8 edges
 3. `Importa DXF (tappe 1-3 e scale a righe singole)` - 5 edges
 4. `Muri obliqui (tappe 1-4)` - 5 edges
@@ -137,11 +137,11 @@
 - **Muri obliqui e correzioni collegate** — registro_muri_obliqui, registro_diagonali_fuori_squadra, registro_sistema_inclinando, registro_script_quote_obliqui [INFERRED 0.85]
 - **Famiglia scale e ascensore** — registro_scale_ascensore, registro_scale_pianerottoli, registro_gradini_ritoccati [INFERRED 0.85]
 
-## Communities (88 total, 78 thin omitted)
+## Communities (88 total, 79 thin omitted)
 
-### Community 0 - "ref_fs"
-Cohesion: 0.10
-Nodes (15): { chromium }, fs, OUT, { chromium }, fs, OUT, { chromium }, fs (+7 more)
+### Community 0 - "run.js"
+Cohesion: 0.05
+Nodes (31): { chromium }, fs, OUT, path, { chromium }, fs, OUT, { chromium } (+23 more)
 
 ### Community 1 - "playwright"
 Cohesion: 0.18
@@ -168,36 +168,30 @@ Cohesion: 0.40
 Nodes (4): Before you write, Levels, Ponytail, The smallest complete change
 
 ### Community 16 - "pacchetto.js"
-Cohesion: 0.09
-Nodes (13): { chromium }, fs, OUT, path, { chromium }, fs, OUT, path (+5 more)
+Cohesion: 0.20
+Nodes (5): { chromium }, fs, OUT, path, zlib
 
 ### Community 18 - "dxf2.js"
 Cohesion: 0.28
 Nodes (5): casa(), { chromium }, LW(), LY, rc()
 
-### Community 80 - "run.js"
-Cohesion: 0.18
-Nodes (8): all, args, ATT, fs, only, path, { spawnSync }, upd
-
 ## Knowledge Gaps
 - **19 isolated node(s):** `sw.js service worker`, `Pubblicazione GitHub Pages da main`, `Simone (geometra, utente non programmatore)`, `DXF: riconoscimento porte, finestre e varchi`, `Gradini ritoccati a mano` (+14 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 236 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **78 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 238 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **79 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `playwright` connect `playwright` to `ref_fs`, `Configurazione npm e test`, `Prova allinea.js`, `ext3.js`, `ang2.js`, `Prova apfit.js`, `anta.js`, `Prova balc.js`, `filo3.js`, `Prova balc3.js`, `pacchetto.js`, `Prova boxporta.js`, `dxf2.js`, `anta3.js`, `apobl.js`, `Prova ext1.js`, `Prova ext2.js`, `bg.js`, `incassata.js`, `full.js`, `incrocio.js`, `dx.js`, `Prova layer.js`, `Prova lift.js`, `pianer.js`, `eliminaambiente.js`, `linea.js`, `balc2.js`, `inclina.js`, `Prova obliqui.js`, `nodi.js`, `Prova p4.js`, `Prova p5.js`, `Prova paral.js`, `orto.js`, `mn.js`, `linee.js`, `rot.js`, `piani.js`, `mano.js`, `pilastro.js`, `Prova scasc.js`, `Prova scheda.js`, `quotefuori.js`, `pop.js`, `scalepan.js`, `sagoma.js`, `scheda2.js`, `shot38.js`, `split2.js`, `Prova taglia.js`, `scp.js`, `Prova win4.js`, `totali.js`, `shot37.js`, `spessore.js`, `tbar.js`, `shot41.js`, `shot35.js`, `shot39.js`, `split.js`, `zoom.js`, `ang.js`, `bk.js`, `diagonali.js`, `dxf.js`, `gradini.js`, `grafica.js`, `porte.js`, `scalegr.js`, `selsing.js`, `portastrombata.js`, `ringhiera.js`, `solai.js`, `gnporta.js`, `dente.js`, `scrobl.js`?**
-  _High betweenness centrality (0.674) - this node is a cross-community bridge._
+- **Why does `playwright` connect `playwright` to `run.js`, `Configurazione npm e test`, `Prova allinea.js`, `ext3.js`, `ang2.js`, `Prova apfit.js`, `anta.js`, `Prova balc.js`, `filo3.js`, `Prova balc3.js`, `pacchetto.js`, `Prova boxporta.js`, `dxf2.js`, `anta3.js`, `apobl.js`, `Prova ext1.js`, `Prova ext2.js`, `bg.js`, `incassata.js`, `full.js`, `incrocio.js`, `dx.js`, `Prova layer.js`, `Prova lift.js`, `pianer.js`, `eliminaambiente.js`, `linea.js`, `balc2.js`, `inclina.js`, `Prova obliqui.js`, `nodi.js`, `Prova p4.js`, `Prova p5.js`, `Prova paral.js`, `orto.js`, `mn.js`, `linee.js`, `rot.js`, `piani.js`, `mano.js`, `pilastro.js`, `Prova scasc.js`, `Prova scheda.js`, `quotefuori.js`, `pop.js`, `scalepan.js`, `sagoma.js`, `scheda2.js`, `shot38.js`, `split2.js`, `Prova taglia.js`, `scp.js`, `Prova win4.js`, `totali.js`, `shot37.js`, `spessore.js`, `tbar.js`, `shot41.js`, `shot35.js`, `shot39.js`, `split.js`, `zoom.js`, `ang.js`, `bk.js`, `diagonali.js`, `dxf.js`, `gradini.js`, `grafica.js`, `porte.js`, `scalegr.js`, `selsing.js`, `zoomambiente.js`, `portastrombata.js`, `multi.js`, `spuntiobl.js`, `gnporta.js`, `dente.js`, `scrobl.js`?**
+  _High betweenness centrality (0.676) - this node is a cross-community bridge._
 - **What connects `sw.js service worker`, `Pubblicazione GitHub Pages da main`, `Simone (geometra, utente non programmatore)` to the rest of the system?**
   _19 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `ref_fs` be split into smaller, more focused modules?**
-  _Cohesion score 0.09523809523809523 - nodes in this community are weakly interconnected._
+- **Should `run.js` be split into smaller, more focused modules?**
+  _Cohesion score 0.04756871035940803 - nodes in this community are weakly interconnected._
 - **Why does `Architettura del codice in index.html` connect `Motore di misura e geometria` to `Prodotto, DXF e pubblicazione`?**
   _High betweenness centrality (0.007) - this node is a cross-community bridge._
 - **Should `Prodotto, DXF e pubblicazione` be split into smaller, more focused modules?**
   _Cohesion score 0.08666666666666667 - nodes in this community are weakly interconnected._
 - **Should `Motore di misura e geometria` be split into smaller, more focused modules?**
   _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
-- **Should `pacchetto.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.09090909090909091 - nodes in this community are weakly interconnected._

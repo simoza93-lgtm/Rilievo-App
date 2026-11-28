@@ -1,0 +1,7 @@
+pianta intera, scala 69.3
+Xe grande {"scala":112.7,"sel":"r","Xo":true,"spento":false,"icona":true,"X":null,"XeDentro":true,"centro":"al centro dello spazio libero"}
+passa all'altro {"scala":160.2,"sel":"r","Xo":true,"spento":false,"icona":true,"X":null,"XeDentro":true,"centro":"al centro dello spazio libero"}
+Xo spento {"scala":160.2,"sel":"r","Xo":false,"spento":true,"icona":false,"X":"0","XeDentro":true,"centro":"al centro dello spazio libero"}
+Xionato {"scala":102.9,"sel":null,"Xo":false,"spento":false,"icona":false,"X":"0","XeDentro":null,"centro":null} | intera: 102.9
+dopo f5, Xnza false
+errors []
