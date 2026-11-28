@@ -1,0 +1,4 @@
+muro a Xa {"sel":"w","Xo":true,"scala":69.32,"x":-4.72,"sotto":null} Xa: false
+muro a destra {"sel":"w","Xo":true,"scala":69.32,"x":-2.17,"sotto":null} Xa: true
+muro fuori dal Xo true
+errors []
