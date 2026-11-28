@@ -2560,7 +2560,7 @@ function update(editor) { recompute(); draw(); if (editor) renderSide(); else re
 const GENITORE = {prj:'home', nuovo:'home', cfg:'home', pianta:'prj', calc:'prj', foto:'prj', set:'prj'};
 const livPag = t => { let n = 0; while (GENITORE[t]) { t = GENITORE[t]; n++; } return n; };
 // una voce di cronologia per livello: così il tasto «indietro» di Android risale di una pagina invece di chiudere l'app
-function storia() { try { let n = (history.state && history.state.liv) || 0; while (n < livPag(tab)) history.pushState({liv:++n}, ''); } catch (e) {} }
+function storia() { if (ui.perScheda) return; try { let n = (history.state && history.state.liv) || 0; while (n < livPag(tab)) history.pushState({liv:++n}, ''); } catch (e) {} }
 function lascia(a) {
   if (ui.full) setFull(false); closeInline(true); closeFly(); document.querySelectorAll('dialog[open]').forEach(d => d.close()); if (ui.fview) closeFoto();
   // «Nuovo» abbandonato senza scrivere né disegnare niente: non resta un rilievo vuoto nell'elenco
@@ -4380,10 +4380,10 @@ function nuovoRilievo() {
   R = n; ui.mode = 'draw'; ui.newType = 'P'; ui.undo = []; ui.redo = []; ui.fitted = false; ui.fotos = null; vai('nuovo'); ui.nuovo = {id:n.id, firma:firmaRil(R)};
   try { localStorage.setItem('rilievo-corrente', n.id); } catch (e) {}
 }
-function duplicaRilievo() { clearTimeout(tSave); arcPut(R); const c = JSON.parse(JSON.stringify(R)); c.id = uid(); c.nome = (R.nome || 'Rilievo') + ' (copia)'; c.unexp = true; c.mod = new Date().toISOString(); c.demo = false; arcPut(c); vai('home'); toast('Copia creata: «' + c.nome + '».'); }
+function duplicaRilievo() { clearTimeout(tSave); arcPut(R); const c = JSON.parse(JSON.stringify(R)); c.id = uid(); c.nome = (R.nome || 'Rilievo') + ' (copia)'; c.unexp = true; c.mod = new Date().toISOString(); c.demo = false; arcPut(c); indietro(); toast('Copia creata: «' + c.nome + '».'); }
 function eliminaRilievo() {
   if (!confirm('Eliminare definitivamente il rilievo «' + (R.nome || 'senza nome') + '»?' + (R.unexp ? '\n\nATTENZIONE: ha modifiche non esportate, andrebbero perse.' : ''))) return;
-  clearTimeout(tSave); arcDel(R.id); const nx = arcIndex()[0]; R = (nx && arcGet(nx.id)) || demo(); ui.undo = []; ui.redo = []; ui.fitted = false; ui.fotos = null; vai('home');
+  clearTimeout(tSave); arcDel(R.id); const nx = arcIndex()[0]; R = (nx && arcGet(nx.id)) || demo(); ui.undo = []; ui.redo = []; ui.fitted = false; ui.fotos = null; indietro();
 }
 $('#bBack').onclick = indietro;
 $('#main').addEventListener('click', e => {
@@ -4693,6 +4693,7 @@ $('#dPiani').addEventListener('click', e => { const dlg = $('#dPiani'), t = e.ta
 /* ---- scheda del rilievo: pagine A4 (dati della pratica, una pianta per piano) da salvare in PDF con «Stampa» ---- */
 function schedaPiante() {   // disegna ogni piano su un foglio fisso, senza selezioni, senza rotazione e senza griglia
   const keep = {cur:R.cur, vrot:R.vrot, sel:ui.sel, view:ui.view, tab}, PW = 1000, PH = 1150, out = [];
+  ui.perScheda = true;
   if (tab !== 'pianta') { tab = 'pianta'; render(); }
   const svg = $('#svg');
   ui.perScheda = true;

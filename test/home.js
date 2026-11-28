@@ -28,6 +28,7 @@ const { chromium } = require('playwright');
   await tocca('#bExp'); console.log('esportato, pallino:', await p.evaluate(() => document.querySelector('#bExp').classList.contains('dirty')));
   await tocca('#bScr'); await p.evaluate(() => { window.print = () => { window.stampato = (document.querySelector('#scheda') || {}).innerHTML.length > 500; }; }); await tocca('#bScheda'); await p.waitForTimeout(600);
   console.log('scheda stampata:', await p.evaluate(() => window.stampato), '| dopo:', await dove()); console.log('file scaricati:', giu.join(', '));
+  await indietroAndroid(); console.log('dopo la scheda, un solo indietro:', await dove()); await tocca('.rcard[data-apri]');
   // secondo piano dalla pagina, poi script con scelta del piano
   await tocca('button[data-piu]'); await tocca('#dPiani button[data-pnome="Piano primo"]'); console.log('piano nuovo:', await dove(), '|', await p.evaluate(() => piano().nome)); await tocca('#bBack');
   console.log('piante:', await p.evaluate(() => [...document.querySelectorAll('.pnome')].map(x => x.textContent).join(', ')));
@@ -39,7 +40,7 @@ const { chromium } = require('playwright');
   await tocca('button[data-vai="set"]'); console.log('modifica:', await dove()); await tocca('#bBack');
   await tocca('button[data-vai="foto"]'); console.log('foto:', await dove()); await tocca('#bBack');
   // duplica ed elimina
-  await tocca('#bDup'); console.log('duplica:', await dove()); await tocca('.rcard[data-apri] >> nth=0'); await tocca('#bElim'); console.log('elimina:', await dove());
+  await tocca('#bDup'); console.log('duplica:', await dove(), '| cronologia:', await p.evaluate(() => (history.state || {}).liv || 0)); await tocca('.rcard[data-apri] >> nth=0'); await tocca('#bElim'); console.log('elimina:', await dove(), '| cronologia:', await p.evaluate(() => (history.state || {}).liv || 0));
   // nuovo da DXF: resta lo stesso rilievo
   const dxf = ['0', 'SECTION', '2', 'ENTITIES']; [[0, 0, 6, 0], [6, 0, 6, 4], [6, 4, 0, 4], [0, 4, 0, 0], [0.3, 0.3, 5.7, 0.3], [5.7, 0.3, 5.7, 3.7], [5.7, 3.7, 0.3, 3.7], [0.3, 3.7, 0.3, 0.3]].forEach(s => dxf.push('0', 'LINE', '8', 'MURI', '10', String(s[0]), '20', String(s[1]), '11', String(s[2]), '21', String(s[3]))); dxf.push('0', 'ENDSEC', '0', 'EOF');
   const file = path.join(OUT, 'home.dxf'); fs.writeFileSync(file, dxf.join('\n'));

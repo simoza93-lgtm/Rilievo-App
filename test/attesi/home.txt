@@ -12,6 +12,7 @@ Xo: prj | Xo: ‹ Menu | tasti in alto: ‹ Menu | X X: 1
 Xto, X: false
 scheda Xa: true | dopo: prj | Xo: ‹ Menu | tasti in alto: ‹ Menu | X X: 1
 file Xti: Casa_Rossi_DATA.json, Casa_Rossi_Piano_terra_v1.scr
+dopo la scheda, un solo Xo: home | Xo: - | tasti in alto:  | X X: 1
 piano nuovo: pianta | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 1 | Piano primo
 piante: Piano terra, Piano primo
 scelta piano: Piano terra, Piano primo
@@ -21,9 +22,9 @@ tocco pianta: pianta | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 1 | P
 vedi tutto: calc | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 1
 Xa: set | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 1
 foto: foto | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 1
-X: home | Xo: - | tasti in alto:  | X X: 2
+X: home | Xo: - | tasti in alto:  | X X: 2 | Xgia: 0
   X: EXe XXe il X «Casa Rossi (copia)»?
-X: home | Xo: - | tasti in alto:  | X X: 1
+X: home | Xo: - | tasti in alto:  | X X: 1 | Xgia: 0
 dxf, tasti: Disegna in questo X, IX, Annulla
 dxf nel X nuovo: pianta | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 2 | Da X, muri 4, piani 1
 menu: home | Xo: - | tasti in alto:  | X X: 2
