@@ -1,0 +1,4 @@
+scheda nel X {"titoli":["IXioni piani ✎ Mod","Totali Vedi tutto","Piante Vedi tutti (2)","Piani: X e solai","Sezioni Vedi","Foto Vedi tutte (0)","File"],"campi":["h:/varie","sol:/0,30","h:2,70/2,70","sol:/0,30","cop:/0,30"]}
+dopo {"H":[["2,70",["2,70","2,70"]],["2,60",["2,60","2,60"]]],"sol":["0,30","0,25"],"cop":"0,20","X":{"zf":[0,2.95],"zc":[2.7,5.55],"cop":0.2}}
+dati del X senza Solai true
+errors []

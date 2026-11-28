@@ -3,6 +3,12 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — Altezze e solai dei piani nella pagina del rilievo
+- Nella pagina del rilievo, sotto le Piante, c'è la scheda **«Piani: altezze e solai»**: per ogni piano **Altezza interna** e **Solaio di calpestio**, in fondo la **Copertura**. È qui, dentro il rilievo, e **non più** nei «Dati del rilievo» (la scheda Solai è stata tolta di là); le Impostazioni dell'ingranaggio non c'entrano.
+- **Altezza interna:** si scrive una volta e vale per **tutti gli ambienti del piano** (esterni esclusi), anche per quelli che nasceranno dopo. Con ambienti di altezze diverse la casella dice «varie»: scrivendo un valore diventano tutte uguali. Le altezze dei singoli ambienti si cambiano ancora dal pannello dell'ambiente.
+- Le sezioni usano questi valori (altezza del piano = la più alta tra gli ambienti). Vuoti: 0,30 m in grigio corsivo.
+- Nuovo campo `H` sul piano (altezza proposta ai nuovi ambienti); i rilievi vecchi non cambiano. Prova nuova `test/impostazionipiani.js`; `solai` e `sezione` aggiornate.
+
 ## 28 novembre 2026 — Sposta i piani e quota ±0,00 sul Piano terra
 - **Sposta piani:** nella pagina del rilievo, i tre puntini di un piano (scheda Piante) hanno due voci nuove: **Sposta più in alto** e **Sposta più in basso**. L'ordine decide i livelli (scale riportate, sagoma di un altro piano, sezioni); il piano aperto resta lo stesso. Il menu resta aperto per spostare ancora.
 - **Sezioni:** la quota **±0,00** è ora il pavimento del **«Piano terra»** (se non c'è, del piano più basso); i piani sotto hanno quote negative (−3,00). Prima era sempre il piano più basso.

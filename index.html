@@ -1731,7 +1731,7 @@ function syncRooms(pl, G) {
   recs.filter(r => r._c < 0 && !r.vuoto).forEach(r => {   // un vuoto che si apre sparisce, non salta su un'altra stanza
     let best = -1, bd = 3; G.comps.forEach((c, i) => { if (used.has(i)) return; const d = Math.hypot(c.label[0] - r.px, c.label[1] - r.py); if (d < bd) { bd = d; best = i; } }); if (best >= 0) { r._c = best; used.add(best); } });
   pl.rooms = recs.filter(r => r._c >= 0);
-  G.comps.forEach((c, i) => { if (!used.has(i)) { const n = pl.rooms.filter(x => G.comps[x._c] && G.comps[x._c].room).length + 1; pl.rooms.push({id:uid(), nome:c.room ? 'Ambiente ' + n : 'Pilastro', dest:c.room ? 'Camera' : 'Altro', H:R.hA, _c:i, _new:true}); } });
+  G.comps.forEach((c, i) => { if (!used.has(i)) { const n = pl.rooms.filter(x => G.comps[x._c] && G.comps[x._c].room).length + 1; pl.rooms.push({id:uid(), nome:c.room ? 'Ambiente ' + n : 'Pilastro', dest:c.room ? 'Camera' : 'Altro', H:pl.H || R.hA, _c:i, _new:true}); } });
   pl.rooms.forEach(r => { const c = G.comps[r._c]; r.px = c.label[0]; r.py = c.label[1]; c.rec = r; });
 }
 
@@ -4672,9 +4672,7 @@ const campo = (k, l, dec = true, cls = '') => `<div class="${cls}"><label class=
 function datiRilievo() { const i = campo;
   return `<div class="card"><div class="cardh">Rilievo</div><div class="grid">${i('nome', 'Nome / cliente', false)}${i('data', 'Data', false)}${i('indirizzo', 'Indirizzo', false, 'c2')}<div class="c2" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="sm" data-pos>📍 Usa la mia posizione</button><span class="mut" style="font-size:12px">${posOk(R.pos) ? 'Punto salvato.' : 'Salva il punto e propone l\'indirizzo: da usare sul posto (le coordinate vanno a OpenStreetMap).'}</span></div>${i('fg', 'Foglio', false)}${i('pla', 'Particella', false)}${i('sub', 'Subalterno', false)}</div></div>
   <div class="card"><div class="cardh">Spessori dei muri</div><div class="grid">${i('P', 'Perimetrali (m)')}${i('T', 'Tramezzi (m)')}${i('incP', 'Finestre incassate: profondità della luce stretta (m)')}</div>
-  <p class="hint">Per un muro diverso (portante interno, muro vecchio più spesso) selezionalo e scegli «Spessore diverso».</p></div>
-  <div class="card"><div class="cardh">Solai</div><div class="grid">${R.piani.map(p => `<div><label class="l">${esc(p.nome)}: solaio di calpestio (m)</label><input data-sol="${p.id}" value="${esc(p.sol || '')}" inputmode="decimal"></div>`).join('')}<div><label class="l">Copertura: solaio sopra l'ultimo piano (m)</label><input data-solc="1" value="${esc(R.solC || '')}" inputmode="decimal"></div></div>
-  <p class="hint">Spessore del solaio su cui si cammina in quel piano. Serve per la sezione: il soffitto di un piano è il calpestio del piano sopra. La copertura è il solaio che chiude l'ultimo piano. Vuoti: nella sezione si usa 0,30 m, in grigio corsivo.</p></div>`;
+  <p class="hint">Per un muro diverso (portante interno, muro vecchio più spesso) selezionalo e scegli «Spessore diverso».</p></div>`;
 }
 // impostazioni dell'app (ingranaggio nel menu)
 function renderCfg() {
@@ -4773,11 +4771,18 @@ function renderPrj() {
   </div><div>
     <div class="card"><div class="cardh">Piante <span class="sp"></span><button class="sm" data-ptutti>Vedi tutti (${R.piani.length})</button></div>
       <div class="fila"><button class="piu" data-piu title="Aggiungi piano">+</button>${R.piani.map((p, i) => `<div class="pp"><div class="pwrap"><button class="pcard" data-pdis="${i}">${miniPiano(p)}</button><button class="pdots" data-ppunti="${i}" title="Rinomina o elimina">•••</button></div><div class="pnome">${esc(p.nome)}</div></div>`).join('')}</div></div>
+    <div class="card"><div class="cardh">Piani: altezze e solai</div>${pianiImp()}</div>
     <div class="card"><div class="cardh">Sezioni <span class="sp"></span>${(R.sez || []).length ? '<button class="sm" data-sezgo="0">Vedi</button>' : ''}</div>${sezCard()}</div>
     <div class="card" id="pfoto"></div>
     <div class="card"><div class="cardh">File</div><div class="fila"><button class="fcard" id="bScheda"><i>PDF</i><span>Scheda PDF</span></button><button class="fcard" id="bScr"><i>SCR</i><span>Genera script AutoCAD</span></button></div></div>
   </div></div>`;
 }
+// altezza interna e solaio di calpestio di ogni piano, più la copertura: servono alla sezione (e l'altezza ai volumi)
+function altPiano(pl) { const hs = (pl.rooms || []).filter(r => DEST[r.dest] !== 'E').map(r => String(r.H || '').trim()); return String(pl.H || '').trim() || (hs.length && hs.every(h => h === hs[0]) ? hs[0] : ''); }
+function pianiImp() { return `<div class="grid">${R.piani.map(p => { const a = altPiano(p), v = (p.rooms || []).some(r => DEST[r.dest] !== 'E' && String(r.H || '').trim() !== a);
+    return `<div class="c2"><label class="l"><b>${esc(p.nome)}</b></label></div><div><label class="l">Altezza interna (m)</label><input data-ph="${p.id}" value="${esc(a)}" placeholder="${v ? 'varie' : esc(R.hA)}" inputmode="decimal"></div><div><label class="l">Solaio di calpestio (m)</label><input data-sol="${p.id}" value="${esc(p.sol || '')}" placeholder="0,30" inputmode="decimal"></div>`; }).join('')}
+    <div class="c2"><label class="l"><b>Copertura</b>: solaio sopra l'ultimo piano (m)</label><input data-solc="1" value="${esc(R.solC || '')}" placeholder="0,30" inputmode="decimal"></div></div>
+  <p class="hint">L'altezza si scrive una volta e vale per tutti gli ambienti del piano (anche quelli nuovi); «varie» = ambienti con altezze diverse: scrivendo un valore diventano tutte uguali. Il solaio di calpestio è quello su cui si cammina in quel piano: il soffitto di un piano è il calpestio del piano sopra. Vuoti: nella sezione 0,30 m in grigio corsivo.</p>`; }
 function sezCard() { const n = (R.sez || []).length;
   if (!n) return `<p class="hint" style="margin:0 0 8px">Nessuna sezione. In pianta: Quota ▸ Sezione, tocca due punti.</p><button class="sm" data-sezpianta="1">Disegna una sezione</button>`;
   return `<div class="fila">${R.sez.map((q, i) => { let m = ''; try { const d = sezDati(i); m = d.piani.length ? sezioneSvg(d, true) : ''; } catch (e) { m = ''; } return `<div class="pp"><div class="pwrap"><button class="pcard sezmini" data-sezgo="${i}">${m || '<span class="mut">vuota</span>'}</button></div><div class="pnome">Sezione ${sezNome(i)}–${sezNome(i)}</div></div>`; }).join('')}${n < SEZ_MAX ? '<button class="piu" data-sezpianta="1" title="Aggiungi una sezione">+</button>' : ''}</div>`; }
@@ -5066,6 +5071,7 @@ document.addEventListener('input', e => {
   else if (t.id === 'iBgOp' && pl.bg) { pl.bg.op = +t.value; draw(); save(); }
   else if ((t.id === 'cBgHide' || t.id === 'cBgLock') && pl.bg) { pushUndo(); pl.bg[t.id === 'cBgHide' ? 'hide' : 'lock'] = t.checked; if (pl.bg.lock) { ui.bgMove = false; ui.bgCal = null; } save(); draw(); renderSide(); }
   else if (t.id === 'cLab') { ui.labels = t.checked; try { localStorage.setItem('rilievo-etichette', t.checked ? '1' : '0'); } catch (e) {} draw(); }
+  else if (t.dataset.ph) { const pl = R.piani.find(x => x.id === t.dataset.ph); if (pl && (!t.value.trim() || num(t.value) > 0)) { undemo(); pl.H = t.value.trim(); if (pl.H) (pl.rooms || []).forEach(r => { if (DEST[r.dest] !== 'E') r.H = pl.H; }); save(); } }
   else if (t.dataset.solc) { undemo(); R.solC = t.value; save(); }
   else if (t.dataset.sol) { const pl = R.piani.find(x => x.id === t.dataset.sol); if (pl) { undemo(); pl.sol = t.value; save(); } }
   else if (t.dataset.def) setDef(t.dataset.def, t.value);
