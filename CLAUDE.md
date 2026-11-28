@@ -10,6 +10,7 @@ studio tecnico, non da informatico. Misure sempre in **metri con due decimali** 
 ## Come lavorare con Simone
 
 - **Usa sempre la skill `ponytail`** (in `.claude/skills/ponytail/`, livello `full`) quando scrivi o modifichi l'app: la modifica più piccola che risolve davvero il problema, niente funzioni in più. Non vale per le regole di questo file: prove, `REGISTRO.md`, italiano semplice e le regole del rilievo restano obbligatorie. Niente livello `ultra`.
+- **Usa sempre `graphify`** (`.claude/skills/graphify/`): per le domande sul codice prima `graphify query "..."`, poi i file; dopo ogni modifica `graphify update .`. Se il comando manca (sessione nuova): `uv tool install graphifyy`.
 - Prima di un lavoro grande fai **tutte le domande insieme, all'inizio**. Poi lavora a tappe e fagli vedere
   il risultato a ogni tappa.
 - Quando fa domande («si può fare…?», «conviene…?») cerca online prima di rispondere e cita le fonti.
@@ -112,3 +113,14 @@ Tutti i muri sono orizzontali o verticali (le coordinate del mondo hanno la y ve
 Salvataggio: `localStorage` per i rilievi, IndexedDB `rilievo-foto` (store foto e `sfondi`) per foto e
 planimetrie di sfondo. Non cambiare i formati dei dati senza una conversione per i rilievi già salvati:
 sul tablet ci sono rilievi veri.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- When graphify-out/graph.json exists, run `graphify query "<question>"` before your first grep, search or source-file read for a codebase question, and put this rule in every subagent prompt that explores code. Read raw files only for lines the graph or an earlier read already located. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. When the answer is under a Markdown heading, `graphify section "<heading>"` prints that section's text, so the .md need not be opened. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+- A committed graphify-out/graph.json is rewritten whole on every build, so a large diff to it in a pull request is expected. Do not flag it as churn or suggest skipping the graph rebuild or its hooks.
