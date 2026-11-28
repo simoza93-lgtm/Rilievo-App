@@ -1,0 +1,16 @@
+Xa: Via <Prova>, 00000 Paese | fonte: OpenStreetMap
+prima di Xare: nuovo | Xzo «» | punto 42.123457,13.765432 ±12 | Xo: -
+Xato: nuovo | Xzo «Via di Prova 7, 00000 Paese» | punto 42.123457,13.765432 ±12 | Xo: - | X: Via di Prova 7, 00000 Paese
+menu, il X resta: 1 Via di Prova 7, 00000 Paese
+pagina: prj | Xzo «Via di Prova 7, 00000 Paese» | punto 42.123457,13.765432 ±12 | Xo: 📍 / Via di Prova 7, 00000 Paese / Punto X (circa 12 m) · apri in Google Maps / ›
+maps: https://www.google.com/maps/search/?api=1&query=42.123457%2C13.765432
+  Xella: C’è già un punto X per questo X. SXrlo con il posto in cui sei adesso?
+senza rete: PXe X / Chiudi / PXne Xata: circa 800 m. È poco X: Xla il punto sulla mappa. / L'Xzo non l'ho X (serve Xt). Il punto è X: l'Xzo puoi Xlo tu. / CXa in Google Maps
+  poi: prj | Xzo «Via di Prova 7, 00000 Paese» | punto 42.123457,13.765432 ±800 | Xo: 📍 / Via di Prova 7, 00000 Paese / Punto X (circa 800 m) · apri in Google Maps / ›
+  Xella: TX la Xne X da questo X? L'Xzo X resta.
+tolta: prj | Xzo «Via di Prova 7, 00000 Paese» | punto - | Xo: 📍 / Via di Prova 7, 00000 Paese / Cerca l'Xzo in Google Maps / ›
+maps con solo Xzo: https://www.google.com/maps/search/?api=1&query=Via%20di%20Prova%207%2C%X%20Paese
+  Xella: PXe non Xa. Nelle Xzioni del sito in Chrome Xi «PXe», poi X.
+Xo negato: prj | Xzo «Via di Prova 7, 00000 Paese» | punto - | Xo: 📍 / Via di Prova 7, 00000 Paese / Cerca l'Xzo in Google Maps / › | velo X: false
+Xte al Xo: 2 https://Xim.Xeetmap.org/X?format=jsonv2&XX=1&zoom=18&accept-Xe=it&lat=42.123457&lon=13.765432
+errors []

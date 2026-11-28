@@ -153,6 +153,13 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .prj{display:grid;grid-template-columns:330px minmax(0,1fr);gap:14px;align-items:start}
 .prj.nuovo{grid-template-columns:minmax(0,1fr) 330px}
 @media(max-width:800px){.prj,.prj.nuovo{grid-template-columns:1fr}.prj.nuovo>.card{order:-1;position:static!important}}
+.luogo{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:10px;min-height:64px;border-radius:12px}
+.luogo>*{pointer-events:none}
+.luogo i{font-style:normal;font-size:24px;background:var(--bg);border-radius:10px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.luogo span{flex:1;min-width:0}
+.luogo b{display:block;overflow-wrap:anywhere}
+.luogo small{display:block;color:var(--mut);font-size:12px}
+.luogo em{font-style:normal;font-size:22px;color:var(--mut)}
 .tot{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .tot div{background:var(--bg);border-radius:10px;padding:8px 10px}
 .tot b{display:block;font-size:19px}
@@ -4447,7 +4454,7 @@ function renderCalc() {
 const campo = (k, l, dec = true, cls = '') => `<div class="${cls}"><label class="l">${l}</label><input data-s="${k}" value="${esc(R[k])}" ${dec ? 'inputmode="decimal"' : ''}></div>`;
 // dati del singolo rilievo («Nuovo» e matita nella pagina del rilievo)
 function datiRilievo() { const i = campo;
-  return `<div class="card"><div class="cardh">Rilievo</div><div class="grid">${i('nome', 'Nome / cliente', false)}${i('data', 'Data', false)}${i('indirizzo', 'Indirizzo', false, 'c2')}${i('fg', 'Foglio', false)}${i('pla', 'Particella', false)}${i('sub', 'Subalterno', false)}</div></div>
+  return `<div class="card"><div class="cardh">Rilievo</div><div class="grid">${i('nome', 'Nome / cliente', false)}${i('data', 'Data', false)}${i('indirizzo', 'Indirizzo', false, 'c2')}<div class="c2" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="sm" data-pos>📍 Usa la mia posizione</button><span class="mut" style="font-size:12px">${posOk(R.pos) ? 'Punto salvato.' : 'Salva il punto e propone l\'indirizzo: da usare sul posto (le coordinate vanno a OpenStreetMap).'}</span></div>${i('fg', 'Foglio', false)}${i('pla', 'Particella', false)}${i('sub', 'Subalterno', false)}</div></div>
   <div class="card"><div class="cardh">Spessori dei muri</div><div class="grid">${i('P', 'Perimetrali (m)')}${i('T', 'Tramezzi (m)')}${i('incP', 'Finestre incassate: profondità della luce stretta (m)')}</div>
   <p class="hint">Per un muro diverso (portante interno, muro vecchio più spesso) selezionalo e scegli «Spessore diverso».</p></div>
   <div class="card"><div class="cardh">Solai</div><div class="grid">${R.piani.map(p => `<div><label class="l">${esc(p.nome)}: solaio di calpestio (m)</label><input data-sol="${p.id}" value="${esc(p.sol || '')}" inputmode="decimal"></div>`).join('')}</div>
@@ -4469,6 +4476,54 @@ function renderCfg() {
   <p class="hint">Grafica nuova: linee di quota con il lucchetto sulle misure prese, pallini arancioni sui tratti da misurare; toccando una stanza o un muro compaiono anche le misure ricavate e le caselle da riempire. Vale per questo dispositivo.</p></div>
   <div class="card"><div class="cardh">Script AutoCAD <small>per tutti i rilievi</small></div>${c('qInt', 'Quote parziali interne, lato per lato (tratti di muro tra spigoli e vani)')}${c('vani', 'Larghezza dei vani (porte, finestre, ingressi, uscite)')}${c('qExt', 'Quote esterne d\'ingombro')}${c('testi', 'Nome e superficie degli ambienti')}${c('porte', 'Porte con anta e arco, girate come in pianta')}${c('note', 'Note scritte con «Testo» (nel punto in cui le hai messe)')}${c('mano', 'Note a mano (polilinee sul layer degli infissi e testi)')}
   <p class="hint">Layer PLAN_MURI_PERIM, PLAN_MURI_INT e PLAN_INFISSI_TESTI, stile di quota STUDIO, delle porte solo il vano, osnap dello studio riattivati alla fine. Le quote libere messe con «Quota» vanno sempre nello script. I totali dei lati con porte, finestre o scale non vanno nello script, anche se li hai scritti in pianta: per averli come quota usa «Quota».</p></div>`;
+}
+
+/* ================= posizione del sopralluogo ================= */
+// R.pos = {lat, lon, acc (precisione in m), quando}: campo facoltativo, salvato solo quando lo si chiede
+const posOk = p => !!p && typeof p.lat === 'number' && typeof p.lon === 'number' && Math.abs(p.lat) <= 90 && Math.abs(p.lon) <= 180;
+// collegamento ufficiale di Google Maps (senza chiave): sul punto salvato, se manca sull'indirizzo scritto
+const urlMappe = () => { const q = posOk(R.pos) ? R.pos.lat.toFixed(6) + ',' + R.pos.lon.toFixed(6) : String(R.indirizzo || '').trim(); return q ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q) : ''; };
+function apriMappe() { const u = urlMappe(); if (u) window.open(u, '_blank', 'noopener'); }
+// via e comune dal punto, con il servizio gratuito di OpenStreetMap (regole: al più una richiesta al secondo, solo a tocco, fonte indicata)
+async function viaDalPunto(p) {
+  const c = new AbortController(), t = setTimeout(() => c.abort(), 10000);
+  try { const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&accept-language=it&lat=${p.lat.toFixed(6)}&lon=${p.lon.toFixed(6)}`, {signal:c.signal});
+    if (!r.ok) return ''; const a = (await r.json()).address || {};
+    const via = [a.road || a.pedestrian || a.square || a.hamlet || '', a.house_number || ''].filter(Boolean).join(' '), comune = a.city || a.town || a.village || a.municipality || '';
+    return [via, [a.postcode, comune].filter(Boolean).join(' ')].filter(Boolean).join(', '); }
+  catch (e) { return ''; } finally { clearTimeout(t); }
+}
+function salvaPosizione() {
+  if (ui.cercaPos) return;
+  if (!navigator.geolocation) { alert('Questo browser non dà la posizione.'); return; }
+  // il punto preso sul posto non si perde per un tocco fatto altrove
+  if (posOk(R.pos) && !confirm('C’è già un punto salvato per questo rilievo. Sostituirlo con il posto in cui sei adesso?')) return;
+  const ril = R, pag = tab; ui.cercaPos = true; velo('Cerco la posizione…');
+  const fine = () => { ui.cercaPos = false; velo(null); };
+  navigator.geolocation.getCurrentPosition(async g => {
+    if (R !== ril || tab !== pag) return fine();
+    undemo(); R.pos = {lat:+g.coords.latitude.toFixed(6), lon:+g.coords.longitude.toFixed(6), acc:Math.round(g.coords.accuracy || 0), quando:new Date().toISOString()}; save(); updExpBadge();
+    velo('Cerco l\'indirizzo…'); const via = await viaDalPunto(R.pos); fine();
+    if (R !== ril || tab !== pag) return;
+    render(); proponiIndirizzo(via);
+  }, err => { fine(); alert(err && err.code === 1 ? 'Posizione non permessa. Nelle impostazioni del sito in Chrome consenti «Posizione», poi riprova.' : 'Non riesco a trovare la posizione. Controlla che la geolocalizzazione del tablet sia accesa e riprova.'); },
+  {enableHighAccuracy:true, timeout:20000, maximumAge:0});
+}
+function proponiIndirizzo(via) {
+  const dlg = $('#dScelta'), ora = String(R.indirizzo || '').trim(), acc = R.pos.acc;
+  dlg.innerHTML = `<div class="cardh">Posizione salvata <span class="sp"></span><button data-chiudi>Chiudi</button></div>
+    <p class="hint" style="margin-top:0">Precisione dichiarata: circa ${acc} m.${acc > 100 ? ' <b style="color:var(--warn)">È poco precisa: controlla il punto sulla mappa.</b>' : ''}</p>
+    ${via ? `<label class="l" for="posVia">Indirizzo proposto: controllalo e aggiungi il civico se manca</label><input id="posVia" value="${esc(via)}" autocomplete="off">
+      ${ora ? `<p class="hint">Ora è scritto: ${esc(ora)}</p>` : ''}<p class="hint">Dati © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></p>`
+      : `<p>L'indirizzo non l'ho trovato (serve internet). Il punto è salvato: l'indirizzo puoi scriverlo tu.</p>`}
+    <div class="btns" style="display:flex;gap:8px;flex-wrap:wrap">${via ? '<button class="pri" data-posok>Usa questo indirizzo</button>' : ''}<button data-posmappe>Controlla in Google Maps</button></div>`;
+  if (!dlg.open) dlg.showModal();
+}
+// riquadro dell'indirizzo nella pagina del rilievo
+function riquadroPos() {
+  const p = posOk(R.pos), via = String(R.indirizzo || '').trim();
+  return `<button class="luogo" ${p || via ? 'data-mappe' : 'data-pos'}><i>📍</i><span><b>${via ? esc(via) : p ? 'Posizione salvata' : 'Salva la posizione'}</b><small>${p ? `Punto salvato (circa ${+R.pos.acc || 0} m) · apri in Google Maps` : via ? 'Cerca l\'indirizzo in Google Maps' : 'Tocca quando sei sul posto'}</small></span><em>›</em></button>
+    ${p || via ? `<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="sm" data-pos>${p ? 'Aggiorna la posizione' : 'Salva la posizione'}</button>${p ? '<button class="sm" data-posvia>Togli la posizione</button>' : ''}</div>` : ''}`;
 }
 
 /* ================= menu iniziale e pagina del rilievo ================= */
@@ -4494,7 +4549,7 @@ function renderPrj() {
   const t = riepilogo(), cat = [['Foglio', R.fg], ['part.', R.pla], ['sub', R.sub]].filter(x => String(x[1] || '').trim()).map(x => x[0] + ' ' + esc(x[1])).join(' · ');
   return `<div class="prj"><div>
     <div class="card"><div class="cardh">${esc(R.nome || 'Senza nome')} <span class="sp"></span><button class="sm" data-vai="set">✎ Modifica</button></div>
-      <div>${R.indirizzo ? esc(R.indirizzo) : '<span class="mut">Indirizzo non scritto</span>'}</div><div class="mut" style="font-size:13px">Rilievo del ${esc(R.data || '')}${cat ? '<br>' + cat : ''}</div></div>
+      ${riquadroPos()}<div class="mut" style="font-size:13px;margin-top:8px">Rilievo del ${esc(R.data || '')}${cat ? '<br>' + cat : ''}</div></div>
     <div class="card"><div class="cardh">Totali <span class="sp"></span><button class="sm" data-vai="calc">Vedi tutto</button></div>
       <div class="tot"><div><b>${f2(t.int)} m²</b><span>interni</span></div><div><b>${f2(t.est)} m²</b><span>esterni</span></div><div><b>${R.piani.length}</b><span>${R.piani.length === 1 ? 'piano' : 'piani'}</span></div><div><b>${t.amb}</b><span>${t.amb === 1 ? 'ambiente' : 'ambienti'}</span></div></div>
       ${t.err ? '<p class="hint">Totali non calcolati: apri «Vedi tutto».</p>' : t.senza ? `<p class="hint">${t.senza === 1 ? 'Un ambiente non ha ancora i m²: non è nei totali.' : t.senza + ' ambienti non hanno ancora i m²: non sono nei totali.'}</p>` : ''}</div>
@@ -4538,6 +4593,9 @@ $('#main').addEventListener('click', e => {
   if (d.apri) { const r = d.apri === 'esempio' || d.apri === R.id ? R : arcGet(d.apri); if (!r) return toast('Rilievo non trovato.'); if (r === R) vai('prj'); else openRilievo(r); }
   else if (d.vai) vai(d.vai);
   else if (d.pdis) apriDisegno(+d.pdis);
+  else if ('pos' in d) salvaPosizione();
+  else if ('mappe' in d) apriMappe();
+  else if ('posvia' in d) { if (confirm('Togliere la posizione salvata da questo rilievo? L\'indirizzo scritto resta.')) { delete R.pos; save(); updExpBadge(); render(); } }
   else if (d.ppunti) apriPiani(false, +d.ppunti);
   else if ('ptutti' in d) apriPiani();
   else if ('piu' in d) apriPiani(true);
@@ -4561,7 +4619,11 @@ function chiediScript() {
   dlg.innerHTML = `<div class="cardh">Script AutoCAD: quale piano? <span class="sp"></span><button data-chiudi>Chiudi</button></div><div class="plist">${R.piani.map((p, i) => `<button data-scrp="${i}">${esc(p.nome)}</button>`).join('')}</div>`;
   dlg.showModal();
 }
-$('#dScelta').addEventListener('click', e => { const t = e.target.closest('button'); if (!t) return; $('#dScelta').close(); if (t.dataset.scrp) { R.cur = +t.dataset.scrp; faiScript(); } });
+$('#dScelta').addEventListener('click', e => { const t = e.target.closest('button'); if (!t) return;
+  if ('posmappe' in t.dataset) { apriMappe(); return; }   // la finestra resta: si controlla e poi si conferma
+  const via = 'posok' in t.dataset ? $('#posVia').value.trim() : ''; $('#dScelta').close();
+  if (via) { undemo(); R.indirizzo = via; save(); updExpBadge(); render(); }
+  if (t.dataset.scrp) { R.cur = +t.dataset.scrp; faiScript(); } });
 $('#dPiani').addEventListener('close', () => { if (tab === 'prj') render(); });
 
 /* ================= eventi ================= */

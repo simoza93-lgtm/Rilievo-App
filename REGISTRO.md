@@ -3,6 +3,14 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — Posizione del sopralluogo (come magicplan)
+- Nella pagina del rilievo c'è il **riquadro con il segnaposto**: l'indirizzo e, toccandolo, **Google Maps** sul punto salvato (se il punto manca, sull'indirizzo scritto).
+- **«Salva la posizione»** (anche «Usa la mia posizione» sotto l'indirizzo in «Nuovo» e «Modifica»): salva le coordinate nel rilievo e **propone via e comune**; l'indirizzo si scrive solo con «Usa questo indirizzo», dopo averlo controllato (il civico spesso manca).
+- La proposta viene da OpenStreetMap (servizio gratuito Nominatim): **le coordinate gli vengono inviate**, solo quando si tocca il tasto. Serve internet; senza, il punto si salva lo stesso.
+- Se c'è già un punto, prima di sostituirlo chiede conferma. «Togli la posizione» lo elimina.
+- Nei dati è un campo nuovo facoltativo (`pos`: latitudine, longitudine, precisione, data); entra nel pacchetto zip. I rilievi vecchi non cambiano. Scheda PDF e script non cambiano.
+- Prova `test/posizione.js` con posizione e servizio finti (nessuna richiesta vera).
+
 ## 28 novembre 2026 — «Esporta» crea il pacchetto completo (zip)
 - Nella pagina del rilievo **«Esporta il pacchetto (zip)»** scarica un solo file con: `scheda.pdf`, `script-autocad/` (uno script per ogni piano disegnato), `foto/` con `didascalie.csv` (solo se ci sono foto), `sfondi/` e `dati/`.
 - **La scheda PDF del pacchetto è fatta di pagine a immagine** (scelta di Simone): non si seleziona né si cerca il testo. Le tabelle lunghe continuano sul foglio dopo, con «(segue)». Il riquadro «Scheda PDF» (finestra di stampa, testo vero) e «Genera script AutoCAD» restano.

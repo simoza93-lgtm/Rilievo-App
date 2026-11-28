@@ -34,7 +34,7 @@ studio tecnico, non da informatico. Misure sempre in **metri con due decimali** 
 
 L'app si apre sul menu (`tab = 'home'`). Da lì: `prj` (pagina del rilievo), `nuovo`, `cfg` (ingranaggio). Dal rilievo: `pianta` (disegno),
 `calc`, `foto`, `set` (dati del rilievo). `vai(tab)` cambia pagina, `GENITORE` dice dove porta «indietro» (anche il tasto di Android).
-Le prove che lavorano sul disegno, dopo `reload()`, fanno `tab = 'pianta'; render();`. La prova del menu è `test/home.js`. Quella di «Esporta»/«Importa» è `test/pacchetto.js`: la scheda del pacchetto usa solo le regole CSS di stampa che cominciano con `#scheda`.
+Le prove che lavorano sul disegno, dopo `reload()`, fanno `tab = 'pianta'; render();`. La prova del menu è `test/home.js`. Quella di «Esporta»/«Importa» è `test/pacchetto.js`: la scheda del pacchetto usa solo le regole CSS di stampa che cominciano con `#scheda`. La posizione del sopralluogo si prova con `test/posizione.js` (servizio finto).
 
 ## Prove automatiche
 
