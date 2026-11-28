@@ -3,6 +3,11 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — Sezioni: aperture incassate (a scalino e strombate)
+- **In proiezione:** se la parte larga di una finestra o porta incassata guarda verso la linea di sezione, si vede il vano largo con quello stretto dentro (la strombatura). Se guarda dall'altra parte si vede solo il vano stretto, come nella realtà.
+- **Nel taglio:** se la linea passa nella parte larga (non nella luce stretta), il muro è aperto solo per la profondità della parte larga: a scalino costante, strombata sempre meno profonda verso il fianco. Vale anche nello script AutoCAD.
+- Prova `test/sezione7.js` ampliata (profondità del vano a 3 punti del fianco).
+
 ## 28 novembre 2026 — Sezioni: tutti i tipi di apertura controllati
 - Controllati nel taglio e in proiezione: porta (anche doppia anta, scorrevole, strombata), ingresso, varco, finestra (anche incassata e strombata) e porta-finestra. Quote da terra e altezze erano giuste.
 - **Corretto:** il **varco** (senza infisso) non ha più linee né cornice; l'**ingresso** si disegna come una porta (una linea nel taglio, vano senza cornice in proiezione) e non più come una finestra. Vale anche per lo script AutoCAD.

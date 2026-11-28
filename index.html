@@ -3909,6 +3909,13 @@ function sezScale(c, plans) {
         pezzi.push([[Math.min(t0, t1), z], [Math.max(t0, t1), z], [Math.max(t0, t1), z - SEZ_TH], [Math.min(t0, t1), z - SEZ_TH]]); if (z >= f.zcl - SEZ_TESTA) hole(t0, t1); }); }); });
   const cv = iv => iv.map(([a, b]) => { const x = tOf(a), y = tOf(b); return x <= y ? [x, y] : [y, x]; });
   return {pezzi, buchi, oltre, vuoti:cv(vuoti), pareti:cv(pareti)}; }
+// finestra o porta incassata (a scalino o strombata): pezzi di linea, nella parte larga, dove il vano è più largo di quello stretto; coordinate lungo la linea
+function sezInc(op, pv, H) { const c = op.c, c2 = op.c2; if (!op.inc || !c || !c2 || op.q) return [];
+  const T = op.I.H ? 1 : 0, A = 1 - T, pe = H ? 1 : 0, wf = Math.abs(c2[T] - c[T]) < 1e-6 ? c[T] : c[T + 2], inn = wf === c[T] ? c2[T + 2] : c2[T], D = Math.abs(inn - wf), sg = Math.sign(inn - wf) || 1;
+  const w0 = c2[A], w1 = c2[A + 2], n0 = c[A], n1 = c[A + 2], str = op.inc.strom;
+  if (pe === T) { const u = (pv - wf) * sg; if (u < 0 || u >= D) return []; const f = str ? u / D : 1; return [[w0 + (n0 - w0) * f, w1 + (n1 - w1) * f]]; }   // linea lungo il muro, a distanza u dalla faccia larga
+  if (pv < w0 || pv >= w1 || (pv >= n0 && pv < n1)) return [];   // linea attraverso il muro: nella parte stretta il vano c'è già, nella parte larga è profondo D (strombata: meno vicino al fianco)
+  const f = str ? (pv < n0 ? (pv - w0) / (n0 - w0) : (w1 - pv) / (w1 - n1)) : 1; return [[wf, wf + sg * D * f].sort((a, b) => a - b)]; }
 function sezioneDati(s) {
   const A = sezAsse(s), H = A.H, ax = H ? 0 : 1, out = {s, A, L:A.L, piani:[], zmin:0, zmax:0, cop:null}, ctx = [];
   let zc = 0;
@@ -3925,14 +3932,18 @@ function sezioneDati(s) {
     const aps = [];
     (g.ops || []).forEach(op => { const c0 = [], ad = (a, b) => c0.push([a, b]);
       if (op.q) sezScan([op.q.concat([op.q[0]])], pv, ax, ad); else if (op.c && op.c[H ? 1 : 0] <= pv && pv < op.c[H ? 3 : 2]) ad(op.c[H ? 0 : 1], op.c[H ? 2 : 3]);
-      sezMerge(c0).forEach(([a, b]) => { a = Math.max(a, lo); b = Math.min(b, hi); if (b - a > 1e-6) aps.push(Object.assign({c0:a, c1:b, tipo:op.ap.tipo}, sezApertura(op.ap))); }); });
+      sezMerge(c0).forEach(([a, b]) => { a = Math.max(a, lo); b = Math.min(b, hi); if (b - a > 1e-6) aps.push(Object.assign({c0:a, c1:b, tipo:op.ap.tipo}, sezApertura(op.ap))); });
+      sezInc(op, pv, H).forEach(([a, b]) => { a = Math.max(a, lo); b = Math.min(b, hi); if (b - a > 1e-6) aps.push(Object.assign({c0:a, c1:b, tipo:'varco'}, sezApertura(op.ap))); }); });
     const muri = sezMerge(pick(l => l !== 'W' && l !== 'E').concat(aps.map(a => [a.c0, a.c1])));   // il muro continua sopra e sotto il vano
     // oltre la linea (non tagliato): proiezione di muri, parapetti e aperture; ogni voce = tratto in c, distanza dalla linea, tipo
     const dd = A.d[H ? 1 : 0], bey = (m, M) => dd > 0 ? (m >= pv - 1e-6 ? m - pv : null) : (M <= pv + 1e-6 ? pv - M : null), prj = [];
     const pa = (k, m, M, c0, c1, x) => { const di = bey(m, M); c0 = Math.max(c0, lo); c1 = Math.min(c1, hi); if (di != null && c1 - c0 > 1e-6) prj.push(Object.assign({k, di, c0, c1}, x)); };
     (g.fills || []).forEach(b => { if (b[4] !== 'E') pa('w', b[H ? 1 : 0], b[H ? 3 : 2], b[H ? 0 : 1], b[H ? 2 : 3], {w:b[4] === 'W'}); });
     (g.fpolys || []).forEach(poly => { const pts = [].concat(...poly); if (poly.l === 'E' || !pts.length) return; const pe = pts.map(q => q[H ? 1 : 0]), al = pts.map(q => q[H ? 0 : 1]); pa('w', Math.min(...pe), Math.max(...pe), Math.min(...al), Math.max(...al), {w:poly.l === 'W'}); });
-    (g.ops || []).forEach(op => { const pts = op.q || (op.c ? [[op.c[0], op.c[1]], [op.c[2], op.c[3]]] : []); if (!pts.length) return; const pe = pts.map(q => q[H ? 1 : 0]), al = pts.map(q => q[H ? 0 : 1]);
+    (g.ops || []).forEach(op => {
+      if (op.inc && op.c2 && op.c && !op.q && (op.I.H ? 1 : 0) === (H ? 1 : 0)) { const T = H ? 1 : 0, wf = Math.abs(op.c2[T] - op.c[T]) < 1e-6 ? op.c[T] : op.c[T + 2];   // parte larga rivolta verso la linea: si vede il vano largo, con quello stretto dentro
+        if (dd > 0 ? wf === Math.min(op.c[T], op.c[T + 2]) : wf === Math.max(op.c[T], op.c[T + 2])) pa('o', Math.min(op.c[T], op.c[T + 2]), Math.max(op.c[T], op.c[T + 2]), op.c2[1 - T], op.c2[3 - T], Object.assign({tipo:op.ap.tipo, wide:true}, sezApertura(op.ap))); }
+      const pts = op.q || (op.c ? [[op.c[0], op.c[1]], [op.c[2], op.c[3]]] : []); if (!pts.length) return; const pe = pts.map(q => q[H ? 1 : 0]), al = pts.map(q => q[H ? 0 : 1]);
       pa('o', Math.min(...pe), Math.max(...pe), Math.min(...al), Math.max(...al), Object.assign({tipo:op.ap.tipo}, sezApertura(op.ap))); });
     prj.sort((a, b) => b.di - a.di || (a.k === 'w' ? -1 : 1) - (b.k === 'w' ? -1 : 1));
     const rooms = (pl.rooms || []).map(r => g.comps[r._c] && g.comps[r._c].room && DEST[r.dest] !== 'E' ? num(r.H) : NaN).filter(h => h > 0);
@@ -3979,7 +3990,7 @@ function sezioneSvg(d, mini) {
     p.prj.forEach(x => { const th = 'stroke="var(--ink)" stroke-width=".8"';
       if (x.k === 's') s += `<path d="M${x.poly.map(q => X(q[0]) + ' ' + Z(q[1])).join(' L')} Z" fill="var(--wall)" ${th}/>`;
       else if (x.k === 'w') { const r = sezPrjRect(x, p, d, p === pr[pr.length - 1]); s += rc(r[0], r[1], r[2], r[3], 'var(--wall)', th); }   // il corpo si vede intero: con il solaio sotto e la copertura sopra
-      else { s += rc(x.t0, x.t1, p.zf + x.z0, p.zf + x.z1, 'var(--cv)', th); if (SEZ_INF[x.tipo] && SEZ_INF[x.tipo].length > 1 && x.t1 - x.t0 > 0.2 && x.z1 - x.z0 > 0.2) s += rc(x.t0 + 0.05, x.t1 - 0.05, p.zf + x.z0 + 0.05, p.zf + x.z1 - 0.05, 'none', th); } });
+      else { s += rc(x.t0, x.t1, p.zf + x.z0, p.zf + x.z1, 'var(--cv)', th); if (SEZ_INF[x.tipo] && SEZ_INF[x.tipo].length > 1 && !x.wide && x.t1 - x.t0 > 0.2 && x.z1 - x.z0 > 0.2) s += rc(x.t0 + 0.05, x.t1 - 0.05, p.zf + x.z0 + 0.05, p.zf + x.z1 - 0.05, 'none', th); } });
     // solaio di calpestio: copre il piano e, se più largo, il soffitto del piano sotto; si apre dove passano scale e ascensore
     const e = p.e && prev && prev.e ? [Math.min(p.e[0], prev.e[0]), Math.max(p.e[1], prev.e[1])] : p.e;
     if (e) sub(e, p.buchi || []).forEach(([a, b]) => { s += rc(a, b, p.zf - p.sol, p.zf, B); });
@@ -4051,9 +4062,9 @@ function genScriptSez(d, nome) {
     iv.forEach(([x, y]) => { if (y - x > 0.01) w('_.LINE', hor ? P(x, fix) : P(fix, x), hor ? P(y, fix) : P(fix, y), ''); }); };
   const rect = (r, occ) => { seg(r[0], r[1], r[2], true, occ); seg(r[0], r[1], r[3], true, occ); seg(r[2], r[3], r[0], false, occ); seg(r[2], r[3], r[1], false, occ); };
   pr.forEach((p, ip) => { const last = ip === pr.length - 1;
-    const it = p.prj.map(x => x.k === 's' ? {k:'s', r:[Math.min(...x.poly.map(q => q[0])), Math.max(...x.poly.map(q => q[0])), Math.min(...x.poly.map(q => q[1])), Math.max(...x.poly.map(q => q[1]))]} : {k:x.k, tipo:x.tipo, r:sezPrjRect(x, p, d, last)});
+    const it = p.prj.map(x => x.k === 's' ? {k:'s', r:[Math.min(...x.poly.map(q => q[0])), Math.max(...x.poly.map(q => q[0])), Math.min(...x.poly.map(q => q[1])), Math.max(...x.poly.map(q => q[1]))]} : {k:x.k, tipo:x.tipo, wide:x.wide, r:sezPrjRect(x, p, d, last)});
     it.forEach((x, k) => { const occ = it.slice(k + 1).map(y => y.r).concat(cut); rect(x.r, occ);
-      if (x.k === 'o' && SEZ_INF[x.tipo] && SEZ_INF[x.tipo].length > 1 && x.r[1] - x.r[0] > 0.2 && x.r[3] - x.r[2] > 0.2) rect([x.r[0] + 0.05, x.r[1] - 0.05, x.r[2] + 0.05, x.r[3] - 0.05], occ); });
+      if (x.k === 'o' && !x.wide && SEZ_INF[x.tipo] && SEZ_INF[x.tipo].length > 1 && x.r[1] - x.r[0] > 0.2 && x.r[3] - x.r[2] > 0.2) rect([x.r[0] + 0.05, x.r[1] - 0.05, x.r[2] + 0.05, x.r[3] - 0.05], occ); });
     p.aps.forEach(a => { const m = (a.t0 + a.t1) / 2;
       if (a.t1 - a.t0 <= 0.6) (SEZ_INF[a.tipo] || []).forEach(o => w('_.LINE', P(m + o, p.zf + a.z0), P(m + o, p.zf + a.z1), ''));
       else if (a.t1 - a.t0 > 0.2 && a.tipo !== 'varco') rect([a.t0 + 0.05, a.t1 - 0.05, p.zf + a.z0 + 0.05, p.zf + a.z1 - 0.05], []); }); });
