@@ -37,6 +37,12 @@ const { chromium } = require('playwright');
   await p.click('.sezmini'); await p.waitForTimeout(300);
   console.log('pagina', JSON.stringify(await p.evaluate(() => ({tab, svg:!!document.querySelector('#sezsvg'), rect:document.querySelectorAll('#sezsvg rect').length, testi:[...document.querySelectorAll('#sezsvg text')].map(t => t.textContent)}))));
   await p.screenshot({path:require('path').join(OUT, 'sezione-pagina.png')});
+  // chiaro / scuro nella pagina e copertura nelle Impostazioni
+  const prima = await p.evaluate(() => sezScuro()); await p.click('#bSezT'); await p.waitForTimeout(150);
+  console.log('tasto chiaro/scuro', JSON.stringify(await p.evaluate(p0 => ({prima:p0, ora:sezScuro(), classe:document.querySelector('.sezv').className, salvato:localStorage.getItem('rilievo-stema'), tasto:document.querySelector('#bSezT').textContent.trim()}), prima)));
+  await p.evaluate(() => { vai('set'); }); await p.waitForTimeout(200); await p.fill('[data-solc]', '0,40'); await p.dispatchEvent('[data-solc]', 'change');
+  console.log('copertura', JSON.stringify(await p.evaluate(() => { const d = sezioneDati(R.sez[0]); return {solC:R.solC, cop:d.cop && +d.cop.sol.toFixed(2), prop:d.cop && d.cop.solP, zmax:+d.zmax.toFixed(2)}; })));
+  await p.evaluate(() => vai('sez')); await p.waitForTimeout(200);
   await p.evaluate(() => indietro()); await p.waitForTimeout(200); console.log('indietro', await p.evaluate(() => tab));
   console.log('errors', errs); await b.close();
 })();

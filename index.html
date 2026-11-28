@@ -65,6 +65,8 @@ label.tb:has(input:checked){color:var(--acc);background:var(--accbg)}
 @media(min-width:701px){body.full.hassel #vrot{right:calc(min(380px,44vw) + 14px)}}   /* a schermo intero il pannello sta in alto a destra: le frecce si spostano accanto */
 .sezv{height:calc(100vh - 200px);min-height:340px;background:var(--cv);border:1px solid var(--line);border-radius:12px;overflow:hidden;touch-action:none}
 .sezv svg{width:100%;height:100%;display:block}
+.sezv.chiaro{--ink:#1c2230;--wP:#111418;--wall:#d6d9e1;--cv:#fbfbfd;--mut:#687185;background:#fbfbfd}
+.sezv.scuro{--ink:#e7eaf1;--wP:#f1f3f8;--wall:#2f3542;--cv:#171a21;--mut:#99a1b2;background:#171a21}
 .sezmini svg{width:100%;height:100%;display:block}
 #bPamb{position:absolute;top:62px;right:8px;z-index:6;width:40px;height:40px;padding:0;border-radius:12px;background:var(--card);border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.12);color:var(--mut,#888);display:flex;align-items:center;justify-content:center}
 #bPamb.on{color:var(--acc)} #bPamb svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
@@ -364,7 +366,7 @@ const DEF_AP = {finestra:{l:'1,20', h:'1,40', dav:'0,90'}, incassata:{l:'1,20', 
 
 /* ================= stato ================= */
 let R, G = null, tab = 'pianta';
-const ui = {pamb:(() => { try { return localStorage.getItem('rilievo-pamb') !== '0'; } catch (e) { return true; } })(), pnew:(() => { try { return localStorage.getItem('rilievo-pstile') === 'nuova'; } catch (e) { return false; } })(), mnew:(() => { try { return localStorage.getItem('rilievo-mstile') !== 'classico'; } catch (e) { return true; } })(), labels:(() => { try { return localStorage.getItem('rilievo-etichette') !== '0'; } catch (e) { return true; } })(), mode:'draw', newType:'P', view:{x:-2, y:-2, s:45}, sel:null, W:800, H:560, undo:[], nbb:new Map()};
+const ui = {sezT:(() => { try { return localStorage.getItem('rilievo-stema') || null; } catch (e) { return null; } })(), pamb:(() => { try { return localStorage.getItem('rilievo-pamb') !== '0'; } catch (e) { return true; } })(), pnew:(() => { try { return localStorage.getItem('rilievo-pstile') === 'nuova'; } catch (e) { return false; } })(), mnew:(() => { try { return localStorage.getItem('rilievo-mstile') !== 'classico'; } catch (e) { return true; } })(), labels:(() => { try { return localStorage.getItem('rilievo-etichette') !== '0'; } catch (e) { return true; } })(), mode:'draw', newType:'P', view:{x:-2, y:-2, s:45}, sel:null, W:800, H:560, undo:[], nbb:new Map()};
 
 function blank() {
   return {nome:'', indirizzo:'', data:today(), fg:'', pla:'', sub:'', P:'0,30', T:'0,10', incP:'0,15', rai:'8', hA:'2,70', hC:'2,40',
@@ -3861,8 +3863,42 @@ function sezScan(poly, pv, ax, add, l) { const xs = [];
 const sezMerge = L => { const o = []; L.slice().sort((a, b) => a[0] - b[0]).forEach(x => { const q = o[o.length - 1]; if (q && x[0] <= q[1] + 1e-6) q[1] = Math.max(q[1], x[1]); else o.push([x[0], x[1]]); }); return o; };
 function sezApertura(ap) { const fin = ap.tipo === 'finestra', h = num(ap.h), dv = num(ap.dav), hp = !(h > 0), dp = fin && !(dv >= 0);   // senza misura: proposta
   const z0 = fin ? (dv >= 0 ? dv : 0.90) : 0, hh = h > 0 ? h : fin ? 1.40 : 2.10; return {z0, z1:z0 + hh, p:hp || dp}; }
+const SEZ_TH = 0.30, SEZ_TESTA = 2.0;   // spessore della scala in sezione; sotto questa altezza dal soffitto sotto non si apre il solaio
+// scale e ascensori tagliati dalla linea di sezione: pezzi pieni (poligoni in t, z), vano da aprire nei solai e, per l'ascensore, pareti e vuoto
+function sezScale(c, plans) {
+  const {pl, A, H, ax, pv, lo, hi, tOf, me} = c, k = plans.indexOf(me), up = plans[k + 1], dn = plans[k - 1], pezzi = [], buchi = [], vuoti = [], pareti = [];
+  const clip = (a, b) => [Math.max(Math.min(a, b), lo), Math.min(Math.max(a, b), hi)];
+  const bboxCut = bb => bb[H ? 1 : 0] < pv && pv < bb[H ? 3 : 2] ? clip(bb[H ? 0 : 1], bb[H ? 2 : 3]) : null;
+  (pl.stairs || []).forEach(st => {
+    if (st.tipo === 'lift' || st.tipo === 'asc') { const P = stairPrims(st);
+      if (P.lift) { const iv = []; sezScan([P.lift.walls.concat([P.lift.walls[0]])], pv, ax, (a, b) => iv.push(clip(a, b)));
+        if (iv.length) { iv.forEach(x => pareti.push(x)); if (iv.length > 1) { const s = iv.slice().sort((a, b) => a[0] - b[0]); vuoti.push([s[0][1], s[s.length - 1][0]]); } } }
+      if (st.tipo === 'lift') return; }
+    const dir = st.dir || 'sale', flights = [];
+    const volo = (stx, sale) => { const Pr = stairRaw(stx, sale), n = stP(stx).n, a = stP(stx).a, pp = stP(stx).p, sup = sale ? up : me, inf = sale ? me : dn;
+      const z0 = sale ? me.zf : (dn ? dn.zf : me.zf - n * a), top = sale ? (up ? up.zf : me.zf + n * a) : me.zf; flights.push({Pr, n, pp, z0, ra:(top - z0) / n, sup, zcl:inf ? inf.zc : me.zf - me.sol}); };
+    if (dir === 'sale' || dir === 'inter') volo(st, true);
+    if (dir === 'scende') volo(st, false);
+    if (dir === 'inter') volo(Object.assign({}, st, {n:st.nA || st.n, a:st.aA || st.a, n1:st.n1A || st.n1, na:st.naA || ''}), false);
+    flights.forEach(f => { const rs = f.Pr.ris || [], cross = rs.map(r => { const a = r.a, b = r.b, d = b[H ? 1 : 0] - a[H ? 1 : 0];
+        if (Math.abs(d) < 1e-6) return null;   // alzata parallela alla linea
+        const t = (pv - a[H ? 1 : 0]) / d; return t >= 0 && t <= 1 ? a[ax] + t * (b[ax] - a[ax]) : null; });
+      const hole = (t0, t1) => { if (f.sup) buchi.push({p:f.sup, t0:Math.min(t0, t1), t1:Math.max(t0, t1)}); };
+      // linea lungo la rampa: profilo a gradini (alzata e pedata di ogni gradino tagliato)
+      let k0 = 0; while (k0 < rs.length) { if (cross[k0] == null) { k0++; continue; } let k1 = k0; while (k1 + 1 < rs.length && cross[k1 + 1] != null) k1++;
+        const top = [];
+        for (let q = k0; q <= k1; q++) { const sg = Math.sign(rs[q].uw[ax]) || 1, zp = f.z0 + q * f.ra, zq = f.z0 + (q + 1) * f.ra, cn = q < k1 ? cross[q + 1] : cross[q] + sg * f.pp; top.push([cross[q], zp], [cross[q], zq], [cn, zq]); }
+        pezzi.push(top.concat(top.slice().reverse().map(([x, z]) => [x, z - SEZ_TH])).map(([x, z]) => [tOf(Math.max(lo, Math.min(hi, x))), z]));
+        const hq = []; for (let q = k0; q <= k1; q++) if (f.z0 + (q + 1) * f.ra >= f.zcl - SEZ_TESTA) hq.push(cross[q], q < k1 ? cross[q + 1] : cross[q] + (Math.sign(rs[q].uw[ax]) || 1) * f.pp); if (hq.length) hole(tOf(Math.max(lo, Math.min(...hq))), tOf(Math.min(hi, Math.max(...hq))));
+        k0 = k1 + 1; }
+      // linea attraverso la rampa: si taglia il gradino che sta sotto la linea
+      rs.forEach((r, q) => { if (Math.abs(r.b[H ? 1 : 0] - r.a[H ? 1 : 0]) > 1e-6) return; const sg = Math.sign(r.uw[1 - ax]) || 1, p0 = r.a[H ? 1 : 0], nx = rs[q + 1], par = nx && Math.abs(nx.b[H ? 1 : 0] - nx.a[H ? 1 : 0]) < 1e-6 && Math.sign(nx.a[H ? 1 : 0] - p0) === sg, p1 = par ? nx.a[H ? 1 : 0] : p0 + sg * f.pp;
+        if (pv < Math.min(p0, p1) || pv >= Math.max(p0, p1)) return; const [c0, c1] = clip(r.a[ax], r.b[ax]); if (c1 - c0 < 1e-6) return; const z = f.z0 + (q + 1) * f.ra, t0 = tOf(c0), t1 = tOf(c1);
+        pezzi.push([[Math.min(t0, t1), z], [Math.max(t0, t1), z], [Math.max(t0, t1), z - SEZ_TH], [Math.min(t0, t1), z - SEZ_TH]]); if (z >= f.zcl - SEZ_TESTA) hole(t0, t1); }); }); });
+  const cv = iv => iv.map(([a, b]) => { const x = tOf(a), y = tOf(b); return x <= y ? [x, y] : [y, x]; });
+  return {pezzi, buchi, vuoti:cv(vuoti), pareti:cv(pareti)}; }
 function sezioneDati(s) {
-  const A = sezAsse(s), H = A.H, ax = H ? 0 : 1, out = {s, A, L:A.L, piani:[], zmin:0, zmax:0};
+  const A = sezAsse(s), H = A.H, ax = H ? 0 : 1, out = {s, A, L:A.L, piani:[], zmin:0, zmax:0, cop:null}, ctx = [];
   let zc = 0;
   R.piani.forEach((pl, i) => {
     if (!pl.walls.length) return;
@@ -3881,40 +3917,71 @@ function sezioneDati(s) {
     const muri = sezMerge(pick(l => l !== 'W' && l !== 'E').concat(aps.map(a => [a.c0, a.c1])));   // il muro continua sopra e sotto il vano
     const rooms = (pl.rooms || []).map(r => g.comps[r._c] && g.comps[r._c].room && DEST[r.dest] !== 'E' ? num(r.H) : NaN).filter(h => h > 0);
     const hp = !rooms.length, Hn = hp ? SEZ_H : Math.max(...rooms), sol = num(pl.sol), solP = !(sol > 0), sl = solP ? SEZ_SOL : sol;
-    const zf = i === 0 || !out.piani.length ? 0 : zc + sl, ceil = zf + Hn; zc = ceil;
+    const zf = !out.piani.length ? 0 : zc + sl, ceil = zf + Hn; zc = ceil;
     // ambienti tra un muro e l'altro
     const amb = []; for (let k = 0; k + 1 < muri.length; k++) { const a = muri[k][1], b = muri[k + 1][0]; if (b - a < 0.05) continue; const m = (a + b) / 2, c = g.compAt(H ? m : pv, H ? pv : m), r = c >= 0 && (pl.rooms || []).find(x => x._c === c);
       if (r && g.comps[c].room) amb.push({c0:a, c1:b, nome:r.nome || '', H:num(r.H) > 0 ? num(r.H) : Hn, est:DEST[r.dest] === 'E'}); }
     const ex = muri.concat(rail, ext), e0 = ex.length ? Math.min(...ex.map(x => x[0])) : null, e1 = ex.length ? Math.max(...ex.map(x => x[1])) : null;
-    out.piani.push({i, nome:pl.nome, zf, zc:ceil, Hn, hp, sol:sl, solP, muri:muri.map(m => m.map(tOf)), rail:rail.map(m => m.map(tOf)), ext:ext.map(m => m.map(tOf)), aps:aps.map(a => Object.assign({}, a, {t0:tOf(a.c0), t1:tOf(a.c1)})),
-      amb:amb.map(a => Object.assign({}, a, {t0:tOf(a.c0), t1:tOf(a.c1)})), e:e0 == null ? null : [tOf(e0), tOf(e1)]});
-  });
+    const p = {i, nome:pl.nome, zf, zc:ceil, Hn, hp, sol:sl, solP, muri:muri.map(m => m.map(tOf)), rail:rail.map(m => m.map(tOf)), ext:ext.map(m => m.map(tOf)), aps:aps.map(a => Object.assign({}, a, {t0:tOf(a.c0), t1:tOf(a.c1)})),
+      amb:amb.map(a => Object.assign({}, a, {t0:tOf(a.c0), t1:tOf(a.c1)})), e:e0 == null ? null : [tOf(e0), tOf(e1)], pezzi:[], buchi:[], vuoti:[]};
+    out.piani.push(p); ctx.push({pl, A, H, ax, pv, lo, hi, tOf, me:p}); });
   // gli estremi in t vanno ordinati: tOf può invertire il verso
-  const fix = l => l.map(([a, b]) => a <= b ? [a, b] : [b, a]).sort((a, b) => a[0] - b[0]);
-  out.piani.forEach(p => { p.muri = fix(p.muri); p.rail = fix(p.rail); p.ext = fix(p.ext); p.e = p.e && fix([p.e])[0];
+  const srt = l => l.map(([a, b]) => a <= b ? [a, b] : [b, a]).sort((a, b) => a[0] - b[0]);
+  out.piani.forEach(p => { p.muri = srt(p.muri); p.rail = srt(p.rail); p.ext = srt(p.ext); p.e = p.e && srt([p.e])[0];
     p.aps.forEach(a => { if (a.t0 > a.t1) [a.t0, a.t1] = [a.t1, a.t0]; }); p.amb.forEach(a => { if (a.t0 > a.t1) [a.t0, a.t1] = [a.t1, a.t0]; }); p.aps.sort((a, b) => a.t0 - b.t0); p.amb.sort((a, b) => a.t0 - b.t0); });
-  if (out.piani.length) { out.zmin = out.piani[0].zf - out.piani[0].sol; out.zmax = out.piani[out.piani.length - 1].zc; }
+  // scale e ascensore (hanno bisogno delle quote dei piani sopra e sotto)
+  ctx.forEach(c => { const r = sezScale(c, out.piani); c.me.pezzi = r.pezzi; c.me.vuoti = r.vuoti; r.buchi.forEach(b => b.p.buchi.push([b.t0, b.t1]));
+    if (out.piani.indexOf(c.me) > 0) r.vuoti.forEach(v => c.me.buchi.push(v)); c.me.pareti = r.pareti; c.me.muriP = c.me.muri; c.me.muri = sezMerge(c.me.muri.concat(r.pareti)); if (c.me.e) c.me.e = [Math.min(c.me.e[0], ...r.pareti.map(x => x[0])), Math.max(c.me.e[1], ...r.pareti.map(x => x[1]))]; });
+  const sc = num(R.solC), up = out.piani[out.piani.length - 1];
+  if (up) { out.cop = {sol:sc > 0 ? sc : SEZ_SOL, solP:!(sc > 0), e:up.e, z0:up.zc}; out.zmin = out.piani[0].zf - out.piani[0].sol; out.zmax = up.zc + out.cop.sol; }
   return out; }
-// disegno della sezione (metri → 100 unità per metro; z verso l'alto)
+const sezQ = z => z > 0.0049 ? '+' + f2(z) : z < -0.0049 ? '\u2212' + f2(-z) : '\u00b10,00';
+// disegno della sezione (metri → 100 unità per metro; z verso l'alto). Quote: grigio corsivo = proposta (misura non scritta)
 function sezioneSvg(d, mini) {
-  const K = 100, X = t => +(t * K).toFixed(1), Z = z => +(-z * K).toFixed(1), B = 'var(--wP)';
+  const K = 100, X = t => +(t * K).toFixed(1), Z = z => +(-z * K).toFixed(1), B = 'var(--wP)', pr = d.piani;
   const rc = (t0, t1, z0, z1, f, x = '') => `<rect x="${X(t0)}" y="${Z(z1)}" width="${X(t1 - t0)}" height="${Math.max(0, +((z1 - z0) * K).toFixed(1))}" fill="${f}" ${x}/>`;
   const pezzi = (w0, w1, zf, zc, aps) => { const o = []; let t = w0; aps.filter(a => a.t1 > w0 && a.t0 < w1).sort((a, b) => a.t0 - b.t0).forEach(a => { const a0 = Math.max(a.t0, w0), a1 = Math.min(a.t1, w1);
     if (a0 > t) o.push([t, a0, zf, zc]); if (a.z0 > 0) o.push([a0, a1, zf, zf + a.z0]); if (zf + a.z1 < zc - 1e-6) o.push([a0, a1, zf + a.z1, zc]); t = Math.max(t, a1); }); if (w1 > t) o.push([t, w1, zf, zc]); return o; };
+  const sub = (e, hs) => { let o = [[e[0], e[1]]]; sezMerge(hs).forEach(([h0, h1]) => { o = o.flatMap(([a, b]) => h1 <= a || h0 >= b ? [[a, b]] : [[a, Math.min(b, h0)], [Math.max(a, h1), b]].filter(x => x[1] - x[0] > 1e-6)); }); return o; };
   let s = '', prev = null;
-  d.piani.forEach(p => {
+  pr.forEach(p => {
     p.amb.filter(a => !a.est).forEach(a => { s += rc(a.t0, a.t1, p.zf, p.zf + a.H, 'var(--wall)'); });
-    // solaio di calpestio: copre il piano e, se più largo, il soffitto del piano sotto
+    (p.vuoti || []).forEach(([v0, v1]) => { s += rc(v0, v1, p.zf, p.zc, 'var(--cv)'); });
+    // solaio di calpestio: copre il piano e, se più largo, il soffitto del piano sotto; si apre dove passano scale e ascensore
     const e = p.e && prev && prev.e ? [Math.min(p.e[0], prev.e[0]), Math.max(p.e[1], prev.e[1])] : p.e;
-    if (e) s += rc(e[0], e[1], p.zf - p.sol, p.zf, B);
+    if (e) sub(e, p.buchi || []).forEach(([a, b]) => { s += rc(a, b, p.zf - p.sol, p.zf, B); });
     p.muri.forEach(([w0, w1]) => pezzi(w0, w1, p.zf, p.zc, p.aps).forEach(q => { s += rc(q[0], q[1], q[2], q[3], B, `stroke="${B}" stroke-width=".6"`); }));
     p.rail.forEach(([w0, w1]) => { s += rc(w0, w1, p.zf, p.zf + 1, B); });
-    if (!mini) { p.amb.forEach(a => { s += `<text x="${X((a.t0 + a.t1) / 2)}" y="${Z(p.zf + 0.4)}" text-anchor="middle" font-size="15" fill="var(--ink)">${esc(a.nome)}</text>`; });
-      s += `<text x="${X(-0.15)}" y="${Z(p.zf + p.Hn / 2)}" text-anchor="end" font-size="16" font-weight="700" fill="var(--ink)">${esc(p.nome)}</text>`; }
+    (p.pezzi || []).forEach(poly => { s += `<path d="M${poly.map(q => X(q[0]) + ' ' + Z(q[1])).join(' L')} Z" fill="${B}" stroke="${B}" stroke-width=".6"/>`; });
+    if (!mini) p.amb.forEach(a => { s += `<text x="${X((a.t0 + a.t1) / 2)}" y="${Z(p.zf + 0.4)}" text-anchor="middle" font-size="15" fill="var(--ink)">${esc(a.nome)}</text>`; });
     prev = p; });
-  const top = Z(d.zmax) - 80, bot = Z(d.zmin) + 130, w = d.L * K + 300;
-  const tit = mini ? '' : `<text x="${X(0)}" y="${top + 34}" font-size="22" font-weight="700" fill="var(--ink)">Sezione ${esc(d.nome)}</text>`;
-  return `<svg ${mini ? '' : 'id="sezsvg" '}viewBox="${-150} ${top} ${w} ${bot - top}" preserveAspectRatio="xMidYMid meet" style="color:var(--ink)">${tit}${s}</svg>`; }
+  if (d.cop && d.cop.e) s += rc(d.cop.e[0], d.cop.e[1], d.cop.z0, d.cop.z0 + d.cop.sol, B);
+  const ext = pr.map(p => p.e).concat(d.cop && d.cop.e ? [d.cop.e] : []).filter(Boolean), g0 = ext.length ? Math.min(...ext.map(x => x[0])) : 0, g1 = ext.length ? Math.max(...ext.map(x => x[1])) : d.L;
+  const nomeW = Math.max(0, ...pr.map(p => p.nome.length)) * 9.5, x0 = X(g0) - 78 - nomeW - 24, x1 = X(g1) + 190;
+  let rows = 0, q = '';
+  if (!mini && pr.length) {
+    const tk = (x, y) => `M${x - 5} ${y + 5} L${x + 5} ${y - 5}`, MUT = 'var(--mut)', pa = 'stroke="var(--ink)" stroke-width="1" fill="none"';
+    // quote orizzontali: muri e ambienti di ogni piano (una riga sola per piani uguali), poi il totale
+    const righe = []; pr.forEach(p => { const m = p.muriP || p.muri, seg = []; m.forEach(([a, b], k) => { if (k && a - m[k - 1][1] > 0.005) seg.push([m[k - 1][1], a]); seg.push([a, b]); });
+      const sig = seg.map(x => x[0].toFixed(2) + x[1].toFixed(2)).join(); const r = righe.find(x => x.sig === sig); if (r) r.nomi.push(p.nome); else if (seg.length) righe.push({sig, seg, nomi:[p.nome]}); });
+    const hq = (y, seg) => { let t = `<path d="M${X(seg[0][0])} ${y} L${X(seg[seg.length - 1][1])} ${y}" ${pa}/>`; const xs = [seg[0][0]].concat(seg.map(x => x[1])); t += `<path d="${xs.map(v => tk(X(v), y)).join(' ')}" ${pa} stroke-width="1.4"/>`;
+      seg.forEach(([a, b]) => { const w = (b - a) * K, tx = X((a + b) / 2); t += w >= 36 ? `<text x="${tx}" y="${y - 6}" text-anchor="middle" font-size="12.5" fill="var(--ink)">${f2(b - a)}</text>` : `<text transform="translate(${tx + 4} ${y - 6}) rotate(-90)" font-size="11.5" fill="var(--ink)">${f2(b - a)}</text>`; }); return t; };
+    righe.forEach((r, k) => { const y = Z(d.zmin) + 44 + k * 44; q += hq(y, r.seg) + `<text x="${X(r.seg[0][0]) - 8}" y="${y + 4}" text-anchor="end" font-size="11.5" fill="${MUT}">${esc(r.nomi.join(' · '))}</text>`; rows++; });
+    { const y = Z(d.zmin) + 44 + righe.length * 44; q += hq(y, [[g0, g1]]); rows++; }
+    // quote verticali a destra: solaio e altezza di ogni piano, poi il totale
+    const xv = X(g1) + 36, xt = xv + 80, vt = (a, b, lab, prop, xx) => `<text x="${xx + 8}" y="${Z((a + b) / 2) + 4.5}" font-size="12.5" fill="${prop ? MUT : 'var(--ink)'}" ${prop ? 'font-style="italic"' : ''}>${lab}${prop ? '*' : ''}</text>`;
+    const zs = [d.zmin]; pr.forEach(p => { zs.push(p.zf, p.zc); }); if (d.cop) zs.push(d.zmax);
+    q += `<path d="M${xv} ${Z(d.zmin)} L${xv} ${Z(d.zmax)} ${zs.map(z => tk(xv, Z(z))).join(' ')}" ${pa}/>`;
+    pr.forEach(p => { q += vt(p.zf - p.sol, p.zf, f2(p.sol), p.solP, xv) + vt(p.zf, p.zc, f2(p.Hn), p.hp, xv); });
+    if (d.cop) q += vt(d.cop.z0, d.zmax, f2(d.cop.sol), d.cop.solP, xv);
+    q += `<path d="M${xt} ${Z(d.zmin)} L${xt} ${Z(d.zmax)} ${tk(xt, Z(d.zmin))} ${tk(xt, Z(d.zmax))}" ${pa}/><text transform="translate(${xt - 6} ${Z((d.zmin + d.zmax) / 2)}) rotate(-90)" text-anchor="middle" font-size="12.5" fill="var(--ink)">${f2(d.zmax - d.zmin)}</text>`;
+    // quote di livello a sinistra (pavimento finito di ogni piano) e nome del piano
+    pr.forEach(p => { const y = Z(p.zf); q += `<path d="M${X(g0) - 14} ${y} l-7 -9 l14 0 z" fill="var(--ink)"/><text x="${X(g0) - 26}" y="${y - 2}" text-anchor="end" font-size="12.5" fill="var(--ink)">${sezQ(p.zf)}</text>`
+      + `<text x="${X(g0) - 78}" y="${Z(p.zf + p.Hn / 2) + 5}" text-anchor="end" font-size="16" font-weight="700" fill="var(--ink)">${esc(p.nome)}</text>`; }); }
+  const top = Z(d.zmax) - 70, bot = Z(d.zmin) + 44 + rows * 44 + 30;
+  d.vb = {x:Math.round(x0), y:Math.round(top), w:Math.round(x1 - x0), h:Math.round(bot - top)};
+  const tit = mini ? '' : `<text x="${Math.round(x0) + 16}" y="${top + 30}" font-size="22" font-weight="700" fill="var(--ink)">Sezione ${esc(d.nome)}</text>`;
+  return `<svg ${mini ? '' : 'id="sezsvg" '}viewBox="${d.vb.x} ${d.vb.y} ${d.vb.w} ${d.vb.h}" preserveAspectRatio="xMidYMid meet" style="color:var(--ink)">${tit}${s}${q}</svg>`; }
 // linee di sezione sulla pianta: tratto-punto rosso, lettera in un cerchietto e freccia dalla parte guardata (a ogni piano)
 function sezPianta(pl) { const o = orgOf(pl); let s = '';
   (R.sez || []).forEach((q, i) => { const sel = ui.sel && ui.sel.k === 'sez' && ui.sel.id === q.id, A = sezAsse(q), c = sel ? 'var(--acc)' : 'var(--bad)', P = [[q.a[0] - o[0], q.a[1] - o[1]], [q.b[0] - o[0], q.b[1] - o[1]]];
@@ -3937,13 +4004,15 @@ function sezTap(p) { const o = orgOf(piano()), x = r4(Math.round((WX(p[0]) + o[0
 let SEZC = null;   // dati calcolati una volta finché il rilievo non cambia
 function sezDati(i) { const key = JSON.stringify([R.piani, R.sez, R.P, R.T, R.hA]); if (!SEZC || SEZC.key !== key) SEZC = {key, d:[]};
   if (!SEZC.d[i]) { const d = sezioneDati(R.sez[i]); d.nome = sezNome(i) + '–' + sezNome(i); SEZC.d[i] = d; } return SEZC.d[i]; }
-function sezVb(d) { const t = Math.round(-d.zmax * 100) - 80, w = d.L * 100 + 300; return {x:-150, y:t, w, h:Math.round(-d.zmin * 100) + 130 - t}; }
+const sezScuro = () => ui.sezT ? ui.sezT === 'scuro' : document.documentElement.dataset.tema ? document.documentElement.dataset.tema === 'scuro' : matchMedia('(prefers-color-scheme: dark)').matches;
+const sezTastoT = () => `<svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-4px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round">${sezScuro() ? '<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/>' : '<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>'}</svg> ${sezScuro() ? 'Mod chiara' : 'Mod scura'}`;
 function renderSez() { const n = (R.sez || []).length;
   if (!n) return `<div class="card"><div class="cardh">Sezioni</div><p class="hint">Non ci sono ancora sezioni. In pianta: Quota ▸ Sezione, poi tocca due punti.</p><button class="pri" data-sezpianta="1">Disegna una sezione</button></div>`;
-  const k = ui.sezK = Math.min(ui.sezK || 0, n - 1), d = sezDati(k); ui.sezBox = sezVb(d);
-  return `<div class="card sezc"><div class="cardh">Sezioni ${R.sez.map((q, i) => `<button class="sm${i === k ? ' pri' : ''}" data-sezgo2="${i}">${sezNome(i)}–${sezNome(i)}</button>`).join(' ')}<span class="sp"></span><button class="sm" data-sezfit="1">Adatta</button></div>
-    <div class="sezv">${sezioneSvg(d)}</div>
-    <p class="hint">${d.piani.length ? 'Solo da vedere: muri e solai tagliati, ambienti e aperture. Per cambiare il taglio o il verso usa la pianta.' : 'La linea non taglia nessun muro: spostala in pianta.'}</p></div>`; }
+  const k = ui.sezK = Math.min(ui.sezK || 0, n - 1); let d, svg; try { d = sezDati(k); svg = sezioneSvg(d); ui.sezBox = d.vb; } catch (e) { console.warn(e); return `<div class="card"><div class="msg w">Non riesco a disegnare la sezione: controlla la linea e i piani. (${esc(e.message)})</div></div>`; }
+  const prop = d.piani.some(p => p.hp || p.solP || p.aps.some(a => a.p)) || (d.cop && d.cop.solP);
+  return `<div class="card sezc"><div class="cardh">Sezioni ${R.sez.map((q, i) => `<button class="sm${i === k ? ' pri' : ''}" data-sezgo2="${i}">${sezNome(i)}–${sezNome(i)}</button>`).join(' ')}<span class="sp"></span><button class="sm" data-sezt="1" id="bSezT">${sezTastoT()}</button><button class="sm" data-sezfit="1">Adatta</button></div>
+    <div class="sezv${ui.sezT ? ' ' + ui.sezT : ''}">${svg}</div>
+    <p class="hint">${d.piani.length ? 'Solo da vedere: muri e solai tagliati, ambienti, aperture, scale e ascensore.' + (prop ? ' <i>* grigio corsivo</i>: proposta, manca la misura (solaio, altezza del piano o delle aperture).' : '') : 'La linea non taglia nessun muro: spostala in pianta.'}</p></div>`; }
 function sezBind() { const sv = $('#sezsvg'); if (!sv || !ui.sezBox) return; const P = new Map(); let dd = 0;
   const rc = () => sv.getBoundingClientRect(), set = () => sv.setAttribute('viewBox', `${ui.sv.x} ${ui.sv.y} ${ui.sv.w} ${ui.sv.h}`);
   ui.sezFit = () => { const r = rc(), b = ui.sezBox, rt = r.height / r.width, w = Math.max(b.w, b.h / rt); ui.sv = {w, h:w * rt, x:b.x + b.w / 2 - w / 2, y:b.y + b.h / 2 - w * rt / 2}; set(); }; ui.sezFit();
@@ -4603,8 +4672,8 @@ function datiRilievo() { const i = campo;
   return `<div class="card"><div class="cardh">Rilievo</div><div class="grid">${i('nome', 'Nome / cliente', false)}${i('data', 'Data', false)}${i('indirizzo', 'Indirizzo', false, 'c2')}<div class="c2" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="sm" data-pos>📍 Usa la mia posizione</button><span class="mut" style="font-size:12px">${posOk(R.pos) ? 'Punto salvato.' : 'Salva il punto e propone l\'indirizzo: da usare sul posto (le coordinate vanno a OpenStreetMap).'}</span></div>${i('fg', 'Foglio', false)}${i('pla', 'Particella', false)}${i('sub', 'Subalterno', false)}</div></div>
   <div class="card"><div class="cardh">Spessori dei muri</div><div class="grid">${i('P', 'Perimetrali (m)')}${i('T', 'Tramezzi (m)')}${i('incP', 'Finestre incassate: profondità della luce stretta (m)')}</div>
   <p class="hint">Per un muro diverso (portante interno, muro vecchio più spesso) selezionalo e scegli «Spessore diverso».</p></div>
-  <div class="card"><div class="cardh">Solai</div><div class="grid">${R.piani.map(p => `<div><label class="l">${esc(p.nome)}: solaio di calpestio (m)</label><input data-sol="${p.id}" value="${esc(p.sol || '')}" inputmode="decimal"></div>`).join('')}</div>
-  <p class="hint">Spessore del solaio su cui si cammina in quel piano. Serve per la sezione: il soffitto di un piano è il calpestio del piano sopra.</p></div>`;
+  <div class="card"><div class="cardh">Solai</div><div class="grid">${R.piani.map(p => `<div><label class="l">${esc(p.nome)}: solaio di calpestio (m)</label><input data-sol="${p.id}" value="${esc(p.sol || '')}" inputmode="decimal"></div>`).join('')}<div><label class="l">Copertura: solaio sopra l'ultimo piano (m)</label><input data-solc="1" value="${esc(R.solC || '')}" inputmode="decimal"></div></div>
+  <p class="hint">Spessore del solaio su cui si cammina in quel piano. Serve per la sezione: il soffitto di un piano è il calpestio del piano sopra. La copertura è il solaio che chiude l'ultimo piano. Vuoti: nella sezione si usa 0,30 m, in grigio corsivo.</p></div>`;
 }
 // impostazioni dell'app (ingranaggio nel menu)
 function renderCfg() {
@@ -4887,6 +4956,7 @@ document.addEventListener('click', e => {
   if (id === 'bPamb') return setPamb(!ui.pamb);
   { const g = e.target.closest('[data-sezgo],[data-sezgo2]'); if (g) { ui.sezK = +(g.dataset.sezgo ?? g.dataset.sezgo2); return vai('sez'); }
     if (e.target.closest('[data-sezfit]')) { if (ui.sezFit) ui.sezFit(); return; }
+    if (e.target.closest('[data-sezt]')) { ui.sezT = sezScuro() ? 'chiaro' : 'scuro'; try { localStorage.setItem('rilievo-stema', ui.sezT); } catch (_) {} const v = $('.sezv'); if (v) v.className = 'sezv ' + ui.sezT; const b = $('#bSezT'); if (b) b.innerHTML = sezTastoT(); return; }
     if (e.target.closest('[data-sezpianta]')) { ui.mode = 'sez'; ui.sezA = null; return vai('pianta'); }
     if (e.target.closest('[data-sezgira]') && ui.sel && ui.sel.k === 'sez') { const q = (R.sez || []).find(x => x.id === ui.sel.id); if (q) { q.v = -q.v; save(); draw(); renderSide(); } return; }
     if (e.target.closest('[data-sezdel]') && ui.sel && ui.sel.k === 'sez') { R.sez = (R.sez || []).filter(x => x.id !== ui.sel.id); ui.sel = null; save(); draw(); renderSide(); return; } }
@@ -4995,6 +5065,7 @@ document.addEventListener('input', e => {
   else if (t.id === 'iBgOp' && pl.bg) { pl.bg.op = +t.value; draw(); save(); }
   else if ((t.id === 'cBgHide' || t.id === 'cBgLock') && pl.bg) { pushUndo(); pl.bg[t.id === 'cBgHide' ? 'hide' : 'lock'] = t.checked; if (pl.bg.lock) { ui.bgMove = false; ui.bgCal = null; } save(); draw(); renderSide(); }
   else if (t.id === 'cLab') { ui.labels = t.checked; try { localStorage.setItem('rilievo-etichette', t.checked ? '1' : '0'); } catch (e) {} draw(); }
+  else if (t.dataset.solc) { undemo(); R.solC = t.value; save(); }
   else if (t.dataset.sol) { const pl = R.piani.find(x => x.id === t.dataset.sol); if (pl) { undemo(); pl.sol = t.value; save(); } }
   else if (t.dataset.def) setDef(t.dataset.def, t.value);
   else if (t.dataset.defo) setDef(t.dataset.defo, t.checked, true);

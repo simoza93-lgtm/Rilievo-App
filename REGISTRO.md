@@ -3,6 +3,16 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — Sezioni, tappe 3 e 4: quote, scale, ascensore, copertura e chiaro/scuro
+- **Quote orizzontali** sotto la sezione: muri e ambienti di ogni piano (una riga sola se due piani hanno le stesse misure) e il totale. I tratti stretti hanno il numero girato.
+- **Quote verticali** a destra: solaio e altezza di ogni piano e il totale. A sinistra le **quote di livello** (±0,00 sul pavimento del primo piano, poi +2,95 e così via) e il nome del piano.
+- **Grigio corsivo con asterisco** = proposta: manca la misura (solaio non scritto, altezza dei vani non scritta). Le altezze e i davanzali di porte e finestre mancanti si disegnano con 1,40 / 0,90 / 2,10 m.
+- **Copertura:** nuova casella nella scheda **Solai** (dati del rilievo): il solaio sopra l'ultimo piano, come quello sotto. Vuota = 0,30 m, in grigio corsivo. Si disegna sopra l'ultimo piano.
+- **Scale:** tagliata lungo la rampa, la scala fa il **profilo a gradini** (alzata e pedata di ogni gradino, alzate spartite tra i due piani); tagliata di traverso, si vede il **gradino** sotto la linea. Il **vano scala** apre il solaio sopra la scala dove la testa passa (da 2,00 m sotto il soffitto in su). Scale a L, a U e attorno all'ascensore vanno a rampa; la chiocciola è solo approssimata.
+- **Ascensore** (da solo o al centro della scala): pareti del vano tagliate, vuoto bianco e solaio aperto a ogni piano tranne il più basso.
+- **Chiaro/scuro:** tasto in alto nella pagina della sezione («Mod chiara»/«Mod scura»), solo per le sezioni; la scelta resta salvata (`rilievo-stema`).
+- Prove `sezione` (allargata) e `sezione2` (scale e ascensore).
+
 ## 28 novembre 2026 — Sezioni, tappa 2: linee di sezione e scheda della sezione
 - **Quota ▸ Sezione**: si tocca il punto dove parte e il punto dove finisce (la linea viene sempre **dritta, orizzontale o verticale**). Si possono tracciare **al massimo 2 sezioni**, A–A e B–B; la linea si vede su **tutti i piani** (tratto-punto rosso, lettera e freccia dalla parte guardata).
 - Con «Seleziona» toccando la linea compare il pannello: **Vedi la sezione**, **Gira il verso**, **Elimina**. Le linee non si spostano: si elimina e si ritraccia. «Annulla» non le toglie.

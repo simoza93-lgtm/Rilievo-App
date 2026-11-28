@@ -1,0 +1,4 @@
+{"A":{"L":12,"zmax":5.9,"cop":{"sol":0.25,"z0":5.65},"piani":[{"nome":"Piano terra","zf":0,"zc":2.7,"pezzi":[{"punti":96,"t":[1.58,5.9],"z":[-0.3,2.95]}],"buchi":[],"vuoti":[[8.05,9.55]],"pareti":[[7.85,8.05],[9.55,9.75]]},
+{"nome":"Piano primo","zf":2.95,"zc":5.65,"pezzi":[{"punti":96,"t":[1.58,5.9],"z":[-0.3,2.95]}],"buchi":[[1.58,5.09],[1.58,5.09],[8.05,9.55]],"vuoti":[[8.05,9.55]],"pareti":[[7.85,8.05],[9.55,9.75]]}]},"B":{"L":6,"zmax":5.9,"cop":{"sol":0.25,"z0":5.65},"piani":[{"nome":"Piano terra","zf":0,"zc":2.7,"pezzi":[],"buchi":[],"vuoti":[],"pareti":[[3.55,3.75]]},
+{"nome":"Piano primo","zf":2.95,"zc":5.65,"pezzi":[],"buchi":[],"vuoti":[],"pareti":[[3.55,3.75]]}]}}
+errors []
