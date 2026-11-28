@@ -3,7 +3,7 @@ const OUT = require('path').join(__dirname, 'out'); require('fs').mkdirSync(OUT,
 const {chromium}=require('playwright');
 (async()=>{const b=await chromium.launch(); const errs=[]; const out={};
 const p=await b.newPage({viewport:{width:1280,height:800}}); p.on('pageerror',e=>errs.push(e.message));
-await p.goto(process.argv[2]||APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
+await p.goto(process.argv[2]||APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300); await p.evaluate(() => { tab = 'pianta'; render(); }); /* dal menu al disegno */
 await p.click('#bFull'); await p.waitForTimeout(200);
 await p.$eval('[data-mode="select"]', b=>b.click());
 const scrOf=(c)=>p.evaluate(c=>{ const r=document.querySelector('#svg').getBoundingClientRect(); const g=document.querySelector('#vg'); const pt=document.querySelector('#svg').createSVGPoint(); pt.x=SX(c[0]); pt.y=SY(c[1]); const m=g.getCTM(); const q=pt.matrixTransform(m); return {x:r.left+q.x - (document.querySelector('#svg').getCTM().e||0), y:r.top+q.y - (document.querySelector('#svg').getCTM().f||0)}; }, c);

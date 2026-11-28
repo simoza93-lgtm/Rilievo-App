@@ -11,14 +11,16 @@ const { chromium } = require('playwright');
     R = blank(); delete R.fg; delete R.pla; delete R.sub; R.id = 'vecchio'; tab = 'imp'; render();
     const v = k => document.querySelector(`[data-s="${k}"]`).value;
     const vecchio = {fg:v('fg'), pla:v('pla'), sub:v('sub')};
-    const ta = document.querySelector('[data-pref="studio"]'); const studio0 = ta.value;
     const set = (el, val) => { el.value = val; el.dispatchEvent(new Event('input', {bubbles:true})); };
     set(document.querySelector('[data-s="fg"]'), '12'); set(document.querySelector('[data-s="pla"]'), '345'); set(document.querySelector('[data-s="sub"]'), '2-3');
+
+    tab = 'cfg'; render(); // l'intestazione dello studio sta nell'ingranaggio del menu
+    const ta = document.querySelector('[data-pref="studio"]'); const studio0 = ta.value;
     set(ta, 'Studio prova\nvia Roma 1');
     return {vecchio, studio0, campi:{fg:R.fg, pla:R.pla, sub:R.sub}, nuovo:{fg:blank().fg, pla:blank().pla, sub:blank().sub}};
   });
   await p.screenshot({path:require('path').join(OUT, 'scheda1.png')});
   await p.reload();
-  const r2 = await p.evaluate(() => { tab = 'imp'; render(); return document.querySelector('[data-pref="studio"]').value; });
+  const r2 = await p.evaluate(() => { tab = 'cfg'; render(); return document.querySelector('[data-pref="studio"]').value; });
   console.log(JSON.stringify(r1)); console.log('dopo riapertura:', JSON.stringify(r2)); console.log('errors', errs); await b.close();
 })();

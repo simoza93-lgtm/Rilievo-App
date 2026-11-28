@@ -10,7 +10,7 @@ note: ["CXe del gas in cucina\Xcare canna X"]
 noteP2: null
 foto: ["1 · Piano terra · Cucina — parete nord","2 · Piano terra","3 · Piano terra — Xa","4 · Piano terra","1 · Piano primo — X"]
 fotoOk: [1400,1400,1400,1400,1400]
-tasto: "Scheda PDF"
+tasto: "(sta nella pagina del X)"
 dopo: {"cur":1,"tab":"calc","svgApp":false}
 prima: {"cur":1,"tab":"calc"}
 pagine del pdf 6

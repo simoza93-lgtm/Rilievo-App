@@ -1,0 +1,37 @@
+avvio: home | Xo: - | tasti in alto:  | X X: 0
+carte: Nuovo X ; Rilievo di X
+nuovo: nuovo | Xo: ‹ Menu | tasti in alto: ‹ Menu | X X: 1
+nuovo Xo vuoto: home | Xo: - | tasti in alto:  | X X: 0
+X: pianta | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 1
+Xo Android: prj | Xo: ‹ Menu | tasti in alto: ‹ Menu | X X: 1
+totali: 14,96 m²X ; 0,00 m²X ; 1piano ; Xte
+i totali non X il X: true
+Xo Android: home | Xo: - | tasti in alto:  | X X: 1
+stato: da Xre
+Xo: prj | Xo: ‹ Menu | tasti in alto: ‹ Menu | X X: 1
+Xto, X: false
+scheda Xa: true | dopo: prj | Xo: ‹ Menu | tasti in alto: ‹ Menu | X X: 1
+file Xti: Casa_Rossi_DATA.json, Casa_Rossi_Piano_terra_v1.scr
+piano nuovo: pianta | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 1 | Piano primo
+piante: Piano terra, Piano primo
+scelta piano: Piano terra, Piano primo
+script: Casa_Rossi_Piano_terra_v2.scr
+Xato: prj | Xo: ‹ Menu | tasti in alto: ‹ Menu | X X: 1 | Piano terra, SXto, AX piano, Piano terra, SXto
+tocco pianta: pianta | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 1 | Piano terra, muri 4
+vedi tutto: calc | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 1
+Xa: set | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 1
+foto: foto | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 1
+X: home | Xo: - | tasti in alto:  | X X: 2
+  X: EXe XXe il X «Casa Rossi (copia)»?
+X: home | Xo: - | tasti in alto:  | X X: 1
+dxf, tasti: Disegna in questo X, IX, Annulla
+dxf nel X nuovo: pianta | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 2 | Da X, muri 4, piani 1
+menu: home | Xo: - | tasti in alto:  | X X: 2
+foto Xtria: pianta | Xo: ‹ Rilievo | tasti in alto: ‹ Rilievo | X X: 3 | sfondo: true
+menu: home | Xo: - | tasti in alto:  | X X: 3
+Xzioni: cfg | Xo: ‹ Menu | tasti in alto: ‹ Menu | X X: 3
+cfg chiaro rgb(243, 244, 247)
+X: home chiaro rgb(243, 244, 247) | home | Xo: - | tasti in alto:  | X X: 3
+limite in un altro X: RAI 1/10
+pianta come il tablet rgb(19, 22, 28)
+errors []

@@ -3,7 +3,7 @@ const OUT = require('path').join(__dirname, 'out'); require('fs').mkdirSync(OUT,
 const {chromium}=require('playwright');
 (async()=>{const b=await chromium.launch(); const errs=[]; const out={};
 const p=await b.newPage({viewport:{width:1280,height:800}}); p.on('pageerror',e=>errs.push(e.message));
-await p.goto(process.argv[2]||APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
+await p.goto(process.argv[2]||APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300); await p.evaluate(() => { tab = 'pianta'; render(); }); /* dal menu al disegno */
 await p.click('#bFull'); await p.waitForTimeout(200);
 for (const mode of ['select','draw']) {
   await p.evaluate(()=>{ const o=G.ops.find(o=>o.door); o.ap.lp=true; o.ap.vx=!o.ap.vx; update(true); const c=o.door.c; const v=ui.view; v.s=140; v.x=c[0]-ui.W/2/v.s; v.y=c[1]-ui.H/2/v.s; draw(); });

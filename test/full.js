@@ -4,7 +4,7 @@ const { chromium } = require('playwright');
 (async () => {
   const b = await chromium.launch(); const p = await b.newPage({viewport:{width:1600,height:1000}});
   const errs=[]; p.on('pageerror',e=>errs.push(e.message));
-  await p.goto(APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
+  await p.goto(APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300); await p.evaluate(() => { tab = 'pianta'; render(); }); /* dal menu al disegno */
   await p.click('#bFull'); await p.waitForTimeout(300); await p.click('#bFit'); await p.waitForTimeout(100);
   const w0 = await p.evaluate(()=>({cv:document.querySelector('#cv').clientWidth, side:getComputedStyle(document.querySelector('#sidecol')).display}));
   await p.screenshot({path:require('path').join(OUT, 'full1.png')});

@@ -4,7 +4,7 @@ const { chromium } = require('playwright');
 (async () => {
   const b = await chromium.launch(); const p = await b.newPage({viewport:{width:1400,height:950}, hasTouch:true});
   const errs=[]; p.on('pageerror',e=>errs.push(e.message)); p.on('dialog', d => d.accept('10'));
-  await p.goto(APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
+  await p.goto(APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300); await p.evaluate(() => { tab = 'pianta'; render(); }); /* dal menu al disegno */
   await p.evaluate(()=>{ R = blank(); R.id='bg1'; tab='pianta'; render(); });
   await p.click('[data-bg]'); const panel0 = await p.evaluate(()=>document.querySelector('#side').innerText.slice(0,40));
   const [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('#bBgGal')]); await fc.setFiles(require('path').join(__dirname, 'plan.jpg')); await p.waitForTimeout(1500);
@@ -27,6 +27,6 @@ const { chromium } = require('playwright');
   const walls = await p.evaluate(()=>({n:piano().walls.length, bb:G.bbox && G.bbox.map(v=>+v.toFixed(2))}));
   await p.screenshot({path:require('path').join(OUT, 'bg.png'), clip:{x:20,y:200,width:1000,height:700}});
   // ricarico: l'immagine torna dal database
-  await p.reload(); await p.waitForTimeout(800); const back = await p.evaluate(()=>!!document.querySelector('#svg image'));
+  await p.reload(); await p.waitForTimeout(500); await p.evaluate(() => { tab = 'pianta'; render(); }); await p.waitForTimeout(800); const back = await p.evaluate(()=>!!document.querySelector('#svg image'));
   console.log(JSON.stringify({panel0, bg0:{pw:bg0.pw, ph:bg0.ph, m:bg0.m}, bg1, rot, bg2, walls, back})); console.log('errors', errs); await b.close();
 })();

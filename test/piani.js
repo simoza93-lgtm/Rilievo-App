@@ -10,7 +10,7 @@ const { chromium } = require('playwright');
   const domanda = () => p.evaluate(() => { const e = document.querySelector('#dPiani .pask, #dPiani .msg'); return '  domanda: ' + (e ? e.textContent.replace(/(OK)?(Elimina)?Annulla$/, '').trim() : 'nessuna'); });
   const scrivi = async v => { console.log(await domanda()); await p.fill('#pNome', v); await p.press('#pNome', 'Enter'); await p.waitForTimeout(150); };
   const elimina = async (i, si) => { await p.click(`[data-pmenu="${i}"]`); await p.click(`[data-pdel="${i}"]`); console.log(await domanda()); if (si !== undefined) await p.click(si ? '[data-psi]' : '[data-pno]'); await p.waitForTimeout(150); };
-  await p.goto(process.argv[2] || APP); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
+  await p.goto(process.argv[2] || APP); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(300); await p.evaluate(() => { tab = 'pianta'; render(); }); /* dal menu al disegno */
   console.log('in alto restano comandi dei piani:', await p.evaluate(() => [...document.querySelectorAll('header button, header select')].some(e => /piano/i.test(e.textContent))));
   await p.click('#bFull'); await p.waitForTimeout(200);
   const stato = () => p.evaluate(() => `${R.piani.map((x, i) => (i === R.cur ? '[' + x.nome + ']' : x.nome) + ' ' + x.walls.length + ' muri').join(' | ')} — tasto «${document.querySelector('#bPiani span').textContent}»`);
@@ -34,11 +34,11 @@ const { chromium } = require('playwright');
   await p.click('[data-pchiudi]');
   console.log('ancora a schermo intero dopo aggiunte, rinomine ed eliminazioni:', await p.evaluate(() => ui.full));
   // pagina Calcoli: stesso tasto
-  await p.click('#bFull'); await p.waitForTimeout(150); await p.click('[data-tab="calc"]');
+  await p.click('#bFull'); await p.waitForTimeout(150); await p.evaluate(() => vai('calc'));
   await p.click('#bPiani'); await p.click('[data-pvai="1"]'); await p.waitForTimeout(150);
   console.log('in Calcoli scelto il secondo:', await p.evaluate(() => tab + ' ' + piano().nome + ' / ' + document.querySelector('#bPiani span').textContent));
-  await p.click('[data-tab="foto"]'); await p.waitForTimeout(150); console.log('in Foto si vede il piano:', await p.evaluate(() => (document.querySelector('#bPiani span') || {}).textContent));
-  await p.evaluate(() => { R.demo = false; R.id = 'piani'; save(); }); await p.waitForTimeout(1500); await p.reload(); await p.waitForTimeout(600);
+  await p.evaluate(() => vai('foto')); await p.waitForTimeout(150); console.log('in Foto si vede il piano:', await p.evaluate(() => (document.querySelector('#bPiani span') || {}).textContent));
+  await p.evaluate(() => { R.demo = false; R.id = 'piani'; save(); }); await p.waitForTimeout(1500); await p.reload(); await p.waitForTimeout(600); await p.evaluate(() => { tab = 'pianta'; render(); });
   console.log('riaperta:', await stato());
   // con un piano solo non si elimina
   for (let i = 0; i < 4; i++) { if (await p.evaluate(() => R.piani.length) === 1) break; await p.click('#bPiani'); await elimina(0, true); await p.click('[data-pchiudi]'); }

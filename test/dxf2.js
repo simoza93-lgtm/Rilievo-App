@@ -15,7 +15,7 @@ const LY = [['MURI', 7], ['TRAMEZZI', 2], ['INFISSI', 1]];
 (async () => {
   const b = await chromium.launch(); const p = await b.newPage({viewport:{width:1400, height:950}});
   const errs = []; p.on('pageerror', e => errs.push(e.message)); let dlgMsg = '', dlgOk = true; p.on('dialog', d => { dlgMsg = d.message(); (dlgOk ? d.accept('Piano primo') : d.dismiss()).catch(() => {}); });
-  await p.goto(APP); await p.evaluate(() => localStorage.clear()); await p.reload();
+  await p.goto(APP); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.evaluate(() => { tab = 'pianta'; render(); }); /* dal menu al disegno */
   const out = {};
   const apri = async (nome, txt, enc) => { await p.evaluate(() => { const d = document.querySelector('#dDxf'); if (d.open) d.close(); }); await p.setInputFiles('#fDxf', {name:nome, mimeType:'application/dxf', buffer:Buffer.from(txt, enc || 'utf8')}); await p.waitForSelector('#dDxf[open]'); };
   const testo = () => p.evaluate(() => document.querySelector('#dDxf').innerText);

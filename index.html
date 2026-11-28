@@ -12,6 +12,8 @@
 <style>
 :root{--bg:#f3f4f7;--card:#fff;--ink:#1c2230;--mut:#687185;--line:#dde1e8;--acc:#1f5fbf;--accbg:#e6efff;--warn:#a86a12;--warnbg:#fff3dc;--bad:#c0392b;--badbg:#fde8e5;--ok:#2f855a;--okbg:#e3f5ea;--wall:#d6d9e1;--wP:#1c2230;--wI:#b8860b;--wR:#d0342c;--grid:#eceef3;--cv:#fbfbfd;--note:#c99a06;--todo:#e8890c;--inkc:#7c3aed;--notebg:#fff8d9}
 @media (prefers-color-scheme:dark){:root{--bg:#13161c;--card:#1b1f28;--ink:#e7eaf1;--mut:#99a1b2;--line:#2c3240;--acc:#5b9bff;--accbg:#1d2e4d;--warn:#e3a94b;--warnbg:#3a2f18;--bad:#ef6b5b;--badbg:#3d1f1b;--ok:#5fc08a;--okbg:#17331f;--wall:#2f3542;--wP:#f1f3f8;--wI:#e2b33c;--wR:#ff6b5f;--grid:#20242d;--cv:#171a21;--note:#d8ad2c;--todo:#e8890c;--inkc:#b39bff;--notebg:#352f17}}
+:root[data-tema="chiaro"]{color-scheme:light;--bg:#f3f4f7;--card:#fff;--ink:#1c2230;--mut:#687185;--line:#dde1e8;--acc:#1f5fbf;--accbg:#e6efff;--warn:#a86a12;--warnbg:#fff3dc;--bad:#c0392b;--badbg:#fde8e5;--ok:#2f855a;--okbg:#e3f5ea;--wall:#d6d9e1;--wP:#1c2230;--wI:#b8860b;--wR:#d0342c;--grid:#eceef3;--cv:#fbfbfd;--note:#c99a06;--todo:#e8890c;--inkc:#7c3aed;--notebg:#fff8d9}
+:root[data-tema="scuro"]{color-scheme:dark;--bg:#13161c;--card:#1b1f28;--ink:#e7eaf1;--mut:#99a1b2;--line:#2c3240;--acc:#5b9bff;--accbg:#1d2e4d;--warn:#e3a94b;--warnbg:#3a2f18;--bad:#ef6b5b;--badbg:#3d1f1b;--ok:#5fc08a;--okbg:#17331f;--wall:#2f3542;--wP:#f1f3f8;--wI:#e2b33c;--wR:#ff6b5f;--grid:#20242d;--cv:#171a21;--note:#d8ad2c;--todo:#e8890c;--inkc:#b39bff;--notebg:#352f17}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,Segoe UI,Arial,sans-serif}
 header{background:var(--card);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -26,9 +28,6 @@ button.bad{color:var(--bad)}
 button.sm{padding:4px 9px;min-height:32px;font-size:13px}
 input,select,textarea{border:1px solid var(--line);background:var(--card);border-radius:9px;padding:8px 10px;width:100%;min-height:40px}
 input[type=checkbox]{width:auto;min-height:auto}
-nav{display:flex;gap:4px;padding:10px 16px 0;max-width:1600px;margin:0 auto}
-nav button{border:0;background:none;color:var(--mut)}
-nav button.on{background:var(--accbg);color:var(--acc)}
 main{padding:12px 16px 40px;max-width:1600px;margin:0 auto}
 .banner{background:var(--warnbg);color:var(--warn);border:1px solid var(--warn);padding:10px 14px;border-radius:10px;margin-bottom:12px}
 .cols{display:grid;grid-template-columns:1fr 400px;gap:14px;align-items:start}
@@ -83,7 +82,7 @@ label.tb:has(input:checked){color:var(--acc);background:var(--accbg)}
 #svg.gn{background:#f1f1f3;--ink:#111418;--mut:#5f6675;--line:#dde1e8;--acc:#1f5fbf;--accbg:#d6e4ff;--bad:#c0392b;--todo:#e8890c;--wall:#111418;--wP:#111418;--wI:#111418;--wR:#555d6b;--cv:#fff;--note:#c99a06;--notebg:#fff8d9;--inkc:#7c3aed}
 #cv:has(#svg.gn) #empty{color:#4a5160}
 #empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mut);pointer-events:none;padding:30px}
-#toast{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:8px 14px;border-radius:9px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90%;text-align:center}
+#toast{position:fixed;z-index:60;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:8px 14px;border-radius:9px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90%;text-align:center}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 10px}
 .grid .c2{grid-column:1/-1}
 label.l{display:block;font-size:12px;color:var(--mut);margin-bottom:3px}
@@ -136,12 +135,45 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .pask input{flex:1;min-width:180px}
 .pask button{min-height:44px;min-width:110px}
 .plist button{min-height:48px;text-align:left;border-width:0 0 1px;border-radius:0}
-.arow{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px}
 .dxu{display:block;margin:5px 0}.dxl{display:grid;grid-template-columns:18px 1fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}.dxl .sw{width:16px;height:16px;border-radius:4px;border:1px solid var(--line)}
-.arow.cur{border-color:var(--acc);background:var(--accbg)}
-.arow .btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+/* menu iniziale e pagina del rilievo */
+.hbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.hbar h2{margin:0;font-size:20px}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.rcard{display:flex;flex-direction:column;gap:3px;align-items:stretch;text-align:left;padding:10px;border-radius:14px;min-height:240px;overflow:hidden}
+.rcard>*{pointer-events:none}
+.rcard span{font-size:13px;color:var(--mut)}
+.rcard .b{align-self:flex-start;color:var(--warn);background:var(--warnbg);border-radius:20px;padding:1px 9px;font-size:12px}
+.rcard .b.g{color:var(--ok);background:var(--okbg)}
+.rmini{height:140px;background:var(--bg);border-radius:10px;padding:8px;margin-bottom:6px;color:var(--ink)}
+.rmini svg{width:100%;height:100%;display:block}
+.radd{align-items:center;justify-content:center;border-style:dashed;color:var(--acc)}
+.radd i{font-style:normal;font-size:48px;line-height:1}
+.rcard.radd span{color:var(--acc);font-size:15px;font-weight:600}
+.prj{display:grid;grid-template-columns:330px minmax(0,1fr);gap:14px;align-items:start}
+.prj.nuovo{grid-template-columns:minmax(0,1fr) 330px}
+@media(max-width:800px){.prj,.prj.nuovo{grid-template-columns:1fr}.prj.nuovo>.card{order:-1;position:static!important}}
+.tot{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tot div{background:var(--bg);border-radius:10px;padding:8px 10px}
+.tot b{display:block;font-size:19px}
+.tot span{font-size:12px;color:var(--mut)}
+.azioni button{display:block;width:100%;text-align:left;margin-bottom:6px;min-height:46px}
+.fila{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;align-items:flex-start}
+.fila>*{flex:0 0 auto}
+.fila .piu{width:56px;height:56px;border-radius:50%;font-size:28px;line-height:1;align-self:center;padding:0}
+.pp{width:200px;text-align:center}
+.pp .pwrap{position:relative}
+.pp .pcard{width:100%;height:170px;background:var(--bg);color:var(--ink);padding:10px}
+.pp .pcard>*{pointer-events:none}
+.pp .pcard svg{width:100%;height:100%;display:block}
+.pp .pdots{position:absolute;right:6px;bottom:6px;min-height:34px;padding:2px 10px}
+.pp .pnome{margin-top:4px;font-weight:600}
+.fila .fth{width:170px}
+.fcard{width:160px;height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-weight:600;border-radius:14px}
+.fcard>*{pointer-events:none}
+.fcard i{font-style:normal;font-size:12px;background:var(--ink);color:var(--card);border-radius:6px;padding:2px 8px}
 #bExp.dirty::after{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--warn);margin-left:6px;vertical-align:middle}
-body.full header,body.full nav,body.full .banner,body.full .legend{display:none}
+body.full header,body.full .banner,body.full .legend{display:none}
 body.full main{padding:6px;max-width:none}
 body.full .cols{display:grid;grid-template-columns:minmax(0,1fr) min(380px,42vw);gap:8px;align-items:start}
 body.full .cols>.card{margin:0;padding:8px}
@@ -239,15 +271,8 @@ ol.help li{margin-bottom:4px}
 </head>
 <body>
 <header>
+  <button id="bBack" hidden></button>
   <h1>Rilievo <span id="curName" class="mut" style="font-weight:400"></span></h1>
-  <button id="bArch">Archivio</button>
-  <span class="sp"></span>
-  <button id="bScr" class="pri">Genera script AutoCAD</button>
-  <button id="bScheda">Scheda PDF</button>
-  <button id="bExp">Esporta</button>
-  <button id="bImp">Importa</button>
-  <button id="bDxf">Importa DXF</button>
-  <button id="bNew">Nuovo rilievo</button>
   <input type="file" id="fImp" accept=".json,application/json" hidden>
   <input type="file" id="fDxf" accept=".dxf" hidden>
   <input type="file" id="fCam" accept="image/*" capture="environment" hidden>
@@ -255,9 +280,9 @@ ol.help li{margin-bottom:4px}
   <input type="file" id="fBgGal" accept="image/jpeg,image/png,image/*" hidden>
   <input type="file" id="fBgCam" accept="image/*" capture="environment" hidden>
 </header>
-<nav id="tabs"></nav>
 <main id="main"></main>
-<dialog id="dArch"></dialog>
+<dialog id="dScelta"></dialog>
+<div id="toast"></div>
 <dialog id="dDxf"></dialog>
 <dialog id="dPiani"></dialog>
 
@@ -2126,7 +2151,7 @@ function loadFotos(force) {
   if (!force && ui.fotoRil === R.id && ui.fotos) return Promise.resolve();
   const id = R.id;
   return fList(id).then(a => { if (R.id !== id) return; ui.fotos = a.sort((x, y) => x.data < y.data ? -1 : 1); ui.fotoRil = id; ui.fotoErr = null;
-    if (tab === 'pianta') draw(); if (tab === 'foto') renderFotoTab(); })
+    if (tab === 'pianta') draw(); if (tab === 'foto') renderFotoTab(); if (tab === 'prj') prjFoto(); })
     .catch(e => { ui.fotos = []; ui.fotoRil = id; ui.fotoErr = 'Questo browser non permette di salvare le foto qui (' + (e && e.message || e) + ').'; if (tab === 'foto') renderFotoTab(); });
 }
 async function mkThumb(file) {
@@ -2454,7 +2479,7 @@ function arcGet(id) { try { const d = JSON.parse(localStorage.getItem(RK(id)) ||
 function arcPut(r) {
   if (!r.id) r.id = uid();
   try { localStorage.setItem(RK(r.id), JSON.stringify(r)); }
-  catch (e) { toast('Memoria del browser piena: esporta e elimina i rilievi vecchi dall\'Archivio.'); return false; }
+  catch (e) { toast('Memoria del browser piena: esporta e elimina i rilievi vecchi dal menu.'); return false; }
   const a = arcIndex().filter(x => x.id !== r.id);
   a.unshift({id:r.id, nome:r.nome || '', indirizzo:r.indirizzo || '', data:r.data || '', mod:r.mod || new Date().toISOString(), unexp:!!r.unexp});
   arcWriteIndex(a); try { localStorage.setItem('rilievo-corrente', r.id); } catch (e) {}
@@ -2475,37 +2500,10 @@ function load() {
   let id = null; try { id = localStorage.getItem('rilievo-corrente'); } catch (e) {}
   return (id && arcGet(id)) || (arcIndex()[0] && arcGet(arcIndex()[0].id)) || null;
 }
-function updExpBadge() { const b = $('#bExp'); if (b) { b.classList.toggle('dirty', !!R.unexp && !R.demo); b.title = R.unexp && !R.demo ? 'Ci sono modifiche non ancora esportate' : ''; } const c = $('#curName'); if (c) c.textContent = R.demo ? '· esempio' : '· ' + (R.nome || 'senza nome'); }
-function openRilievo(r) { clearTimeout(tSave); if (!R.demo) arcPut(R); R = r; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; tab = 'pianta'; render(); updExpBadge(); try { localStorage.setItem('rilievo-corrente', r.id); } catch (e) {} }
+function updExpBadge() { const b = $('#bExp'); if (b) { b.classList.toggle('dirty', !!R.unexp && !R.demo); b.title = R.unexp && !R.demo ? 'Ci sono modifiche non ancora esportate' : ''; } const c = $('#curName'); if (c) c.textContent = tab === 'home' ? '' : tab === 'cfg' ? '· impostazioni' : R.demo ? '· esempio' : '· ' + (R.nome || 'senza nome'); }
+function openRilievo(r) { clearTimeout(tSave); if (!R.demo) arcPut(R); R = r; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; vai('prj'); try { localStorage.setItem('rilievo-corrente', r.id); } catch (e) {} }
 function exportR(r) { download((ascii(r.nome) || 'rilievo').replace(/[^A-Za-z0-9_-]+/g, '_') + '_' + r.data + '.json', JSON.stringify(Object.assign({}, r, {unexp:false}), null, 1), 'application/json'); }
 const quando = iso => { if (!iso) return ''; const d = new Date(iso); return d.toLocaleDateString('it-IT') + ' ' + d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'}); };
-function showArchive() {
-  clearTimeout(tSave); if (!R.demo) arcPut(R);
-  const a = arcIndex().sort((x, y) => (y.mod || '').localeCompare(x.mod || '')), dlg = $('#dArch');
-  dlg.innerHTML = `<div class="cardh">Archivio dei rilievi <span class="sp"></span><button id="aClose">Chiudi</button></div>
-    <p class="hint" style="margin:-4px 0 12px">I rilievi restano nella memoria del browser di questo dispositivo. «Esporta» crea il file da conservare o da aprire su un altro dispositivo: fallo alla fine di ogni sopralluogo.</p>
-    ${a.length ? a.map(x => `<div class="arow ${x.id === R.id && !R.demo ? 'cur' : ''}">
-      <div><b>${esc(x.nome || 'Senza nome')}</b>${x.id === R.id && !R.demo ? ' <span class="b">aperto</span>' : ''} ${x.unexp ? '<span class="b w">da esportare</span>' : '<span class="b g">esportato</span>'}
-        <div class="mut" style="font-size:13px">${esc(x.indirizzo || '')}${x.indirizzo ? ' · ' : ''}rilievo del ${esc(x.data || '')} · modificato ${quando(x.mod)}</div></div>
-      <div class="btns"><button class="sm" data-aopen="${x.id}">Apri</button><button class="sm" data-adup="${x.id}">Duplica</button><button class="sm" data-aexp="${x.id}">Esporta</button><button class="sm bad" data-adel="${x.id}">Elimina</button></div></div>`).join('')
-      : '<div class="mut">Nessun rilievo salvato. Con «Nuovo rilievo» ne cominci uno.</div>'}`;
-  if (!dlg.open) dlg.showModal();
-}
-$('#dArch').addEventListener('click', e => {
-  const t = e.target, dlg = $('#dArch');
-  if (t.id === 'aClose' || t === dlg) { dlg.close(); return; }
-  const id = t.dataset.aopen || t.dataset.adup || t.dataset.aexp || t.dataset.adel; if (!id) return;
-  const r = id === R.id ? R : arcGet(id); if (!r) { toast('Rilievo non trovato.'); return; }
-  if (t.dataset.aopen) { dlg.close(); if (id !== R.id || R.demo) openRilievo(r); return; }
-  if (t.dataset.adup) { const c = JSON.parse(JSON.stringify(r)); c.id = uid(); c.nome = (r.nome || 'Rilievo') + ' (copia)'; c.unexp = true; c.mod = new Date().toISOString(); c.demo = false; arcPut(c); if (!R.demo) arcPut(R); showArchive(); return; }
-  if (t.dataset.aexp) { exportR(r); r.unexp = false; arcPut(r); if (r === R) updExpBadge(); else if (!R.demo) arcPut(R); showArchive(); return; }
-  if (t.dataset.adel) {
-    if (!confirm('Eliminare definitivamente il rilievo «' + (r.nome || 'senza nome') + '»?' + (r.unexp ? '\n\nATTENZIONE: ha modifiche non esportate, andrebbero perse.' : ''))) return;
-    arcDel(id);
-    if (id === R.id) { const nx = arcIndex()[0]; R = nx ? arcGet(nx.id) : blank(); if (!nx) arcPut(R); ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; render(); updExpBadge(); }
-    showArchive();
-  }
-});
 window.addEventListener('beforeunload', e => { clearTimeout(tSave); if (!R.demo) arcPut(R); if (R.unexp && !R.demo) { e.preventDefault(); e.returnValue = ''; } });
 function undemo() { if (R.demo) { R.demo = false; R.id = uid(); R.nome = R.nome === 'Esempio' ? 'Esempio (modificato)' : R.nome; } }
 function pushUndo() { const s = JSON.stringify(piano()); ui.redo = []; if (ui.undo[ui.undo.length - 1] !== s) ui.undo.push(s); if (ui.undo.length > 60) ui.undo.shift(); undemo(); }
@@ -2517,7 +2515,7 @@ function download(name, text, type) {
 }
 const fileBase = () => (ascii(R.nome) || 'rilievo').replace(/[^A-Za-z0-9_-]+/g, '_');
 let tToast;
-function toast(t) { const el = $('#toast'); if (!el) return; el.textContent = t; el.style.opacity = 1; clearTimeout(tToast); tToast = setTimeout(() => el.style.opacity = 0, 3500); }
+function toast(t) { const el = $('#toast'); if (!el || ui.zitto) return; el.textContent = t; el.style.opacity = 1; clearTimeout(tToast); tToast = setTimeout(() => el.style.opacity = 0, 3500); }
 
 /* ================= ciclo di aggiornamento ================= */
 function recompute() {
@@ -2558,13 +2556,40 @@ function recompute() {
 function update(editor) { recompute(); draw(); if (editor) renderSide(); else renderMsgs(); updInfo(); save(); }
 
 /* ================= interfaccia ================= */
-const TABS = [['pianta', 'Pianta'], ['calc', 'Calcoli'], ['foto', 'Foto'], ['set', 'Impostazioni']];
+/* pagine: home (menu) > prj (rilievo), nuovo, cfg > pianta, calc, foto, set. GENITORE = dove porta «indietro» */
+const GENITORE = {prj:'home', nuovo:'home', cfg:'home', pianta:'prj', calc:'prj', foto:'prj', set:'prj'};
+const livPag = t => { let n = 0; while (GENITORE[t]) { t = GENITORE[t]; n++; } return n; };
+// una voce di cronologia per livello: così il tasto «indietro» di Android risale di una pagina invece di chiudere l'app
+function storia() { try { let n = (history.state && history.state.liv) || 0; while (n < livPag(tab)) history.pushState({liv:++n}, ''); } catch (e) {} }
+function lascia(a) {
+  if (ui.full) setFull(false); closeInline(true); closeFly(); document.querySelectorAll('dialog[open]').forEach(d => d.close()); if (ui.fview) closeFoto();
+  // «Nuovo» abbandonato senza scrivere né disegnare niente: non resta un rilievo vuoto nell'elenco
+  if (tab === 'nuovo' && a === 'home' && ui.nuovo && ui.nuovo.id === R.id && firmaRil(R) === ui.nuovo.firma) { clearTimeout(tSave); arcDel(R.id); R = load() || demo(); ui.fotos = null; }
+  clearTimeout(tSave); if (!R.demo) arcPut(R);   // il menu e la pagina del rilievo leggono quello che è salvato
+  ui.sel = null;
+}
+const firmaRil = r => JSON.stringify(Object.assign({}, r, {mod:0}));
+function vai(t) { lascia(t); tab = t; render(); window.scrollTo(0, 0); }
+function indietro() {
+  if (!GENITORE[tab]) return;
+  if (history.state && history.state.liv === livPag(tab)) history.back(); else vai(GENITORE[tab]);
+}
+window.addEventListener('popstate', e => { const liv = (e.state && e.state.liv) || 0; let t = tab; while (livPag(t) > liv) t = GENITORE[t]; if (t !== tab) vai(t); });
+// colori scelti nelle impostazioni (restano finché non si cambiano): valgono ovunque tranne che nel disegno, che segue il tablet
+const temaScelto = () => { try { return localStorage.getItem('rilievo-tema') || 'auto'; } catch (e) { return 'auto'; } };
+function applicaTema() { const t = temaScelto(); if (tab !== 'pianta' && t !== 'auto') document.documentElement.dataset.tema = t; else delete document.documentElement.dataset.tema; }
+// opzioni dello script e limiti dei controlli cambiati nell'ingranaggio: valgono per tutti i rilievi
+const defApp = () => { try { return JSON.parse(localStorage.getItem('rilievo-def') || '{}') || {}; } catch (e) { return {}; } };
+function applicaDef(r) { const d = defApp(); Object.assign(r.opt, d.opt || {}); ['rai', 'hA', 'hC', 'pedInt'].forEach(k => { if (k in d) r[k] = d[k]; }); }
+function setDef(k, v, opz) { const d = defApp(); if (opz) (d.opt = d.opt || {})[k] = v; else d[k] = v; try { localStorage.setItem('rilievo-def', JSON.stringify(d)); } catch (e) {} applicaDef(R); }
 function render() {
   if (R.opt && R.opt.vani === undefined) R.opt.vani = true;
   if (R.incP === undefined) R.incP = '0,15';
+  applicaDef(R);
   recompute();
-  $('#tabs').innerHTML = TABS.map(([k, l]) => `<button data-tab="${k}" class="${tab === k ? 'on' : ''}">${l}</button>`).join('');
-  const banner = R.demo ? `<div class="banner"><b>Rilievo di esempio</b> con misure inventate (una non torna apposta, per vedere il controllo). Premi «Nuovo rilievo» per cominciare il tuo.</div>` : '';
+  applicaTema(); storia();
+  const bb = $('#bBack'); bb.hidden = !GENITORE[tab]; bb.textContent = GENITORE[tab] === 'home' ? '‹ Menu' : '‹ Rilievo';
+  const banner = R.demo && tab !== 'home' && tab !== 'cfg' ? `<div class="banner"><b>Rilievo di esempio</b> con misure inventate (una non torna apposta, per vedere il controllo). Per cominciare il tuo torna al menu e premi «Nuovo rilievo».</div>` : '';
   if (tab === 'pianta') {
     $('#main').innerHTML = banner + `<div class="cols"><div class="card cvcard">
       <div class="tbar">
@@ -2572,7 +2597,7 @@ function render() {
         <div class="tcl tmain"><div class="tg" data-g="sel"><button class="tb" data-fly="sel" data-auto="1"><svg viewBox="0 0 24 24"><path d="M6 3l12 9-6 1 3.5 7-2.5 1-3.5-7L5 18z"/></svg><span>Seleziona</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="select"><svg viewBox="0 0 24 24"><path d="M6 3l12 9-6 1 3.5 7-2.5 1-3.5-7L5 18z"/></svg><span>Seleziona</span></button><button class="tb" data-win="1" title="Tocca un angolo e poi quello opposto (anche dentro gli ambienti)"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1" stroke-dasharray="3 2.5"/><path d="M14 13l6 6M14 13h4M14 13v4"/></svg><span>Rettangolo</span></button><button class="tb" data-mode="pan"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg><span>Sposta vista</span></button></div></div><div class="tg" data-g="muri"><button class="tb" data-fly="muri" data-auto="1"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" stroke-width="2.2"/><path d="M6 8l-3 4M11 8l-6 8M16 8l-6 8M21 8l-6 8M21 13l-2 3" stroke-width="1.2"/></svg><span>Muri</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="draw" data-tw="P"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" stroke-width="2.2"/><path d="M6 8l-3 4M11 8l-6 8M16 8l-6 8M21 8l-6 8M21 13l-2 3" stroke-width="1.2"/></svg><span>Perimetrali</span></button><button class="tb" data-mode="draw" data-tw="T"><svg viewBox="0 0 24 24"><path d="M3 10h18M3 14h18" stroke-width="1.9"/></svg><span>Tramezzi</span></button><button class="tb" data-mode="draw" data-tw="W" title="Ringhiera: rossa, sottile, con altezza"><svg viewBox="0 0 24 24"><path d="M3 12h18" stroke-width="1.2"/><path d="M5 8v8M9 8v8M13 8v8M17 8v8M21 8v8" stroke-width="1.2"/></svg><span>Ringhiere</span></button><button class="tb" data-mode="draw" data-tw="S" title="Superficie esterna: si disegna come un muro (linea gialla sottile). Quando si chiude, scegli la destinazione (marciapiede, terrazzo…) e escono i m²"><svg viewBox="0 0 24 24"><path d="M4 18V7l8-3 8 5v9z" stroke-dasharray="3 2"/></svg><span>Superficie</span></button><button class="tb" data-pil="1" title="Pilastro pieno: tocca, trascina e solleva per posarlo"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" fill="currentColor"/></svg><span>Pilastro</span></button></div></div><button class="tb" data-cat="porte" title="Porte: si apre a destra il pannello con i tipi"><svg viewBox="0 0 24 24"><path d="M2 18h4M18 18h4" stroke-width="2.2"/><path d="M6 18V6M6 6a12 12 0 0 1 12 12"/></svg><span>Porte</span></button><button class="tb" data-cat="finestre" title="Finestre: si apre a destra il pannello con i tipi"><svg viewBox="0 0 24 24"><path d="M3 8h4M17 8h4M3 16h4M17 16h4" stroke-width="2.2"/><path d="M7 8v8M17 8v8M7 11h10M7 13h10"/></svg><span>Finestre</span></button><button class="tb" data-cat="scale" title="Scale e ascensore: si apre a destra il pannello con i tipi"><svg viewBox="0 0 24 24"><path d="M4 20h4v-4h4v-4h4V8h4V4"/><path d="M4 20V16M8 16v-4M12 12V8M16 8V4" stroke-width="1"/></svg><span>Scala</span></button><div class="tg" data-g="quota"><button class="tb" data-fly="quota" data-auto="1" title="Quote: quota libera o diagonale"><svg viewBox="0 0 24 24"><path d="M4 7v10M20 7v10M4 12h16M4 12l3-2.5M4 12l3 2.5M20 12l-3-2.5M20 12l-3 2.5"/></svg><span>Quota</span><i class="car"></i></button><div class="tfly"><button class="tb" data-dim="1" title="Quota libera: tocca due fili e scrivi la misura"><svg viewBox="0 0 24 24"><path d="M4 7v10M20 7v10M4 12h16M4 12l3-2.5M4 12l3 2.5M20 12l-3-2.5M20 12l-3 2.5"/></svg><span>Quota</span></button><button class="tb" data-diag="1" title="Diagonale: tocca due spigoli di una stanza e scrivi la misura (fuori squadra, trilaterazione)"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1" stroke-width="1.3"/><path d="M5 18L19 6" stroke-dasharray="2.5 2"/><circle cx="5" cy="18" r="1.6"/><circle cx="19" cy="6" r="1.6"/></svg><span>Diagonale</span></button></div></div><button class="tb" data-guide="1" title="Misura guidata: ti porta da un tratto da misurare al successivo, stanza per stanza"><svg viewBox="0 0 24 24"><path d="M3 17h12M3 17v-3M15 17v-3M7 17v-2M11 17v-2"/><path d="M14 7h7M18 4l3 3-3 3"/></svg><span>Prossima</span></button><div class="tg" data-g="note"><button class="tb" data-fly="note" data-auto="1"><svg viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z"/><path d="M8 11h8M8 15h5"/></svg><span>Note</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="ink" title="Scrivi o disegna a mano libera con la penna (due dita: zoom e spostamento)"><svg viewBox="0 0 24 24"><path d="M4 20l1-5L16 4l4 4L9 19z"/><path d="M14 6l4 4"/><path d="M3 21c3-1 5 1 8 0" stroke-width="1.3"/></svg><span>A mano</span></button><button class="tb" data-mode="text" title="Nota scritta con la tastiera"><svg viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg><span>Testo</span></button><button class="tb" data-mode="gomma" title="Passa sopra ai tratti a mano per cancellarli"><svg viewBox="0 0 24 24"><path d="M8 20h12"/><path d="M5 15l9-9 5 5-8 8H8z"/><path d="M10 10l5 5"/></svg><span>Gomma</span></button></div></div><div class="tg" data-g="disegno"><button class="tb" data-fly="disegno" data-auto="1"><svg viewBox="0 0 24 24"><path d="M3 21l7-7"/><path d="M14 3l7 7-9 9-3-1-1-3z"/><path d="M3 9h6M6 6v6" stroke-width="1.4"/></svg><span>Disegno</span><i class="car"></i></button><div class="tfly"><button class="tb" data-mode="linea" title="Linea dritta: si aggancia a spigoli, estremi e incroci; poi scrivi la lunghezza"><svg viewBox="0 0 24 24"><path d="M4 20L20 4"/><circle cx="4" cy="20" r="1.8"/><circle cx="20" cy="4" r="1.8"/></svg><span>Linea</span></button><button class="tb" data-mode="costr" title="Linea di costruzione (proiezioni): tratteggiata, solo per agganciarsi, non va nello script"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20" stroke-dasharray="2.5 2"/></svg><span>Costruzione</span></button><button class="tb" data-mode="paral" title="Parallela a distanza: tocchi una linea, poi il lato dove va, e scrivi la distanza"><svg viewBox="0 0 24 24"><path d="M3 18h18M3 8h18" /><path d="M12 17v-8M10 11l2-2 2 2M10 15l2 2 2-2" stroke-width="1.4"/></svg><span>Parallela</span></button><button class="tb" data-mode="taglia" title="Taglia: tocchi il pezzo di linea da togliere, fra due incroci o fra un incrocio e la fine"><svg viewBox="0 0 24 24"><path d="M3 12h7M14 12h7" /><path d="M12 4v16" stroke-width="1.4"/><path d="M8 9l3 3-3 3" stroke-width="1.3"/></svg><span>Taglia</span></button><button class="tb" data-mode="estendi" title="Estendi: tocchi una linea vicino alla fine da allungare; arriva fino alla prima linea che incontra"><svg viewBox="0 0 24 24"><path d="M3 12h9" /><path d="M12 12h6" stroke-dasharray="2 2"/><path d="M20 4v16" stroke-width="1.4"/><path d="M15 9l3 3-3 3" stroke-width="1.3"/></svg><span>Estendi</span></button><button class="tb" data-csvis="1" title="Mostra o nascondi le linee di costruzione"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Vedi costr.</span></button></div></div><button class="tb" data-foto="1" title="Tocca dove ti trovi e scatta"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Foto</span></button><button class="tb" data-nord="1"><svg viewBox="0 0 24 24"><path d="M12 2l5 18-5-4-5 4z"/><path d="M12 2v14"/></svg><span>Nord</span></button><button class="tb" data-bg="1" title="Planimetria di sfondo da ricalcare (JPEG)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.6"/></svg><span>Sfondo</span></button></div>
         <div class="tcl"><button class="tb sm" id="bFit"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg><span>Adatta</span></button><span class="tsep"></span>${tastoGrafica()}<button class="tb sm" data-cat="layer" title="Layer: accendi, spegni e blocca"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5M3 16.5l9 5 9-5" stroke-width="1.4"/></svg><span>Layer</span></button><button class="tb sm" id="bFull">${ui.full ? '<svg viewBox="0 0 24 24"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg><span>Esci</span>' : '<svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span>Schermo</span>'}</button></div>
       </div>
-      <div id="cv"><svg id="svg"></svg>${tastoPiani()}${tastoZoom()}<div id="appan" hidden></div><div id="vrot"><button id="bRotL" title="Ruota la vista di 90° in senso antiorario"><svg viewBox="0 0 24 24"><path d="M9 4.5A8 8 0 1 0 19.5 9"/><path d="M9 1.5v4.2h4.2" transform="rotate(-15 9 4.5)"/></svg></button><button id="bRot0" title="Rotazione della vista: tocca per tornare a 0°">0°</button><button id="bRotR" title="Ruota la vista di 90° in senso orario"><svg viewBox="0 0 24 24"><path d="M15 4.5A8 8 0 1 1 4.5 9"/><path d="M15 1.5v4.2h-4.2" transform="rotate(15 15 4.5)"/></svg></button></div><div id="empty"></div><div id="toast"></div></div>
+      <div id="cv"><svg id="svg"></svg>${tastoPiani()}${tastoZoom()}<div id="appan" hidden></div><div id="vrot"><button id="bRotL" title="Ruota la vista di 90° in senso antiorario"><svg viewBox="0 0 24 24"><path d="M9 4.5A8 8 0 1 0 19.5 9"/><path d="M9 1.5v4.2h4.2" transform="rotate(-15 9 4.5)"/></svg></button><button id="bRot0" title="Rotazione della vista: tocca per tornare a 0°">0°</button><button id="bRotR" title="Ruota la vista di 90° in senso orario"><svg viewBox="0 0 24 24"><path d="M15 4.5A8 8 0 1 1 4.5 9"/><path d="M15 1.5v4.2h-4.2" transform="rotate(15 15 4.5)"/></svg></button></div><div id="empty"></div></div>
       <div class="legend"><span><i style="border-color:var(--wP)"></i>perimetrali</span><span><i style="border-color:var(--wI)"></i>tramezzi</span><span><i style="border-color:var(--wR)"></i>infissi</span><span><i style="border-color:var(--mut);border-top-style:dashed"></i>vano porta (solo qui)</span><span>▭ casella vuota: lato da misurare (toccala per scrivere)</span><span>numero grigio: ricavato dalle tue misure</span><span>sui lati con vani: parziali tra spigoli e vani; il totale lo metti tu con «Quota»</span><span><em style="color:var(--mut)">corsivo grigio</em>: larghezza proposta, da misurare</span><span style="color:var(--bad)">in rosso: misura che non torna</span></div>
       <div id="fstrip"></div>
     </div><div id="sidecol"><button id="bCloseSide" class="sm" style="margin-bottom:6px;background:var(--card)">Chiudi pannello ✕</button><div class="card" id="side"></div><div class="card" id="msgs"></div></div></div>`;
@@ -2580,7 +2605,12 @@ function render() {
     draw(); renderSide(); updTools(); showMore();
   } else if (tab === 'calc') $('#main').innerHTML = banner + tastoPiani() + renderCalc();
   else if (tab === 'foto') { $('#main').innerHTML = banner + tastoPiani() + '<div id="fotoTab"></div>'; renderFotoTab(); }
-  else $('#main').innerHTML = banner + renderSet();
+  else if (tab === 'home') $('#main').innerHTML = renderHome();
+  else if (tab === 'prj') { $('#main').innerHTML = banner + renderPrj(); prjFoto(); }
+  else if (tab === 'nuovo') $('#main').innerHTML = renderNuovo();
+  else if (tab === 'cfg') $('#main').innerHTML = renderCfg();
+  else $('#main').innerHTML = banner + datiRilievo();
+  updExpBadge();
   loadFotos();
 }
 // pannello Porte / Finestre a destra della tavola (come ArcSite): resta aperto finché non lo chiudi o non scegli un altro strumento
@@ -4267,24 +4297,125 @@ function renderCalc() {
   <div class="tw"><table><tbody>${Object.entries(byDest).map(([d, s]) => `<tr><td>${esc(d)}</td><td class="n">${f2(s)} m²</td></tr>`).join('')}</tbody></table></div>
   <p class="hint">Superficie finestrata = larghezza × altezza di finestre e uscite (luce del vano). Una finestra tra due ambienti conta per entrambi. Limiti da verificare con il regolamento edilizio comunale.</p></div>` + stairsCalc(pl);
 }
-function renderSet() {
-  const i = (k, l, dec = true, cls = '') => `<div class="${cls}"><label class="l">${l}</label><input data-s="${k}" value="${esc(R[k])}" ${dec ? 'inputmode="decimal"' : ''}></div>`;
-  const c = (k, l) => `<label class="chk"><input type="checkbox" data-o="${k}" ${R.opt[k] ? 'checked' : ''}> ${l}</label>`;
+const campo = (k, l, dec = true, cls = '') => `<div class="${cls}"><label class="l">${l}</label><input data-s="${k}" value="${esc(R[k])}" ${dec ? 'inputmode="decimal"' : ''}></div>`;
+// dati del singolo rilievo («Nuovo» e matita nella pagina del rilievo)
+function datiRilievo() { const i = campo;
   return `<div class="card"><div class="cardh">Rilievo</div><div class="grid">${i('nome', 'Nome / cliente', false)}${i('data', 'Data', false)}${i('indirizzo', 'Indirizzo', false, 'c2')}${i('fg', 'Foglio', false)}${i('pla', 'Particella', false)}${i('sub', 'Subalterno', false)}</div></div>
-  <div class="card"><div class="cardh">Solai</div><div class="grid">${R.piani.map(p => `<div><label class="l">${esc(p.nome)}: solaio di calpestio (m)</label><input data-sol="${p.id}" value="${esc(p.sol || '')}" inputmode="decimal"></div>`).join('')}</div>
-  <p class="hint">Spessore del solaio su cui si cammina in quel piano. Serve per la sezione: il soffitto di un piano è il calpestio del piano sopra.</p></div>
-  <div class="card"><div class="cardh">Intestazione dello studio</div><textarea data-pref="studio" rows="4" style="width:100%;box-sizing:border-box;font:inherit">${esc(studioTxt())}</textarea>
-  <p class="hint">Va in alto nella scheda del rilievo. Vale per questo dispositivo, per tutti i rilievi.</p></div>
   <div class="card"><div class="cardh">Spessori dei muri</div><div class="grid">${i('P', 'Perimetrali (m)')}${i('T', 'Tramezzi (m)')}${i('incP', 'Finestre incassate: profondità della luce stretta (m)')}</div>
   <p class="hint">Per un muro diverso (portante interno, muro vecchio più spesso) selezionalo e scegli «Spessore diverso».</p></div>
+  <div class="card"><div class="cardh">Solai</div><div class="grid">${R.piani.map(p => `<div><label class="l">${esc(p.nome)}: solaio di calpestio (m)</label><input data-sol="${p.id}" value="${esc(p.sol || '')}" inputmode="decimal"></div>`).join('')}</div>
+  <p class="hint">Spessore del solaio su cui si cammina in quel piano. Serve per la sezione: il soffitto di un piano è il calpestio del piano sopra.</p></div>`;
+}
+// impostazioni dell'app (ingranaggio nel menu)
+function renderCfg() {
+  const d = defApp(), v = Object.assign(blank(), d); v.opt = Object.assign(blank().opt, d.opt || {});
+  const i = (k, l) => `<div><label class="l">${l}</label><input data-def="${k}" value="${esc(v[k] || '')}" inputmode="decimal"></div>`;
+  const c = (k, l) => `<label class="chk"><input type="checkbox" data-defo="${k}" ${v.opt[k] ? 'checked' : ''}> ${l}</label>`;
+  return `<div class="card"><div class="cardh">Colori del menu e delle pagine</div><select data-pref="tema">${[['auto', 'Come il tablet'], ['chiaro', 'Sempre chiari'], ['scuro', 'Sempre scuri']].map(([k, l]) => `<option value="${k}" ${temaScelto() === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
+  <p class="hint">La scelta resta finché non la cambi. Il disegno della pianta segue il tablet, come prima.</p></div>
+  <div class="card"><div class="cardh">Intestazione dello studio</div><textarea data-pref="studio" rows="4" style="width:100%;box-sizing:border-box;font:inherit">${esc(studioTxt())}</textarea>
+  <p class="hint">Va in alto nella scheda del rilievo. Vale per questo dispositivo, per tutti i rilievi.</p></div>
   <div class="card"><div class="cardh">Limiti dei controlli</div><div class="grid">${i('rai', 'RAI minimo 1/…')}${i('hA', 'Altezza min. abitabili (m)')}${i('hC', 'Altezza min. accessori (m)')}${i('pedInt', 'Scale: pedata minima sul lato interno dei gradini ritoccati (m)')}</div>
-  <p class="hint">Pedata minima sul lato interno: vuoto = nessun avviso. Valori di partenza del D.M. 5 luglio 1975. Il regolamento edilizio del comune può prevedere valori diversi.</p></div>
+  <p class="hint">Pedata minima sul lato interno: vuoto = nessun avviso. Valori di partenza del D.M. 5 luglio 1975. Il regolamento edilizio del comune può prevedere valori diversi. Valgono per tutti i rilievi.</p></div>
   <div class="card"><div class="cardh">Pianta</div><label class="chk"><input type="checkbox" data-pref="pnuova" ${ui.pnew ? 'checked' : ''}> Mod chiara: muri neri, stanze grigie (balconi e terrazzi bianchi), fondo a puntini</label>
   <p class="hint">Cambia solo la pianta a schermo: la Scheda PDF e lo script AutoCAD restano come sono. Vale per questo dispositivo.</p><label class="chk"><input type="checkbox" data-pref="mclassic" ${ui.mnew ? '' : 'checked'}> Misure con la grafica classica (caselle per ogni tratto, come prima del 9 novembre)</label>
   <p class="hint">Grafica nuova: linee di quota con il lucchetto sulle misure prese, pallini arancioni sui tratti da misurare; toccando una stanza o un muro compaiono anche le misure ricavate e le caselle da riempire. Vale per questo dispositivo.</p></div>
-  <div class="card"><div class="cardh">Script AutoCAD</div>${c('qInt', 'Quote parziali interne, lato per lato (tratti di muro tra spigoli e vani)')}${c('vani', 'Larghezza dei vani (porte, finestre, ingressi, uscite)')}${c('qExt', 'Quote esterne d\'ingombro')}${c('testi', 'Nome e superficie degli ambienti')}${c('porte', 'Porte con anta e arco, girate come in pianta')}${c('note', 'Note scritte con «Testo» (nel punto in cui le hai messe)')}${c('mano', 'Note a mano (polilinee sul layer degli infissi e testi)')}
+  <div class="card"><div class="cardh">Script AutoCAD <small>per tutti i rilievi</small></div>${c('qInt', 'Quote parziali interne, lato per lato (tratti di muro tra spigoli e vani)')}${c('vani', 'Larghezza dei vani (porte, finestre, ingressi, uscite)')}${c('qExt', 'Quote esterne d\'ingombro')}${c('testi', 'Nome e superficie degli ambienti')}${c('porte', 'Porte con anta e arco, girate come in pianta')}${c('note', 'Note scritte con «Testo» (nel punto in cui le hai messe)')}${c('mano', 'Note a mano (polilinee sul layer degli infissi e testi)')}
   <p class="hint">Layer PLAN_MURI_PERIM, PLAN_MURI_INT e PLAN_INFISSI_TESTI, stile di quota STUDIO, delle porte solo il vano, osnap dello studio riattivati alla fine. Le quote libere messe con «Quota» vanno sempre nello script. I totali dei lati con porte, finestre o scale non vanno nello script, anche se li hai scritti in pianta: per averli come quota usa «Quota».</p></div>`;
 }
+
+/* ================= menu iniziale e pagina del rilievo ================= */
+function renderHome() {
+  const a = arcIndex().sort((x, y) => (y.mod || '').localeCompare(x.mod || ''));
+  const carta = (id, r, x, etichetta) => `<button class="rcard" data-apri="${id}"><div class="rmini">${r && r.piani[0] ? miniPiano(r.piani.find(p => p.walls.length) || r.piani[0]) : ''}</div><b>${esc(x.nome || 'Senza nome')}</b><span>${esc(x.indirizzo || '')}</span><span>${x.mod ? 'modificato ' + quando(x.mod) : ''}</span>${etichetta}</button>`;
+  return `<div class="hbar"><h2>I tuoi rilievi</h2><span class="sp"></span><button id="bImp">Importa</button><button id="bCfg">⚙ Impostazioni</button></div>
+    <div class="rgrid"><button class="rcard radd" id="bNew"><i>+</i><span>Nuovo rilievo</span></button>
+    ${a.map(x => carta(x.id, x.id === R.id ? R : arcGet(x.id), x, x.unexp ? '<span class="b">da esportare</span>' : '<span class="b g">esportato</span>')).join('')}
+    ${!a.length && R.demo ? carta('esempio', R, {nome:'Rilievo di esempio'}, '') : ''}</div>
+    <p class="hint">I rilievi restano nella memoria del browser di questo dispositivo. Alla fine di ogni sopralluogo aprilo e premi «Esporta».</p>`;
+}
+// totali di tutti i piani, calcolati su una copia: il ricalcolo sistema i muri e non deve toccare il rilievo vero
+function riepilogo() {
+  const vero = R, g = G, w = ui.varcoWarn, t = {int:0, est:0, amb:0, senza:0};
+  try { ui.zitto = true; R = JSON.parse(JSON.stringify(vero));
+    R.piani.forEach((pl, i) => { R.cur = i; G = null; recompute(); calcoli(pl).forEach(x => { t.amb++; if (!isFinite(x.S)) t.senza++; else if (x.cat === 'E') t.est += x.S; else t.int += x.S; }); }); }
+  catch (e) { t.err = true; }
+  finally { R = vero; G = g; ui.varcoWarn = w; recompute(); ui.zitto = false; }
+  return t;
+}
+function renderPrj() {
+  const t = riepilogo(), cat = [['Foglio', R.fg], ['part.', R.pla], ['sub', R.sub]].filter(x => String(x[1] || '').trim()).map(x => x[0] + ' ' + esc(x[1])).join(' · ');
+  return `<div class="prj"><div>
+    <div class="card"><div class="cardh">${esc(R.nome || 'Senza nome')} <span class="sp"></span><button class="sm" data-vai="set">✎ Modifica</button></div>
+      <div>${R.indirizzo ? esc(R.indirizzo) : '<span class="mut">Indirizzo non scritto</span>'}</div><div class="mut" style="font-size:13px">Rilievo del ${esc(R.data || '')}${cat ? '<br>' + cat : ''}</div></div>
+    <div class="card"><div class="cardh">Totali <span class="sp"></span><button class="sm" data-vai="calc">Vedi tutto</button></div>
+      <div class="tot"><div><b>${f2(t.int)} m²</b><span>interni</span></div><div><b>${f2(t.est)} m²</b><span>esterni</span></div><div><b>${R.piani.length}</b><span>${R.piani.length === 1 ? 'piano' : 'piani'}</span></div><div><b>${t.amb}</b><span>${t.amb === 1 ? 'ambiente' : 'ambienti'}</span></div></div>
+      ${t.err ? '<p class="hint">Totali non calcolati: apri «Vedi tutto».</p>' : t.senza ? `<p class="hint">${t.senza === 1 ? 'Un ambiente non ha ancora i m²: non è nei totali.' : t.senza + ' ambienti non hanno ancora i m²: non sono nei totali.'}</p>` : ''}</div>
+    <div class="card azioni"><button id="bExp">Esporta il rilievo (file .json)</button><button id="bDup" ${R.demo ? 'disabled' : ''}>Duplica</button><button id="bElim" class="bad" ${R.demo ? 'disabled' : ''}>Elimina</button></div>
+  </div><div>
+    <div class="card"><div class="cardh">Piante <span class="sp"></span><button class="sm" data-ptutti>Vedi tutti (${R.piani.length})</button></div>
+      <div class="fila"><button class="piu" data-piu title="Aggiungi piano">+</button>${R.piani.map((p, i) => `<div class="pp"><div class="pwrap"><button class="pcard" data-pdis="${i}">${miniPiano(p)}</button><button class="pdots" data-ppunti="${i}" title="Rinomina o elimina">•••</button></div><div class="pnome">${esc(p.nome)}</div></div>`).join('')}</div></div>
+    <div class="card" id="pfoto"></div>
+    <div class="card"><div class="cardh">File</div><div class="fila"><button class="fcard" id="bScheda"><i>PDF</i><span>Scheda PDF</span></button><button class="fcard" id="bScr"><i>SCR</i><span>Genera script AutoCAD</span></button></div></div>
+  </div></div>`;
+}
+function prjFoto() {
+  const el = $('#pfoto'); if (!el) return;
+  const fs = ui.fotoRil === R.id && ui.fotos ? ui.fotos.slice().reverse() : null;
+  el.innerHTML = `<div class="cardh">Foto <span class="sp"></span><button class="sm" data-vai="foto">Vedi tutte${fs ? ' (' + fs.length + ')' : ''}</button></div>
+    <div class="fila"><button class="piu" data-pfgal title="Aggiungi foto dalla galleria">+</button><button class="sm" style="align-self:center" data-pfcam>📷 Scatta</button>${!fs ? '<span class="mut" style="align-self:center">Carico le foto…</span>' : !fs.length ? '<span class="mut" style="align-self:center">Ancora nessuna foto.</span>' : fs.slice(0, 12).map(f => `<button class="fth" data-foto-id="${f.id}">${f.thumb ? `<img src="${f.thumb}" alt="">` : '<span class="mut">foto</span>'}<span class="fcap">${esc(f.nome || fRoom(f) || new Date(f.data).toLocaleDateString('it-IT'))}</span></button>`).join('')}</div>`;
+}
+function renderNuovo() {
+  return `<div class="prj nuovo"><div>${datiRilievo()}</div>
+    <div class="card azioni" style="position:sticky;top:8px"><div class="cardh">Come cominci</div>
+      <button class="pri" data-pdis="0">Disegna da zero</button>
+      <button data-nfoto="fBgGal">Foto della planimetria: dalla galleria</button><button data-nfoto="fBgCam">Foto della planimetria: scatta</button>
+      <button id="bDxf">Importa DXF</button>
+      <p class="hint">La foto va sullo sfondo, da portare in scala e ricalcare. Il DXF diventa lo schizzo dei muri: le misure le scrivi sul posto.</p></div></div>`;
+}
+function apriDisegno(i) { if (i !== R.cur) { R.cur = i; ui.undo = []; ui.redo = []; save(false); } ui.alli = null; ui.fitted = false; vai('pianta'); }
+function nuovoRilievo() {
+  clearTimeout(tSave); if (!R.demo) arcPut(R);
+  const n = blank(); n.id = uid(); n.unexp = true; n.mod = new Date().toISOString(); arcPut(n);
+  R = n; ui.mode = 'draw'; ui.newType = 'P'; ui.undo = []; ui.redo = []; ui.fitted = false; ui.fotos = null; vai('nuovo'); ui.nuovo = {id:n.id, firma:firmaRil(R)};
+  try { localStorage.setItem('rilievo-corrente', n.id); } catch (e) {}
+}
+function duplicaRilievo() { clearTimeout(tSave); arcPut(R); const c = JSON.parse(JSON.stringify(R)); c.id = uid(); c.nome = (R.nome || 'Rilievo') + ' (copia)'; c.unexp = true; c.mod = new Date().toISOString(); c.demo = false; arcPut(c); vai('home'); toast('Copia creata: «' + c.nome + '».'); }
+function eliminaRilievo() {
+  if (!confirm('Eliminare definitivamente il rilievo «' + (R.nome || 'senza nome') + '»?' + (R.unexp ? '\n\nATTENZIONE: ha modifiche non esportate, andrebbero perse.' : ''))) return;
+  clearTimeout(tSave); arcDel(R.id); const nx = arcIndex()[0]; R = (nx && arcGet(nx.id)) || demo(); ui.undo = []; ui.redo = []; ui.fitted = false; ui.fotos = null; vai('home');
+}
+$('#bBack').onclick = indietro;
+$('#main').addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t || t.disabled) return; const d = t.dataset;
+  if (d.apri) { const r = d.apri === 'esempio' || d.apri === R.id ? R : arcGet(d.apri); if (!r) return toast('Rilievo non trovato.'); if (r === R) vai('prj'); else openRilievo(r); }
+  else if (d.vai) vai(d.vai);
+  else if (d.pdis) apriDisegno(+d.pdis);
+  else if (d.ppunti) apriPiani(false, +d.ppunti);
+  else if ('ptutti' in d) apriPiani();
+  else if ('piu' in d) apriPiani(true);
+  else if ('pfgal' in d) $('#fGal').click();
+  else if ('pfcam' in d) $('#fCam').click();
+  else if (d.nfoto) $('#' + d.nfoto).click();
+  else if (t.id === 'bNew') nuovoRilievo();
+  else if (t.id === 'bCfg') vai('cfg');
+  else if (t.id === 'bImp') $('#fImp').click();
+  else if (t.id === 'bDxf') { ui.dxfDa = 'nuovo'; $('#fDxf').click(); }
+  else if (t.id === 'bScheda') stampaScheda();
+  else if (t.id === 'bScr') chiediScript();
+  else if (t.id === 'bExp') { exportR(R); if (!R.demo) { R.unexp = false; arcPut(R); } updExpBadge(); }
+  else if (t.id === 'bDup') duplicaRilievo();
+  else if (t.id === 'bElim') eliminaRilievo();
+});
+// lo script è di un piano solo: con più piani si sceglie quale
+function chiediScript() {
+  if (R.piani.length < 2) return faiScript();
+  const dlg = $('#dScelta');
+  dlg.innerHTML = `<div class="cardh">Script AutoCAD: quale piano? <span class="sp"></span><button data-chiudi>Chiudi</button></div><div class="plist">${R.piani.map((p, i) => `<button data-scrp="${i}">${esc(p.nome)}</button>`).join('')}</div>`;
+  dlg.showModal();
+}
+$('#dScelta').addEventListener('click', e => { const t = e.target.closest('button'); if (!t) return; $('#dScelta').close(); if (t.dataset.scrp) { R.cur = +t.dataset.scrp; faiScript(); } });
+$('#dPiani').addEventListener('close', () => { if (tab === 'prj') render(); });
 
 /* ================= eventi ================= */
 document.addEventListener('pointerdown', () => { ui.downAt = Date.now(); }, true);
@@ -4329,7 +4460,6 @@ document.addEventListener('click', e => {
   const gdb = e.target.closest('[data-guide]'); if (gdb) { if (ui.guide) { closeInline(true); stopGuide(); } else startGuide(); return; }
   const fs = e.target.closest('.tfly button'); if (fs) { closeFly(); if (fs.classList.contains('on')) return; }
   else if (!e.target.closest('.tg')) closeFly();
-  const t = e.target.closest('[data-tab]'); if (t) { tab = t.dataset.tab; render(); return; }
   const bgb = e.target.closest('[data-bg]'); if (bgb) { ui.bgCal = null; ui.bgMove = false; ui.sel = ui.sel && ui.sel.k === 'bg' ? null : {k:'bg'}; updTools(); draw(); renderSide(); return; }
   if (ui.sel && ui.sel.k === 'bg') { const idb = e.target.id, bg = piano().bg;
     if (idb === 'bBgGal') { $('#fBgGal').click(); return; }
@@ -4367,7 +4497,7 @@ document.addEventListener('click', e => {
     if (idv === 'fvClose') closeFoto();
     else if ((idv === 'fvPrev' || idv === 'fvNext') && f) { const L = fotoOrder(), i = L.findIndex(x => x.id === fid), j = (i + (idv === 'fvNext' ? 1 : -1) + L.length) % L.length; openFoto(L[j].id); }
     else if (idv === 'fvDl' && f) saveBlob(fotoName(f, 1).replace(/_01\./, '_' + f.id + '.'), f.blob);
-    else if (idv === 'fvDel' && f && confirm('Eliminare questa foto? Non si potrà recuperare.')) { fDel(f.id).catch(() => {}); ui.fotos = ui.fotos.filter(x => x !== f); closeFoto(); if (tab === 'foto') renderFotoTab(); else draw(); }
+    else if (idv === 'fvDel' && f && confirm('Eliminare questa foto? Non si potrà recuperare.')) { fDel(f.id).catch(() => {}); ui.fotos = ui.fotos.filter(x => x !== f); closeFoto(); if (tab === 'foto') renderFotoTab(); else if (tab === 'prj') prjFoto(); else draw(); }
     else if (idv === 'fvPlan' && f) { const i = fPiano(f); if (i >= 0) { R.cur = i; tab = 'pianta'; ui.sel = null; closeFoto(); ui.hlFoto = f.id; render();
       const q = pinPos(piano(), f); if (q) { ui.view.x = q[0] - ui.W / 2 / ui.view.s; ui.view.y = q[1] - ui.H / 2 / ui.view.s; draw(); } setTimeout(() => { if (ui.hlFoto === f.id) { ui.hlFoto = null; if (tab === 'pianta') draw(); } }, 2500); } }
     return; }
@@ -4501,6 +4631,9 @@ document.addEventListener('input', e => {
   else if ((t.id === 'cBgHide' || t.id === 'cBgLock') && pl.bg) { pushUndo(); pl.bg[t.id === 'cBgHide' ? 'hide' : 'lock'] = t.checked; if (pl.bg.lock) { ui.bgMove = false; ui.bgCal = null; } save(); draw(); renderSide(); }
   else if (t.id === 'cLab') { ui.labels = t.checked; try { localStorage.setItem('rilievo-etichette', t.checked ? '1' : '0'); } catch (e) {} draw(); }
   else if (t.dataset.sol) { const pl = R.piani.find(x => x.id === t.dataset.sol); if (pl) { undemo(); pl.sol = t.value; save(); } }
+  else if (t.dataset.def) setDef(t.dataset.def, t.value);
+  else if (t.dataset.defo) setDef(t.dataset.defo, t.checked, true);
+  else if (t.dataset.pref === 'tema') { try { localStorage.setItem('rilievo-tema', t.value); } catch (e) {} applicaTema(); }
   else if (t.dataset.pref === 'studio') { try { localStorage.setItem('rilievo-studio', t.value); } catch (e) {} }
   else if (t.dataset.pref === 'pnuova') setPnew(t.checked);
   else if (t.dataset.pref === 'mclassic') { ui.mnew = !t.checked; try { localStorage.setItem('rilievo-mstile', t.checked ? 'classico' : 'nuovo'); } catch (e) {} }
@@ -4537,26 +4670,26 @@ function apriPiani(elenco, menu, q) { closeInline(true); const dlg = $('#dPiani'
   const testa = t => `<div class="cardh">${t} <span class="sp"></span><button data-pchiudi>Chiudi</button></div>`;
   if (elenco) { const usati = R.piani.map(p => p.nome.trim().toLowerCase()), voci = l => l.filter(v => !usati.includes(v.toLowerCase())).map(v => `<button data-pnome="${v}">${v}</button>`).join('');
     const comuni = voci(PIANI_COMUNI);
-    dlg.innerHTML = testa('Aggiungi piano') + domandaPiani(q) + (comuni ? `<h3>Più usati</h3><div class="plist">${comuni}</div>` : '') + `<h3>Altri piani</h3><div class="plist">${voci(Object.keys(LIVELLI).filter(v => !PIANI_COMUNI.includes(v)))}<button data-paltro>Altro nome…</button></div>`;
+    dlg.innerHTML = testa('Aggiungi piano') + domandaPiani(q) + (comuni ? `<h3>Più usati</h3><div class="plist">${comuni}</div>` : '') + `<h3>Altri piani</h3><div class="plist">${voci(Object.keys(LIVELLI).filter(v => !PIANI_COMUNI.includes(v)))}<button data-paltro>Altro nome…</button></div><h3>Da un file</h3><div class="plist"><button data-pdxf>Piano da un DXF…</button></div>`;
   } else dlg.innerHTML = testa(`Tutti i piani <small>${n} ${n === 1 ? 'piano' : 'piani'}</small>`) + domandaPiani(q) + `<div class="pgrid"><div><button class="pcard padd" data-padd>+</button><div class="pnome">Aggiungi piano</div></div>`
     + R.piani.map((p, i) => `<div><div class="pwrap"><button class="pcard${i === R.cur ? ' cur' : ''}" data-pvai="${i}">${miniPiano(p)}</button><button class="pdots" data-pmenu="${i}" title="Rinomina o elimina">•••</button>${menu === i ? `<div class="pmenu"><button data-pren="${i}">Rinomina</button><button class="bad" data-pdel="${i}">Elimina</button></div>` : ''}</div><div class="pnome">${esc(p.nome)}</div></div>`).join('') + '</div>';
   ui.pmenu = menu; ui.pask = q; if (!dlg.open) dlg.showModal(); const c = $('#pNome'); if (c) { c.focus(); c.select(); } }
 $('#dPiani').addEventListener('submit', e => { e.preventDefault(); const q = ui.pask, n = $('#pNome').value.trim(); if (!q || !n) return;
-  if (q.k === 'ren') { rinominaPiano(q.i, n); apriPiani(); } else { $('#dPiani').close(); aggiungiPiano(n); } });
+  if (q.k === 'ren') { rinominaPiano(q.i, n); apriPiani(); } else { const daPrj = tab === 'prj'; $('#dPiani').close(); aggiungiPiano(n); if (daPrj) apriDisegno(R.cur); } });
 $('#dPiani').addEventListener('click', e => { const dlg = $('#dPiani'), t = e.target.closest('button'); e.stopPropagation();
   if (!t) { if (e.target === dlg) { const r = dlg.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) dlg.close(); } return; }   // tocco fuori: chiude
   const d = t.dataset;
   if ('pchiudi' in d) dlg.close();
   else if ('padd' in d) apriPiani(true);
-  else if (d.pvai) { dlg.close(); if (+d.pvai !== R.cur) cambiaPiano(+d.pvai); }
+  else if ('pdxf' in d) { dlg.close(); ui.dxfDa = 'piano'; $('#fDxf').click(); }
+  else if (d.pvai) { dlg.close(); if (tab === 'prj') apriDisegno(+d.pvai); else if (+d.pvai !== R.cur) cambiaPiano(+d.pvai); }
   else if (d.pmenu) apriPiani(false, ui.pmenu === +d.pmenu ? undefined : +d.pmenu);
   else if (d.pren) apriPiani(false, undefined, {k:'ren', i:+d.pren});
   else if (d.pdel) apriPiani(false, undefined, {k:'del', i:+d.pdel});
   else if (d.psi) { eliminaPiano(+d.psi); apriPiani(); }
   else if ('pno' in d) apriPiani(ui.pask && ui.pask.k === 'altro');
-  else if (d.pnome) { dlg.close(); aggiungiPiano(d.pnome); }
+  else if (d.pnome) { const daPrj = tab === 'prj'; dlg.close(); aggiungiPiano(d.pnome); if (daPrj) apriDisegno(R.cur); }
   else if ('paltro' in d) apriPiani(true, undefined, {k:'altro'}); });
-$('#bNew').onclick = () => { const n = blank(); n.id = uid(); n.unexp = true; n.mod = new Date().toISOString(); arcPut(n); ui.mode = 'draw'; ui.newType = 'P'; openRilievo(n); toast('Nuovo rilievo: il precedente resta nell\'Archivio.'); };
 /* ---- scheda del rilievo: pagine A4 (dati della pratica, una pianta per piano) da salvare in PDF con «Stampa» ---- */
 function schedaPiante() {   // disegna ogni piano su un foglio fisso, senza selezioni, senza rotazione e senza griglia
   const keep = {cur:R.cur, vrot:R.vrot, sel:ui.sel, view:ui.view, tab}, PW = 1000, PH = 1150, out = [];
@@ -4619,7 +4752,7 @@ async function schedaHTML() {
   return (piante.length ? piante.map(pag).join('') : `<div class="spg">${head}${dati}<p>Nessun piano disegnato.</p></div>`) + foto;
 }
 async function stampaScheda() {
-  const b = $('#bScheda'); if (b.disabled) return; b.disabled = true; b.textContent = 'Preparo la scheda…';
+  const b = $('#bScheda') || {}; if (b.disabled) return; b.disabled = true; b.innerHTML = '<span>Preparo la scheda…</span>';
   try {
     await loadFotos(true);   // le foto servono anche ai segnaposto in pianta
     let el = $('#scheda'); if (!el) { el = document.createElement('div'); el.id = 'scheda'; document.body.appendChild(el); }
@@ -4628,27 +4761,23 @@ async function stampaScheda() {
     window.addEventListener('afterprint', () => { el.innerHTML = ''; }, {once:true});
     window.print();
   } catch (e) { toast('Non riesco a preparare la scheda: ' + (e && e.message || e)); }
-  finally { b.disabled = false; b.textContent = 'Scheda PDF'; }
+  finally { b.disabled = false; b.innerHTML = '<i>PDF</i><span>Scheda PDF</span>'; }
 }
-$('#bScheda').onclick = () => stampaScheda();
-$('#bExp').onclick = () => { if (R.demo) { exportR(R); return; } exportR(R); R.unexp = false; arcPut(R); updExpBadge(); };
-$('#bArch').onclick = showArchive;
 const onFoto = async e => { const fs = [...e.target.files]; e.target.value = ''; const pt = ui.fotoPt; ui.fotoPt = null; if (!fs.length) return;
   const n = await addFotos(fs, pt);
-  if (tab === 'pianta') { draw(); if (n && pt) { ui.morePt = pt; showMore(); } else if (n) toast(n === 1 ? 'Foto salvata.' : n + ' foto salvate.'); } else if (tab === 'foto') renderFotoTab(); };
+  if (tab === 'pianta') { draw(); if (n && pt) { ui.morePt = pt; showMore(); } else if (n) toast(n === 1 ? 'Foto salvata.' : n + ' foto salvate.'); } else if (tab === 'foto') renderFotoTab(); else if (tab === 'prj') prjFoto(); };
 $('#fCam').onchange = onFoto; $('#fGal').onchange = onFoto;
-$('#fBgGal').onchange = $('#fBgCam').onchange = e => { const f = e.target.files[0]; e.target.value = ''; bgLoad(f); };
-$('#bImp').onclick = () => $('#fImp').click();
+$('#fBgGal').onchange = $('#fBgCam').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; if (tab !== 'pianta') { ui.fitted = false; vai('pianta'); } bgLoad(f); };
 $('#fImp').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
   try { const d = JSON.parse(await f.text()); if (!d.piani || !d.piani.length || !d.piani[0].walls) throw new Error('non è un rilievo di questa app');
     const n = Object.assign(blank(), d); n.opt = Object.assign(blank().opt, d.opt || {}); n.cur = 0; n.demo = false;
-    if (!n.id || arcIndex().some(x => x.id === n.id)) { if (n.id && !confirm('«' + (d.nome || f.name) + '» è già nell\'Archivio. Aggiungerlo come copia?\n(Annulla per non importarlo)')) return; n.id = uid(); }
-    n.unexp = false; n.mod = new Date().toISOString(); arcPut(n); openRilievo(n); toast('Rilievo importato nell\'Archivio.'); }
+    if (!n.id || arcIndex().some(x => x.id === n.id)) { if (n.id && !confirm('«' + (d.nome || f.name) + '» è già nel menu. Aggiungerlo come copia?\n(Annulla per non importarlo)')) return; n.id = uid(); }
+    n.unexp = false; n.mod = new Date().toISOString(); arcPut(n); openRilievo(n); toast('Rilievo importato.'); }
   catch (err) { alert('File non valido: ' + err.message); }
   e.target.value = '';
 };
-$('#bScr').onclick = () => {
+function faiScript() {
   recompute(); const pl = piano();
   if (!pl.walls.length) { alert('Nessun muro in questo piano.'); return; }
   const avv = [...G.errs.map(x => x.t), ...(nonTorna() ? ['Ci sono misure che non tornano (vedi Controlli).'] : [])];
@@ -4656,7 +4785,7 @@ $('#bScr').onclick = () => {
   pl.ver = (pl.ver || 0) + 1;
   download(fileBase() + '_' + ascii(pl.nome).replace(/[^A-Za-z0-9_-]+/g, '_') + '_v' + pl.ver + '.scr', genScript(pl), 'text/plain');
   save();
-};
+}
 
 /* ================= Importa DXF — tappa 1: muri e tramezzi =================
    Il DXF fa solo da schizzo: nasce un rilievo nuovo con i muri al loro posto e le caselle «mis» vuote (le misure le scrive Simone sul posto).
@@ -4879,10 +5008,10 @@ function dxfScalaU(pl, c, x0, y0) {
     if (!best || sc < best.sc) best = {sc, st}; }));
   anchorStair(pl, best.st); (pl.stairs = pl.stairs || []).push(best.st); }
 // crea il rilievo nuovo: un solo piano, muri al loro posto, nessuna misura scritta
-function dxfCrea(walls, nome, aps, scale, add, own) {
+function dxfCrea(walls, nome, aps, scale, add, own, qui) {   // qui = rilievo appena aperto con «Nuovo» (vuoto): il disegno va lì dentro
   // add = true: il disegno diventa un piano nuovo del rilievo aperto (stessa origine del primo DXF, così i piani restano sovrapposti)
-  const n = add ? R : blank(), old = R; scale = scale || [];
-  let pl; if (add) { pl = {id:uid(), nome, ver:0, nodes:[], walls:[], rooms:[]}; n.piani.push(pl); n.cur = n.piani.length - 1; } else { pl = n.piani[0]; n.id = uid(); n.nome = nome; n.unexp = true; n.mod = new Date().toISOString(); n.demo = false; }
+  const n = add ? R : qui || blank(), old = R; scale = scale || [];
+  let pl; if (add) { pl = {id:uid(), nome, ver:0, nodes:[], walls:[], rooms:[]}; n.piani.push(pl); n.cur = n.piani.length - 1; } else { pl = n.piani[0]; if (!qui) n.id = uid(); n.nome = (qui && n.nome) || nome; n.unexp = true; n.mod = new Date().toISOString(); n.demo = false; }
   let x0 = Math.min(...walls.map(w => Math.min(w.p[0], w.q[0])), ...scale.map(c => c.bb[0])), y0 = Math.min(...walls.map(w => Math.min(w.p[1], w.q[1])), ...scale.map(c => c.bb[1]));
   // own = si è scelto un gruppo di muri da un file con più piante: l'origine è l'angolo di quel gruppo, così piante affiancate nel disegno restano sovrapposte come piani
   if (add && n.dxo && !own) [x0, y0] = n.dxo; else if (!n.dxo) n.dxo = [x0, y0];
@@ -4981,9 +5110,8 @@ function dxfDisegna() {
     ${S.gr.map((g, i) => `<div class="dxl"><span class="nm"><b>${i + 1}</b> · ${[...g.ids].filter(id => id < 1e6).length} muri, ${[...g.ids].filter(id => id >= 1e6).length} scale${g.nome ? ' · <b>' + esc(g.nome) + '</b>' : ''}</span><button data-gr="${i}" ${S.solo === i ? 'class="pri"' : ''}>${S.solo === i ? 'Scelto' : 'Solo questo'}</button></div>`).join('')}
     ${S.solo !== null ? '<button data-gr="-1">Tutti i gruppi</button>' : ''}` : ''}
     <p class="hint">Tocca un muro per scartarlo (tratteggiato); toccalo ancora per rimetterlo. Le larghezze delle aperture sono solo proposte: le misure le scrivi tu sul posto.</p>
-    <div class="btns" style="margin-top:10px"><button id="dxCrea" class="pri" ${keep.length ? '' : 'disabled'}>Su nuovo rilievo</button>${R.demo ? '' : `<button id="dxPiano" class="pri" ${keep.length ? '' : 'disabled'}>Su nuovo piano di «${esc(R.nome || 'senza nome')}»</button>`}<button id="dxInd">Indietro</button><button id="dxNo">Annulla</button></div>`;
+    <div class="btns" style="margin-top:10px">${ui.dxfDa === 'piano' ? '' : `<button id="dxCrea" class="pri" ${keep.length ? '' : 'disabled'}>${ui.dxfDa === 'nuovo' ? 'Disegna in questo rilievo' : 'Su nuovo rilievo'}</button>`}${R.demo || ui.dxfDa === 'nuovo' ? '' : `<button id="dxPiano" class="pri" ${keep.length ? '' : 'disabled'}>Su nuovo piano di «${esc(R.nome || 'senza nome')}»</button>`}<button id="dxInd">Indietro</button><button id="dxNo">Annulla</button></div>`;
 }
-$('#bDxf').onclick = () => $('#fDxf').click();
 $('#fDxf').onchange = async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
   // i DXF recenti sono UTF-8, quelli di AutoCAD 2004 e precedenti in Windows-1252 (accenti nei nomi dei layer)
@@ -4998,7 +5126,8 @@ $('#dDxf').addEventListener('click', e => {
   if (t.id === 'dxAv') { dxfPasso2(); return; }
   if (t.id === 'dxInd') { dxfPasso1(); return; }
   if (t.id === 'dxCrea') { const keep = dxfS.res.muri.filter(w => !dxfS.off.has(w.id)); if (!keep.length) return;
-    const kid = new Set(keep.map(w => w.id)), n = dxfCrea(keep, 'Da DXF ' + dxfS.name.replace(/\.dxf$/i, ''), dxfS.res.inf.filter(o => kid.has(o.w)), dxfS.res.scale.filter(c => !dxfS.off.has(c.id)), false, dxfS.solo !== null); dlg.close(); dxfS = null; arcPut(n); openRilievo(n); toast('Rilievo creato dal DXF: ora scrivi le misure sul posto.'); return; }
+    const kid = new Set(keep.map(w => w.id)), n = dxfCrea(keep, 'Da DXF ' + dxfS.name.replace(/\.dxf$/i, ''), dxfS.res.inf.filter(o => kid.has(o.w)), dxfS.res.scale.filter(c => !dxfS.off.has(c.id)), false, dxfS.solo !== null, ui.dxfDa === 'nuovo' ? R : null); dlg.close(); dxfS = null; arcPut(n);
+    if (n === R) { ui.nuovo = null; ui.sel = null; ui.undo = []; ui.redo = []; ui.fitted = false; vai('pianta'); save(); } else openRilievo(n); toast('Rilievo creato dal DXF: ora scrivi le misure sul posto.'); return; }
   if (t.id === 'dxPiano') { const keep = dxfS.res.muri.filter(w => !dxfS.off.has(w.id)); if (!keep.length || R.demo) return;
     const gn = dxfS.solo !== null ? dxfS.gr[dxfS.solo].nome : dxfS.gr.length === 1 ? dxfS.gr[0].nome : '', nm = prompt('Nome del nuovo piano:', gn || (R.piani.length ? 'Piano primo' : 'Piano terra')); if (!nm) return;
     const kid = new Set(keep.map(w => w.id)); dxfCrea(keep, nm, dxfS.res.inf.filter(o => kid.has(o.w)), dxfS.res.scale.filter(c => !dxfS.off.has(c.id)), true, dxfS.solo !== null);
@@ -5014,7 +5143,8 @@ $('#dDxf').addEventListener('change', e => {
 
 /* ================= avvio ================= */
 R = load() || demo();
-render(); updExpBadge();
+tab = 'home';
+render();
 </script>
 <script>
 // app installabile: funziona offline quando è pubblicata su un sito https (non quando si apre il file dal tablet)

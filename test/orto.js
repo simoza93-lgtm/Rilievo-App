@@ -3,7 +3,7 @@ const OUT = require('path').join(__dirname, 'out'); require('fs').mkdirSync(OUT,
 const {chromium}=require('playwright');
 (async()=>{const b=await chromium.launch(); const errs=[]; const out={};
 const p=await b.newPage({viewport:{width:1280,height:800}}); p.on('pageerror',e=>errs.push(e.message));
-await p.goto(APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
+await p.goto(APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300); await p.evaluate(() => { tab = 'pianta'; render(); }); /* dal menu al disegno */
 await p.click('#bFull'); await p.waitForTimeout(200);
 await p.$eval('[data-mode="ink"]', b=>b.click());
 const R=await p.evaluate(()=>{const r=document.querySelector('#svg').getBoundingClientRect(); return [r.left,r.top];});

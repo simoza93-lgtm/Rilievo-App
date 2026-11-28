@@ -4,7 +4,7 @@ const {chromium}=require('playwright');
 (async()=>{const b=await chromium.launch(); const errs=[];
 for (const [W,H,name] of [[1280,800,'tb1280'],[800,1280,'tb800'],[390,844,'tb390']]) {
 const p=await b.newPage({viewport:{width:W,height:H}}); p.on('pageerror',e=>errs.push(e.message));
-await p.goto(APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
+await p.goto(APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300); await p.evaluate(() => { tab = 'pianta'; render(); }); /* dal menu al disegno */
 await p.screenshot({path:require('path').join(OUT, `${name}.png`), clip:{x:0,y:0,width:W,height:Math.min(H,330)}});
 if (W===1280){
   // Porte: pannello di scelta a destra

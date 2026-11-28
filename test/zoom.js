@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
 (async () => {
   const b = await chromium.launch(); const p = await b.newPage({viewport:{width:1280, height:854}});
   const errs = []; p.on('pageerror', e => errs.push(e.message));
-  await p.goto(process.argv[2] || APP); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
+  await p.goto(process.argv[2] || APP); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(300); await p.evaluate(() => { tab = 'pianta'; render(); }); /* dal menu al disegno */
   console.log('tasti zoom in barra:', await p.evaluate(() => [...document.querySelectorAll('.tbar button')].filter(e => /zoom/i.test(e.textContent)).length), "Adatta c'è:", await p.isVisible('#bFit'));
   const stato = () => p.evaluate(() => ({s:+ui.view.s.toFixed(1), centro:[+WX(ui.W / 2).toFixed(2), +WY(ui.H / 2).toFixed(2)], aperto:!document.querySelector('#zpan').hidden, cursore:+document.querySelector('#zrange').value}));
   for (const full of [false, true]) {

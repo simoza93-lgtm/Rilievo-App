@@ -32,7 +32,7 @@ const { chromium } = require('playwright');
       muri:[...el.querySelectorAll('.spl svg')].map(x => x.querySelectorAll('path').length > 10), idDoppi:el.querySelectorAll('[id]').length,
       ambienti:tabella(pg[1], 'Ambienti'), aperture:tabella(pg[1], 'Porte e finestre'), note:tabella(pg[1], 'Note'), noteP2:tabella(pg[3], 'Note'),
       foto:[...el.querySelectorAll('figcaption')].map(x => x.textContent), fotoOk:[...el.querySelectorAll('figure img')].map(i => i.naturalWidth),
-      tasto:$('#bScheda').textContent, dopo:{cur:R.cur, tab, svgApp:!!$('#svg')}, prima};
+      tasto:($('#bScheda') || {}).textContent || '(sta nella pagina del rilievo)', dopo:{cur:R.cur, tab, svgApp:!!$('#svg')}, prima};
   });
   await p.emulateMedia({media:'print', colorScheme:'dark'});
   await p.pdf({path:require('path').join(OUT, 'scheda.pdf'), format:'A4', preferCSSPageSize:true, printBackground:true});

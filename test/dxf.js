@@ -6,7 +6,7 @@ const FILE = process.argv[2] || require('path').join(__dirname, 'casa-finta.dxf'
 (async () => {
   const b = await chromium.launch(); const p = await b.newPage({viewport:{width:1400,height:950}});
   const errs=[]; p.on('pageerror',e=>errs.push(e.message));
-  await p.goto(APP); await p.evaluate(()=>localStorage.clear()); await p.reload();
+  await p.goto(APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.evaluate(() => { tab = 'pianta'; render(); }); /* dal menu al disegno */
   const out = {};
   out.layer = await p.evaluate(txt => { const P = dxfParse(txt), g = dxfProposta(P.layers);
     return {layers:Object.keys(P.layers).sort().map(n => [n, P.layers[n].col, P.layers[n].off, P.layers[n].n, g[n]]), segmenti:P.segs.length, blocchi:P.info.insert}; }, require('fs').readFileSync(FILE, 'utf8'));

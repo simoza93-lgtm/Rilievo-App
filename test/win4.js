@@ -4,7 +4,7 @@ const { chromium } = require('playwright');
 (async () => {
   const b = await chromium.launch(); const p = await b.newPage({viewport:{width:1400,height:950}, hasTouch:true});
   const errs=[]; p.on('pageerror',e=>errs.push(e.message));
-  await p.goto(APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
+  await p.goto(APP); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(300); await p.evaluate(() => { tab = 'pianta'; render(); }); /* dal menu al disegno */
   const S = (x,y)=>p.evaluate(([x,y])=>{ const r=document.querySelector('#svg').getBoundingClientRect(); return {x:r.left+SX(x), y:r.top+SY(y)}; },[x,y]);
   const sel = () => p.evaluate(()=>ui.sel && (ui.sel.k === 'm' ? 'm:' + ui.sel.w.length : ui.sel.k));
   await p.$eval('[data-win]', b => b.click()); const on = await p.evaluate(()=>[ui.winArm, ui.mode]);

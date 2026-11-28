@@ -3,6 +3,16 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — Menu iniziale e pagina del rilievo (stile magicplan)
+- **All'avvio si apre il menu:** i rilievi con la miniatura, «Nuovo rilievo», «Importa» e l'ingranaggio «Impostazioni».
+- **Nuovo:** dati del rilievo, spessori e solai; accanto «Disegna da zero», foto della planimetria (galleria o fotocamera) e «Importa DXF» (il disegno va dentro il rilievo nuovo). Se esci senza scrivere né disegnare niente, non resta nessun rilievo vuoto.
+- **Pagina del rilievo:** a sinistra dati (matita «Modifica»), totali (m² interni ed esterni, piani, ambienti, «Vedi tutto» = Calcoli), Esporta, Duplica, Elimina; a destra piante (+, •••, anche piano da DXF), foto e File (Scheda PDF, Genera script AutoCAD; con più piani chiede quale).
+- **Nel disegno** in alto resta solo «‹ Rilievo». Tolti: Archivio, Genera script, Scheda PDF, Esporta, Importa, Importa DXF, Nuovo rilievo e le schede Pianta/Calcoli/Foto/Impostazioni.
+- **Il tasto indietro di Android** risale di una pagina: disegno → rilievo → menu.
+- **Impostazioni in due (scelta di Simone):** nel rilievo i suoi dati; nell'ingranaggio colori del menu (come il tablet, chiari, scuri; la scelta resta; il disegno segue il tablet), intestazione studio, grafica della pianta, opzioni dello script e limiti dei controlli. Opzioni script e limiti, quando le cambi nell'ingranaggio, **valgono per tutti i rilievi** (finché non le tocchi, ognuno tiene le sue).
+- I totali si calcolano su una copia: aprire la pagina non cambia le piante. Il formato dei rilievi salvati non cambia.
+- Prove: nuova `test/home.js`. Le altre ora entrano nel disegno dopo l'avvio; `piani`, `grafica` e `scheda` usano le pagine nuove; atteso di `scheda2` cambiato apposta (il tasto Scheda PDF sta nella pagina del rilievo).
+
 ## 28 novembre 2026 — «Elimina ambiente»: via anche i muri verso balconi e marciapiedi
 - **Difetto:** eliminando una stanza interna, i muri esterni con porte e finestre restavano: confinavano con marciapiede o balcone, contati come «ambienti in comune».
 - Ora, per una **stanza interna**, quei muri spariscono con porte e finestre. Restano solo quelli in comune con altre stanze interne.
