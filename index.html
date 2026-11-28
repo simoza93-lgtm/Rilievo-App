@@ -3866,12 +3866,15 @@ function sezApertura(ap) { const fin = ap.tipo === 'finestra', h = num(ap.h), dv
 const SEZ_TH = 0.30, SEZ_TESTA = 2.0;   // spessore della scala in sezione; sotto questa altezza dal soffitto sotto non si apre il solaio
 // scale e ascensori tagliati dalla linea di sezione: pezzi pieni (poligoni in t, z), vano da aprire nei solai e, per l'ascensore, pareti e vuoto
 function sezScale(c, plans) {
-  const {pl, A, H, ax, pv, lo, hi, tOf, me} = c, k = plans.indexOf(me), up = plans[k + 1], dn = plans[k - 1], pezzi = [], buchi = [], vuoti = [], pareti = [];
+  const {pl, A, H, ax, pv, lo, hi, tOf, me} = c, k = plans.indexOf(me), up = plans[k + 1], dn = plans[k - 1], pezzi = [], buchi = [], vuoti = [], pareti = [], oltre = [];
+  const dd = A.d[H ? 1 : 0], pe = H ? 1 : 0, bey = (m, M) => dd > 0 ? (m >= pv - 1e-6 ? m - pv : null) : (M <= pv + 1e-6 ? pv - M : null);   // oltre la linea: distanza o null
   const clip = (a, b) => [Math.max(Math.min(a, b), lo), Math.min(Math.max(a, b), hi)];
   const bboxCut = bb => bb[H ? 1 : 0] < pv && pv < bb[H ? 3 : 2] ? clip(bb[H ? 0 : 1], bb[H ? 2 : 3]) : null;
   (pl.stairs || []).forEach(st => {
     if (st.tipo === 'lift' || st.tipo === 'asc') { const P = stairPrims(st);
-      if (P.lift) { const iv = []; sezScan([P.lift.walls.concat([P.lift.walls[0]])], pv, ax, (a, b) => iv.push(clip(a, b)));
+      if (P.lift) { const pts = P.lift.walls, di = bey(Math.min(...pts.map(q => q[pe])), Math.max(...pts.map(q => q[pe]))), c0 = Math.max(Math.min(...pts.map(q => q[ax])), lo), c1 = Math.min(Math.max(...pts.map(q => q[ax])), hi);
+        if (di != null && c1 - c0 > 1e-6) { const t = [tOf(c0), tOf(c1)]; oltre.push({k:'w', di, t0:Math.min(...t), t1:Math.max(...t), w:false}); }
+        const iv = []; sezScan([P.lift.walls.concat([P.lift.walls[0]])], pv, ax, (a, b) => iv.push(clip(a, b)));
         if (iv.length) { iv.forEach(x => pareti.push(x)); if (iv.length > 1) { const s = iv.slice().sort((a, b) => a[0] - b[0]); vuoti.push([s[0][1], s[s.length - 1][0]]); } } }
       if (st.tipo === 'lift') return; }
     const dir = st.dir || 'sale', flights = [];
@@ -3883,6 +3886,11 @@ function sezScale(c, plans) {
     flights.forEach(f => { const rs = f.Pr.ris || [], cross = rs.map(r => { const a = r.a, b = r.b, d = b[H ? 1 : 0] - a[H ? 1 : 0];
         if (Math.abs(d) < 1e-6) return null;   // alzata parallela alla linea
         const t = (pv - a[H ? 1 : 0]) / d; return t >= 0 && t <= 1 ? a[ax] + t * (b[ax] - a[ax]) : null; });
+      // gradini oltre la linea (visti di lato o di testa): una lastra per ogni gradino
+      rs.forEach((r, q) => { let a0 = Math.min(r.a[ax], r.b[ax]), a1 = Math.max(r.a[ax], r.b[ax]), p0 = Math.min(r.a[pe], r.b[pe]), p1 = Math.max(r.a[pe], r.b[pe]);
+        const sa = Math.sign(r.uw[ax]), sp = Math.sign(r.uw[pe]); if (sa < 0) a0 -= f.pp; if (sa > 0) a1 += f.pp; if (sp < 0) p0 -= f.pp; if (sp > 0) p1 += f.pp;
+        const di = bey(p0, p1), c0 = Math.max(a0, lo), c1 = Math.min(a1, hi); if (di == null || c1 - c0 < 1e-6) return;
+        const z = f.z0 + (q + 1) * f.ra, t0 = tOf(c0), t1 = tOf(c1); oltre.push({k:'s', di, poly:[[t0, z - SEZ_TH], [t1, z - SEZ_TH], [t1, z], [t0, z]]}); });
       const hole = (t0, t1) => { if (f.sup) buchi.push({p:f.sup, t0:Math.min(t0, t1), t1:Math.max(t0, t1)}); };
       // linea lungo la rampa: profilo a gradini (alzata e pedata di ogni gradino tagliato)
       let k0 = 0; while (k0 < rs.length) { if (cross[k0] == null) { k0++; continue; } let k1 = k0; while (k1 + 1 < rs.length && cross[k1 + 1] != null) k1++;
@@ -3896,7 +3904,7 @@ function sezScale(c, plans) {
         if (pv < Math.min(p0, p1) || pv >= Math.max(p0, p1)) return; const [c0, c1] = clip(r.a[ax], r.b[ax]); if (c1 - c0 < 1e-6) return; const z = f.z0 + (q + 1) * f.ra, t0 = tOf(c0), t1 = tOf(c1);
         pezzi.push([[Math.min(t0, t1), z], [Math.max(t0, t1), z], [Math.max(t0, t1), z - SEZ_TH], [Math.min(t0, t1), z - SEZ_TH]]); if (z >= f.zcl - SEZ_TESTA) hole(t0, t1); }); }); });
   const cv = iv => iv.map(([a, b]) => { const x = tOf(a), y = tOf(b); return x <= y ? [x, y] : [y, x]; });
-  return {pezzi, buchi, vuoti:cv(vuoti), pareti:cv(pareti)}; }
+  return {pezzi, buchi, oltre, vuoti:cv(vuoti), pareti:cv(pareti)}; }
 function sezioneDati(s) {
   const A = sezAsse(s), H = A.H, ax = H ? 0 : 1, out = {s, A, L:A.L, piani:[], zmin:0, zmax:0, cop:null}, ctx = [];
   let zc = 0;
@@ -3940,7 +3948,7 @@ function sezioneDati(s) {
     p.aps.forEach(a => { if (a.t0 > a.t1) [a.t0, a.t1] = [a.t1, a.t0]; }); p.amb.forEach(a => { if (a.t0 > a.t1) [a.t0, a.t1] = [a.t1, a.t0]; }); p.aps.sort((a, b) => a.t0 - b.t0); p.amb.sort((a, b) => a.t0 - b.t0); });
   // scale e ascensore (hanno bisogno delle quote dei piani sopra e sotto)
   ctx.forEach(c => { const r = sezScale(c, out.piani); c.me.pezzi = r.pezzi; c.me.vuoti = r.vuoti; r.buchi.forEach(b => b.p.buchi.push([b.t0, b.t1]));
-    if (out.piani.indexOf(c.me) > 0) r.vuoti.forEach(v => c.me.buchi.push(v)); c.me.pareti = r.pareti; c.me.muriP = c.me.muri; c.me.muri = sezMerge(c.me.muri.concat(r.pareti)); if (c.me.e) c.me.e = [Math.min(c.me.e[0], ...r.pareti.map(x => x[0])), Math.max(c.me.e[1], ...r.pareti.map(x => x[1]))]; });
+    if (out.piani.indexOf(c.me) > 0) r.vuoti.forEach(v => c.me.buchi.push(v)); c.me.pareti = r.pareti; c.me.prj = c.me.prj.concat(r.oltre).sort((a, b) => b.di - a.di || ({w:0, s:1, o:2}[a.k] - {w:0, s:1, o:2}[b.k])); c.me.muriP = c.me.muri; c.me.muri = sezMerge(c.me.muri.concat(r.pareti)); if (c.me.e) c.me.e = [Math.min(c.me.e[0], ...r.pareti.map(x => x[0])), Math.max(c.me.e[1], ...r.pareti.map(x => x[1]))]; });
   const z0 = out.piani.find(p => livello(p.nome) === 0) || out.piani[0]; out.zero = z0 ? z0.zf : 0;   // ±0,00 = pavimento del «Piano terra» (se non c'è, del piano più basso)
   const sc = num(R.solC), up = out.piani[out.piani.length - 1];
   if (up) { out.cop = {sol:sc > 0 ? sc : SEZ_SOL, solP:!(sc > 0), e:up.e, z0:up.zc}; out.zmin = out.piani[0].zf - out.piani[0].sol; out.zmax = up.zc + out.cop.sol; }
@@ -3959,7 +3967,8 @@ function sezioneSvg(d, mini) {
     (p.vuoti || []).forEach(([v0, v1]) => { s += rc(v0, v1, p.zf, p.zc, 'var(--cv)'); });
     // proiezione: quello che si vede oltre la linea, dal più lontano al più vicino (linee sottili)
     p.prj.forEach(x => { const th = 'stroke="var(--ink)" stroke-width=".8"';
-      if (x.k === 'w') s += rc(x.t0, x.t1, p.zf, p.zf + (x.w ? 1 : p.Hn), 'var(--wall)', th);
+      if (x.k === 's') s += `<path d="M${x.poly.map(q => X(q[0]) + ' ' + Z(q[1])).join(' L')} Z" fill="var(--wall)" ${th}/>`;
+      else if (x.k === 'w') s += x.w ? rc(x.t0, x.t1, p.zf, p.zf + 1, 'var(--wall)', th) : rc(x.t0, x.t1, p.zf - p.sol, p.zc + (p === pr[pr.length - 1] && d.cop ? d.cop.sol : 0), 'var(--wall)', th);   // il corpo si vede intero: con il solaio sotto e la copertura sopra
       else { s += rc(x.t0, x.t1, p.zf + x.z0, p.zf + x.z1, 'var(--cv)', th); if (x.tipo !== 'porta' && x.t1 - x.t0 > 0.2 && x.z1 - x.z0 > 0.2) s += rc(x.t0 + 0.05, x.t1 - 0.05, p.zf + x.z0 + 0.05, p.zf + x.z1 - 0.05, 'none', th); } });
     // solaio di calpestio: copre il piano e, se più largo, il soffitto del piano sotto; si apre dove passano scale e ascensore
     const e = p.e && prev && prev.e ? [Math.min(p.e[0], prev.e[0]), Math.max(p.e[1], prev.e[1])] : p.e;

@@ -1,0 +1,2 @@
+oltre la linea [{"nome":"Piano terra","zf":0,"zc":2.7,"sol":0.3,"X":28,"muri":2,"ordine":true},{"nome":"Piano primo","zf":2.95,"zc":5.65,"sol":0.25,"X":28,"muri":2,"ordine":true}]
+errors []

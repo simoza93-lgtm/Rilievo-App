@@ -3,10 +3,15 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — Sezioni: scale e ascensore in proiezione, corpo continuo
+- **Scale e ascensore oltre la linea** ora si vedono (gradini a lastre sottili, ascensore come vano), come muri e aperture.
+- **Corpo continuo in proiezione:** un muro visto oltre la linea ora è disegnato intero, dal solaio sotto al piano fino al soffitto, e sull'ultimo piano anche con la copertura. Prima si spezzava a ogni solaio.
+- Prova nuova `test/sezione4.js`.
+
 ## 28 novembre 2026 — Sezioni: linee di proiezione e infissi nel taglio
 - In sezione ora si vede anche **quello che sta oltre la linea** (dalla parte della freccia): muri, parapetti, porte e finestre, disegnati con linee sottili, dal più lontano al più vicino (il vicino copre il lontano). Le finestre hanno il telaio interno.
 - **Infissi tagliati dalla linea:** nel vano si disegna il vetro (due linee sottili) per finestre e porte-finestre, l'anta (una linea) per le porte. Se la linea corre lungo il muro, si vede il telaio.
-- Non ancora: scale e ascensore oltre la linea, muri obliqui con la loro forma (si vede l'ingombro). Prova nuova `test/sezione3.js`; `sezione` aggiornata (più rettangoli).
+- Non ancora: muri obliqui con la loro forma (si vede l'ingombro). Prova nuova `test/sezione3.js`; `sezione` aggiornata (più rettangoli).
 
 ## 28 novembre 2026 — Altezze e solai dei piani nella pagina del rilievo
 - Nella pagina del rilievo, sotto le Piante, c'è la scheda **«Piani: altezze e solai»**: per ogni piano **Altezza interna** e **Solaio di calpestio**, in fondo la **Copertura**. È qui, dentro il rilievo, e **non più** nei «Dati del rilievo» (la scheda Solai è stata tolta di là); le Impostazioni dell'ingranaggio non c'entrano.
