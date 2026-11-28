@@ -3875,6 +3875,8 @@ function sezScale(c, plans) {
     if (st.tipo === 'lift' || st.tipo === 'asc') { const P = stairPrims(st);
       if (P.lift) { const pts = P.lift.walls, di = bey(Math.min(...pts.map(q => q[pe])), Math.max(...pts.map(q => q[pe]))), c0 = Math.max(Math.min(...pts.map(q => q[ax])), lo), c1 = Math.min(Math.max(...pts.map(q => q[ax])), hi);
         if (di != null && c1 - c0 > 1e-6) { const t = [tOf(c0), tOf(c1)]; oltre.push({k:'w', di, t0:Math.min(...t), t1:Math.max(...t), w:false}); }
+          const d0 = pts[5], d1 = pts[0], vic = dd > 0 ? Math.min(...pts.map(q => q[pe])) : Math.max(...pts.map(q => q[pe]));   // porta di piano: si vede se è sul lato verso la linea di sezione
+          if (di != null && Math.abs(d0[pe] - vic) < 1e-6 && Math.abs(d0[ax] - d1[ax]) > 1e-6) { const g = [tOf(Math.max(Math.min(d0[ax], d1[ax]), lo)), tOf(Math.min(Math.max(d0[ax], d1[ax]), hi))]; if (Math.abs(g[1] - g[0]) > 1e-6) oltre.push({k:'o', di, t0:Math.min(...g), t1:Math.max(...g), z0:0, z1:2.10, tipo:'porta', p:false}); }
         const iv = []; sezScan([P.lift.walls.concat([P.lift.walls[0]])], pv, ax, (a, b) => iv.push(clip(a, b)));
         if (iv.length) { iv.forEach(x => pareti.push(x)); if (iv.length > 1) { const s = iv.slice().sort((a, b) => a[0] - b[0]); vuoti.push([s[0][1], s[s.length - 1][0]]); } } }
       if (st.tipo === 'lift') return; }

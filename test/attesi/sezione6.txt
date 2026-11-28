@@ -1,0 +1,2 @@
+{"porta_verso_la_linea":[{"larg":0.8,"alta":2.1}],"porta_dall_altra_parte":[],"porta_di_lato":[],"linea_dietro_la_porta":[],"Xdo_dall_alto_porta_Xa":[],"Xdo_dall_alto_porta_Xe":[{"larg":0.8,"alta":2.1}]}
+errors []

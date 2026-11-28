@@ -3,6 +3,10 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — Sezioni: porta dell'ascensore in proiezione
+- Se l'ascensore sta oltre la linea di sezione e la sua **porta di piano guarda verso la linea**, in proiezione si vede il vano porta (0,80 m di larghezza, alto 2,10 m, dal pavimento), preso dalle impostazioni dell'ascensore (larghezza porta e lato). Se la porta è sul lato opposto o di fianco non si vede, come nella realtà. Vale anche nello script AutoCAD e nella scheda.
+- Prova nuova: `test/sezione6.js`.
+
 ## 28 novembre 2026 — Sezioni: script AutoCAD e scheda PDF
 - Nella pagina della sezione c'è il tasto **«Script AutoCAD»**: scarica uno script `.scr` per ogni sezione (a parte da quello delle piante). Origine 0,0 in basso a sinistra dell'ingombro, quota ±0,00 sul pavimento del Piano terra, unità metri, 1:100.
 - **Layer esistenti:** muri, solai e scale tagliati **pieni** sul layer `PLAN_MURI_PERIM`; infissi nel taglio, proiezione (le parti nascoste da muri più vicini non si scrivono), nomi degli ambienti, livelli e quote sul layer `PLAN_INFISSI_TESTI`. Quote con lo stile `STUDIO` (testo 0,17, 2 decimali): orizzontali a 1,00 m sotto l'edificio, verticali a destra.
