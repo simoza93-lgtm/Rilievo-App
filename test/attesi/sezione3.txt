@@ -1,0 +1,6 @@
+X {"piani":2,"stanze":[2,2]}
+linea {"n":1,"a":[-1.15,1.85],"b":[10.85,1.85],"v":1,"mode":"select","sel":"sez"}
+dopo la terza {"n":2,"a":[4.85,-1.15],"b":[4.85,4.85],"mode":"select"}
+Xone {"prj":[{"k":"w","t":[1,2.3],"di":2,"w":false},{"k":"w","t":[3.5,11.3],"di":2,"w":false},{"k":"o","tipo":"Xa","t":[2.3,3.5],"di":2},{"k":"w","t":[1,1.3],"di":0.7,"w":false},{"k":"w","t":[3.95,4.05],"di":0.7,"w":false},{"k":"w","t":[11,11.3],"di":0.7,"w":false}],"aps":[{"t":[3.95,4.05],"tipo":"porta"}],"linee":2,"X":14}
+girata (oltre la linea dall'altra parte) ["w:1.70","w:0.20","w:0.20","w:0.20"]
+errors []

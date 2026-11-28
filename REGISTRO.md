@@ -3,6 +3,11 @@
 Le modifiche più recenti stanno in cima. Il registro completo fino al 9 novembre 2026 (valori, regole del
 rilievo, simbologia, scale, script) è nel documento: https://claude.ai/artifact/KUbyUVj8aMznhWUcgayYdo
 
+## 28 novembre 2026 — Sezioni: linee di proiezione e infissi nel taglio
+- In sezione ora si vede anche **quello che sta oltre la linea** (dalla parte della freccia): muri, parapetti, porte e finestre, disegnati con linee sottili, dal più lontano al più vicino (il vicino copre il lontano). Le finestre hanno il telaio interno.
+- **Infissi tagliati dalla linea:** nel vano si disegna il vetro (due linee sottili) per finestre e porte-finestre, l'anta (una linea) per le porte. Se la linea corre lungo il muro, si vede il telaio.
+- Non ancora: scale e ascensore oltre la linea, muri obliqui con la loro forma (si vede l'ingombro). Prova nuova `test/sezione3.js`; `sezione` aggiornata (più rettangoli).
+
 ## 28 novembre 2026 — Altezze e solai dei piani nella pagina del rilievo
 - Nella pagina del rilievo, sotto le Piante, c'è la scheda **«Piani: altezze e solai»**: per ogni piano **Altezza interna** e **Solaio di calpestio**, in fondo la **Copertura**. È qui, dentro il rilievo, e **non più** nei «Dati del rilievo» (la scheda Solai è stata tolta di là); le Impostazioni dell'ingranaggio non c'entrano.
 - **Altezza interna:** si scrive una volta e vale per **tutti gli ambienti del piano** (esterni esclusi), anche per quelli che nasceranno dopo. Con ambienti di altezze diverse la casella dice «varie»: scrivendo un valore diventano tutte uguali. Le altezze dei singoli ambienti si cambiano ancora dal pannello dell'ambiente.

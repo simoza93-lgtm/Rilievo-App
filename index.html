@@ -3915,6 +3915,14 @@ function sezioneDati(s) {
       if (op.q) sezScan([op.q.concat([op.q[0]])], pv, ax, ad); else if (op.c && op.c[H ? 1 : 0] <= pv && pv < op.c[H ? 3 : 2]) ad(op.c[H ? 0 : 1], op.c[H ? 2 : 3]);
       sezMerge(c0).forEach(([a, b]) => { a = Math.max(a, lo); b = Math.min(b, hi); if (b - a > 1e-6) aps.push(Object.assign({c0:a, c1:b, tipo:op.ap.tipo}, sezApertura(op.ap))); }); });
     const muri = sezMerge(pick(l => l !== 'W' && l !== 'E').concat(aps.map(a => [a.c0, a.c1])));   // il muro continua sopra e sotto il vano
+    // oltre la linea (non tagliato): proiezione di muri, parapetti e aperture; ogni voce = tratto in c, distanza dalla linea, tipo
+    const dd = A.d[H ? 1 : 0], bey = (m, M) => dd > 0 ? (m >= pv - 1e-6 ? m - pv : null) : (M <= pv + 1e-6 ? pv - M : null), prj = [];
+    const pa = (k, m, M, c0, c1, x) => { const di = bey(m, M); c0 = Math.max(c0, lo); c1 = Math.min(c1, hi); if (di != null && c1 - c0 > 1e-6) prj.push(Object.assign({k, di, c0, c1}, x)); };
+    (g.fills || []).forEach(b => { if (b[4] !== 'E') pa('w', b[H ? 1 : 0], b[H ? 3 : 2], b[H ? 0 : 1], b[H ? 2 : 3], {w:b[4] === 'W'}); });
+    (g.fpolys || []).forEach(poly => { const pts = [].concat(...poly); if (poly.l === 'E' || !pts.length) return; const pe = pts.map(q => q[H ? 1 : 0]), al = pts.map(q => q[H ? 0 : 1]); pa('w', Math.min(...pe), Math.max(...pe), Math.min(...al), Math.max(...al), {w:poly.l === 'W'}); });
+    (g.ops || []).forEach(op => { const pts = op.q || (op.c ? [[op.c[0], op.c[1]], [op.c[2], op.c[3]]] : []); if (!pts.length) return; const pe = pts.map(q => q[H ? 1 : 0]), al = pts.map(q => q[H ? 0 : 1]);
+      pa('o', Math.min(...pe), Math.max(...pe), Math.min(...al), Math.max(...al), Object.assign({tipo:op.ap.tipo}, sezApertura(op.ap))); });
+    prj.sort((a, b) => b.di - a.di || (a.k === 'w' ? -1 : 1) - (b.k === 'w' ? -1 : 1));
     const rooms = (pl.rooms || []).map(r => g.comps[r._c] && g.comps[r._c].room && DEST[r.dest] !== 'E' ? num(r.H) : NaN).filter(h => h > 0);
     const hp = !rooms.length, Hn = hp ? SEZ_H : Math.max(...rooms), sol = num(pl.sol), solP = !(sol > 0), sl = solP ? SEZ_SOL : sol;
     const zf = !out.piani.length ? 0 : zc + sl, ceil = zf + Hn; zc = ceil;
@@ -3923,7 +3931,8 @@ function sezioneDati(s) {
       if (r && g.comps[c].room) amb.push({c0:a, c1:b, nome:r.nome || '', H:num(r.H) > 0 ? num(r.H) : Hn, est:DEST[r.dest] === 'E'}); }
     const ex = muri.concat(rail, ext), e0 = ex.length ? Math.min(...ex.map(x => x[0])) : null, e1 = ex.length ? Math.max(...ex.map(x => x[1])) : null;
     const p = {i, nome:pl.nome, zf, zc:ceil, Hn, hp, sol:sl, solP, muri:muri.map(m => m.map(tOf)), rail:rail.map(m => m.map(tOf)), ext:ext.map(m => m.map(tOf)), aps:aps.map(a => Object.assign({}, a, {t0:tOf(a.c0), t1:tOf(a.c1)})),
-      amb:amb.map(a => Object.assign({}, a, {t0:tOf(a.c0), t1:tOf(a.c1)})), e:e0 == null ? null : [tOf(e0), tOf(e1)], pezzi:[], buchi:[], vuoti:[]};
+      amb:amb.map(a => Object.assign({}, a, {t0:tOf(a.c0), t1:tOf(a.c1)})), e:e0 == null ? null : [tOf(e0), tOf(e1)], pezzi:[], buchi:[], vuoti:[],
+      prj:prj.map(x => Object.assign({}, x, {t0:Math.min(tOf(x.c0), tOf(x.c1)), t1:Math.max(tOf(x.c0), tOf(x.c1))}))};
     out.piani.push(p); ctx.push({pl, A, H, ax, pv, lo, hi, tOf, me:p}); });
   // gli estremi in t vanno ordinati: tOf può invertire il verso
   const srt = l => l.map(([a, b]) => a <= b ? [a, b] : [b, a]).sort((a, b) => a[0] - b[0]);
@@ -3948,10 +3957,18 @@ function sezioneSvg(d, mini) {
   pr.forEach(p => {
     p.amb.filter(a => !a.est).forEach(a => { s += rc(a.t0, a.t1, p.zf, p.zf + a.H, 'var(--wall)'); });
     (p.vuoti || []).forEach(([v0, v1]) => { s += rc(v0, v1, p.zf, p.zc, 'var(--cv)'); });
+    // proiezione: quello che si vede oltre la linea, dal più lontano al più vicino (linee sottili)
+    p.prj.forEach(x => { const th = 'stroke="var(--ink)" stroke-width=".8"';
+      if (x.k === 'w') s += rc(x.t0, x.t1, p.zf, p.zf + (x.w ? 1 : p.Hn), 'var(--wall)', th);
+      else { s += rc(x.t0, x.t1, p.zf + x.z0, p.zf + x.z1, 'var(--cv)', th); if (x.tipo !== 'porta' && x.t1 - x.t0 > 0.2 && x.z1 - x.z0 > 0.2) s += rc(x.t0 + 0.05, x.t1 - 0.05, p.zf + x.z0 + 0.05, p.zf + x.z1 - 0.05, 'none', th); } });
     // solaio di calpestio: copre il piano e, se più largo, il soffitto del piano sotto; si apre dove passano scale e ascensore
     const e = p.e && prev && prev.e ? [Math.min(p.e[0], prev.e[0]), Math.max(p.e[1], prev.e[1])] : p.e;
     if (e) sub(e, p.buchi || []).forEach(([a, b]) => { s += rc(a, b, p.zf - p.sol, p.zf, B); });
     p.muri.forEach(([w0, w1]) => pezzi(w0, w1, p.zf, p.zc, p.aps).forEach(q => { s += rc(q[0], q[1], q[2], q[3], B, `stroke="${B}" stroke-width=".6"`); }));
+    // infissi nel taglio: vetro (due linee) o anta (una) nel mezzo del muro; se il taglio corre lungo il muro, il telaio
+    p.aps.forEach(a => { const m = (a.t0 + a.t1) / 2, y0 = Z(p.zf + a.z0), y1 = Z(p.zf + a.z1), st = 'stroke="var(--ink)" stroke-width="1.2" fill="none"';
+      if (a.t1 - a.t0 <= 0.6) (a.tipo === 'porta' ? [0] : [-0.025, 0.025]).forEach(o => { s += `<path d="M${X(m + o)} ${y0} L${X(m + o)} ${y1}" ${st}/>`; });
+      else if (a.t1 - a.t0 > 0.2) s += rc(a.t0 + 0.05, a.t1 - 0.05, p.zf + a.z0 + 0.05, p.zf + a.z1 - 0.05, 'none', st); });
     p.rail.forEach(([w0, w1]) => { s += rc(w0, w1, p.zf, p.zf + 1, B); });
     (p.pezzi || []).forEach(poly => { s += `<path d="M${poly.map(q => X(q[0]) + ' ' + Z(q[1])).join(' L')} Z" fill="${B}" stroke="${B}" stroke-width=".6"/>`; });
     if (!mini) p.amb.forEach(a => { s += `<text x="${X((a.t0 + a.t1) / 2)}" y="${Z(p.zf + 0.4)}" text-anchor="middle" font-size="15" fill="var(--ink)">${esc(a.nome)}</text>`; });
