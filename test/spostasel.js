@@ -9,6 +9,11 @@ const { chromium } = require('playwright');
   await p.evaluate(() => { R = blank(); R.id = 'ss'; tab = 'pianta'; render(); const pl = piano(); ui.view = {x:-1, y:-1, s:60}; G = geometry(pl);
     const st = (pts, tipo) => { ui.newType = tipo; const sp = []; for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], c = pts[i + 1]; for (let k = 0; k < 8; k++) sp.push([SX(a[0] + (c[0] - a[0]) * k / 8), SY(a[1] + (c[1] - a[1]) * k / 8)]); } sp.push([SX(pts[pts.length - 1][0]), SY(pts[pts.length - 1][1])]); finishStroke(sp); };
     ui.mode = 'select'; st([[0,0],[10,0],[10,4],[0,4],[0,0]], 'P'); update(true); updTools(); fit(); draw(); });
+  // un ascensore posato a destra (come nel video)
+  await p.click('[data-cat="scale"]'); await p.click('#appan [data-ap="sc:lift"]');
+  { const bx = await p.evaluate(() => { const r = $('#svg').getBoundingClientRect(); return [r.left + SX(8.8), r.top + SY(2)]; }); await p.mouse.move(bx[0], bx[1]); await p.mouse.down(); await p.mouse.move(bx[0] + 6, bx[1], {steps:3}); await p.mouse.up(); await p.waitForTimeout(150); }
+  await p.evaluate(() => { ui.apCat = null; ui.placeSc = false; ui.sel = null; ui.mode = 'select'; updTools(); fit(); draw(); renderSide(); });
+  const ascensori = await p.evaluate(() => piano().stairs.filter(s => s.tipo === 'lift').length);
   await p.click('#bFull'); await p.waitForTimeout(300);
   const tocca = async (wx, wy) => { const r = await p.evaluate(([wx, wy]) => { const b = document.querySelector('#svg').getBoundingClientRect(); return [b.left + SX(wx), b.top + SY(wy)]; }, [wx, wy]); await p.mouse.click(r[0], r[1]); await p.waitForTimeout(250); };
   const st = () => p.evaluate(() => ({sel:ui.sel ? ui.sel.k : null, pannello:document.body.classList.contains('hassel'), scala:+ui.view.s.toFixed(2), x:+ui.view.x.toFixed(2), sotto:ui.sel && ui.tapX == null ? null : 0}));
@@ -22,5 +27,10 @@ const { chromium } = require('playwright');
   const ok = await p.evaluate(() => { const w = piano().walls.find(w => w.id === ui.sel.id), I = G.T.info.get(w.id); return SX(I.a.x + (I.H ? 0 : I.o || 0)) < ui.W - Math.min(380, innerWidth * 0.44) - 24; });
   console.log('muro fuori dal pannello', ok);
   await p.screenshot({path:require('path').join(OUT, 'spostasel.png')});
+  // tocco sull'ascensore: sta sotto il pannello, la pianta scorre
+  await p.evaluate(() => { ui.sel = null; draw(); renderSide(); fit(); draw(); }); const xs = await p.evaluate(() => +ui.view.x.toFixed(2));
+  const ce = await p.evaluate(() => { const s = piano().stairs.find(s => s.tipo === 'lift'), b = stairPrims(s).bbox; return [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2]; }); await tocca(ce[0], ce[1]);
+  const e = await p.evaluate(() => ({sel:ui.sel && ui.sel.k, x:+ui.view.x.toFixed(2), scala:+ui.view.s.toFixed(2), dentro:SX(stairPrims(piano().stairs.find(s => s.tipo === 'lift')).bbox[2]) < ui.W - Math.min(380, innerWidth * 0.44) - 24}));
+  console.log('ascensori', ascensori, '| ascensore', JSON.stringify(e), 'spostata:', e.x > xs);
   console.log('errors', errs); await b.close();
 })();

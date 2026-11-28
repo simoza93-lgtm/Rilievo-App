@@ -3457,7 +3457,7 @@ function bindCanvas() {
     if (pan) { const dx = p[0] - pan.p[0], dy = p[1] - pan.p[1]; if (Math.hypot(dx, dy) > 5) { if (!pan.moved) closeInline(true); pan.moved = true; } if (pan.moved) { ui.view.x = pan.vx - dx / ui.view.s; ui.view.y = pan.vy + dy / ui.view.s; draw(); } }
   });
   const end = e => {
-    if (!ptrs.has(e.pointerId)) return; const p = pos(e); ptrs.delete(e.pointerId);
+    if (!ptrs.has(e.pointerId)) return; const p = pos(e); ptrs.delete(e.pointerId); ui.tapX = p[0]; ui.tapT = Date.now();   // dove hai toccato: serve a spostare la pianta se il pannello copre l'oggetto
     if (lnS) { const L = lnS; lnS = null; lnStop(); lnLive(null); const k = lnSave(L.a, L.e.p, L.cs); if (k && !L.cs) lnAsk(k); return; }
     if (inkS) { const pts = inkS; inkS = null; clearTimeout(inkT); lnLive(null); inkSave(pts.dritta ? [pts.ini, pts.fine] : pts, !!pts.dritta); return; }
     if (gom) { gom = null; return; }
@@ -4100,7 +4100,7 @@ function closedByShortWalls(pl, c) {
   return ws.length >= 3 && ws.every(I => I.len <= 1.0);
 }
 function hit(p) {
-  ui.tapX = p[0]; purgeNotes();
+  purgeNotes();
   const fp = pinAt(p); if (fp) { openFoto(fp); return; }
   const qd = dimAt(p); if (qd) { ui.sel = {k:'q', id:qd.d.id}; draw(); renderSide(); return; }
   const ik = inkAt(p); if (ik) { ui.sel = {k:'ink', id:ik.id}; draw(); renderSide(); return; }
@@ -4208,7 +4208,7 @@ function zoomAmbiente() { const sel = ui.sel, rid = sel && sel.k === 'r' && ui.m
   ui.view = {s, x:(bb[0] + bb[2]) / 2 - W / 2 / s, y:(bb[1] + bb[3]) / 2 - ui.H / 2 / s}; draw(); }
 // a schermo intero il pannello copre il lato destro: se l'oggetto toccato (ascensore, finestra, scala...) sta sotto il pannello, la pianta scorre a sinistra, senza cambiare zoom
 function spostaSel() { const tx = ui.tapX; ui.tapX = null; const sel = ui.sel;
-  if (tx == null || !sel || sel.k === 'r' || !ui.full || window.innerWidth <= 700 || ((R && R.vrot) || 0) || !document.body.classList.contains('hassel')) return;
+  if (tx == null || Date.now() - ui.tapT > 500 || !sel || sel.k === 'r' || !ui.full || window.innerWidth <= 700 || ((R && R.vrot) || 0) || !document.body.classList.contains('hassel')) return;
   const lim = ui.W - Math.min(380, window.innerWidth * 0.44) - 24 - 110;   // 110 px di respiro: l'oggetto sta a cavallo del punto toccato
   if (tx > lim) { ui.view.x += (tx - lim) / ui.view.s; draw(); } }
 function setPamb(on) { ui.pamb = on; try { localStorage.setItem('rilievo-pamb', on ? '1' : '0'); } catch (e) {} ui.zAmb = null; renderSide(); toast(on ? 'Pannello dell\'ambiente acceso.' : 'Pannello dell\'ambiente spento: selezioni l\'ambiente e vedi solo le misure.'); }
