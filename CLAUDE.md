@@ -9,6 +9,7 @@ studio tecnico, non da informatico. Misure sempre in **metri con due decimali** 
 
 ## Come lavorare con Simone
 
+- **Usa sempre la skill `ponytail`** (in `.claude/skills/ponytail/`, livello `full`) quando scrivi o modifichi l'app: la modifica più piccola che risolve davvero il problema, niente funzioni in più. Non vale per le regole di questo file: prove, `REGISTRO.md`, italiano semplice e le regole del rilievo restano obbligatorie. Niente livello `ultra`.
 - Prima di un lavoro grande fai **tutte le domande insieme, all'inizio**. Poi lavora a tappe e fagli vedere
   il risultato a ogni tappa.
 - Quando fa domande («si può fare…?», «conviene…?») cerca online prima di rispondere e cita le fonti.
